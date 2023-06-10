@@ -1,0 +1,14 @@
+{
+  "name": "@aaronkyle/wbg-pip-shared-prosperity",
+  "main": "f46369a4ae631d37@329.js",
+  "version": "329.0.0",
+  "homepage": "https://observablehq.com/@aaronkyle/wbg-pip-shared-prosperity",
+  "author": {
+    "name": "Aaron Kyle Dennis",
+    "url": "https://observablehq.com/@aaronkyle"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}
