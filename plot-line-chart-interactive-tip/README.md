@@ -1,6 +1,6 @@
 # Plot: Line chart, interactive tip
 
-https://observablehq.com/@observablehq/plot-line-chart-interactive-tip@22
+https://observablehq.com/d/685df66f66489d8e@24
 
 View this notebook in your browser by running a web server in this folder. For
 example:
@@ -14,14 +14,14 @@ import this module directly into your application. To npm install:
 
 ~~~sh
 npm install @observablehq/runtime@5
-npm install https://api.observablehq.com/d/eb094d98edb47b61@22.tgz?v=3
+npm install https://api.observablehq.com/d/685df66f66489d8e@24.tgz?v=3
 ~~~
 
 Then, import your notebook and the runtime as:
 
 ~~~js
 import {Runtime, Inspector} from "@observablehq/runtime";
-import define from "@observablehq/plot-line-chart-interactive-tip";
+import define from "685df66f66489d8e";
 ~~~
 
 To log the value of the cell named “foo”:
