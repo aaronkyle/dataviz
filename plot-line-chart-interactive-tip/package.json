@@ -1,0 +1,14 @@
+{
+  "name": "@observablehq/plot-line-chart-interactive-tip",
+  "main": "eb094d98edb47b61@22.js",
+  "version": "22.0.0",
+  "homepage": "https://observablehq.com/@observablehq/plot-line-chart-interactive-tip",
+  "author": {
+    "name": "Observable",
+    "url": "https://observablehq.com/@observablehq"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}
