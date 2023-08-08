@@ -1,0 +1,14 @@
+{
+  "name": "@visionscarto/natural-breaks",
+  "main": "859b631fe896addc@1434.js",
+  "version": "1434.0.0",
+  "homepage": "https://observablehq.com/@visionscarto/natural-breaks",
+  "author": {
+    "name": "Visionscarto",
+    "url": "https://observablehq.com/@visionscarto"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}
