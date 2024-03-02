@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Page Flex Grid</title>
+    <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet">
+    <style>
+        *,
+        *::after,
+        *::before {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bar-width: 40px;
+            --bar-height: 6px;
+            --hamburger-gap: 4px;
+            --foreground: #333;
+            --background: white;
+            --hamburger-margin: 20px;
+            --animation-timing: 200ms ease-in-out;
+            --hamburger-height: calc(var(--bar-height) * 3 + var(--hamburger-gap) * 2);
+        }
+
+        .header {
+            h1 {
+                color: lightgrey;
+                font-size: 2em;
+                font-weight: 400;
+                margin-top: 10px; /* Reset any potential inherited margins */
+                margin-bottom: 10px; /* Reset any potential inherited margins */
+            }
+            background-color: rgb(64, 64, 74);
+            padding: 0px 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            z-index: 800; /* Ensure the header stays on top of other content */
+        }
+
+        .hamburger-menu {
+            --x-width: calc(var(--hamburger-height) * 1.41421356237);
+
+            display: flex;
+            flex-direction: column;
+            gap: var(--hamburger-gap);
+            width: max-content;
+            position: absolute;
+            right: var(--hamburger-margin);
+            z-index: 2;
+            cursor: pointer;
+            --foreground: lightgrey;
+            --background: #333;
+        }
+
+        .hamburger-menu:has(input:checked) {
+            --foreground: lightgrey;
+            --background: #333;
+        }
+
+        .hamburger-menu:has(input:focus-visible)::before,
+        .hamburger-menu:has(input:focus-visible)::after,
+        .hamburger-menu input:focus-visible {
+            border: 1px solid var(--background);
+            box-shadow: 0 0 0 1px var(--foreground);
+        }
+
+        .hamburger-menu::before,
+        .hamburger-menu::after,
+        .hamburger-menu input {
+            content: "";
+            width: var(--bar-width);
+            height: var(--bar-height);
+            background-color: var(--foreground);
+            border-radius: 9999px;
+            transform-origin: left center;
+            transition: opacity var(--animation-timing), width var(--animation-timing),
+            rotate var(--animation-timing), translate var(--animation-timing),
+            background-color var(--animation-timing);
+        }
+
+        .hamburger-menu input {
+            appearance: none;
+            padding: 0;
+            margin: 0;
+            outline: none;
+            pointer-events: none;
+        }
+
+        .hamburger-menu:has(input:checked)::before {
+            rotate: 45deg;
+            width: var(--x-width);
+            translate: 0 calc(var(--bar-height) / -2);
+        }
+
+        .hamburger-menu:has(input:checked)::after {
+            rotate: -45deg;
+            width: var(--x-width);
+            translate: 0 calc(var(--bar-height) / 2);
+        }
+
+        .hamburger-menu input:checked {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar {
+            transition: transform var(--animation-timing);
+            transform: translateX(100%);
+            padding: 0.5rem 1rem;
+            padding-top: calc(var(--hamburger-height) + var(--hamburger-margin) + 1rem);
+            /*background-color: var(--foreground);*/
+            /*color: var(--background);*/
+            color: lightgrey;
+            background-color: rgb(64, 64, 74);
+            max-width: 20rem;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            z-index: 1; /* Ensure sidebar is behind the hamburger menu */
+        }
+
+        .hamburger-menu input:checked ~ .sidebar {
+            transform: translateX(0);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            /*height: 100vh;*/
+            margin-top: 65px; /* Allow nav to account for sticky header */
+        }
+
+        .page {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 0; /* Allow content to overflow */
+        }
+
+        .cell {
+            background-color: lightblue;
+            padding: 10px;
+            margin: 2px;
+            text-align: center;
+            flex-grow: 1; /* Ensure equal height for cells within a row */
+            border: 3px solid #2e86bb;
+            color: white;
+            font-size: 14px;
+            /*position: relative;*/
+            /*overflow: hidden;*/ /* Prevent map from overflowing its container */
+        }
+
+        .col-30 {
+            flex-basis: 30%;
+        }
+
+        .col-70 {
+            flex-basis: 70%;
+        }
+
+        .col-50 {
+            flex-basis: 50%;
+        }
+
+        .col-80 {
+            flex-basis: 80%;
+        }
+
+        .col-20 {
+            flex-basis: 20%;
+        }
+
+        /* Adjust margin for sectionFive when scrolling */
+        #sectionFive {
+            scroll-margin-top: 65px; /* Add margin when scrolling to this section */
+        }
+
+
+        #map {
+            /*width: 100%;*/ /* Set map width to 100% of its container */
+            height: 99%; /* Set map height to 100% of its container */
+            z-index: 0; /* Ensure sidebar is behind the hamburger menu */
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Site Title</h1>
+    <label class="hamburger-menu">
+        <input type="checkbox" id="toggle-sidebar" />
+    </label>
+
+</div>
+
+<aside class="sidebar">
+    <nav>
+        <div>This</div>
+        <div><a href="#sectionFive">Go to Section Five</a></div>
+        <div>The</div>
+        <div>Sidebar</div>
+    </nav>
+</aside>
+
+<div class="container">
+    <div class="page">
+        <div class="column col-30">
+            <div class="cell" data-label="One">One</div>
+        </div>
+        <div class="column col-70">
+            <div id="map" class="cell" data-label="Two"></div> <!-- Place map container inside 'Two' cell block -->
+        </div>
+        <div class="column col-50">
+            <div class="cell" data-label="Three">Three</div>
+        </div>
+        <div class="column col-50">
+            <div class="cell" data-label="Four">Four</div>
+        </div>
+    </div>
+    <div class="page" id="sectionFive">
+        <div class="column col-80">
+            <div class="cell" data-label="Five">Five</div>
+        </div>
+        <div class="column col-20">
+            <div class="cell" data-label="Six">Six</div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.getElementById('toggle-sidebar').addEventListener('change', function() {
+        if (this.checked) {
+            document.querySelector('.sidebar').style.transform = 'translateX(0)';
+        } else {
+            document.querySelector('.sidebar').style.transform = 'translateX(100%)';
+        }
+    });
+</script>
+
+<script src="https://unpkg.com/maplibre-gl"></script>
+<script>
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://demotiles.maplibre.org/style.json', // Example of a custom style URL
+        center: [-74.5, 40],
+        zoom: 9
+    });
+</script>
+
+</body>
+</html>
