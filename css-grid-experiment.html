@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sticky Header and Footer with Flex Grid</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  header {
+    position: sticky;
+    top: 0;
+    background-color: black;
+    color: white;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px;
+  }
+  
+  .article {
+    flex: 0 0 calc(33.33% - 20px);
+    background-color: #F7CAC9;
+    margin-bottom: 20px;
+    padding: 15px;
+    text-align: center;
+  }
+  
+  footer {
+    position: sticky;
+    bottom: 0;
+    background-color: black;
+    color: white;
+    padding: 10px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>Site Title</header>
+
+<main>
+  <div class="article">1</div>
+  <div class="article">2</div>
+  <div class="article">3</div>
+  <div class="article">4</div>
+  <div class="article">5</div>
+  <div class="article">6</div>
+  <div class="article">7</div>
+  <div class="article">8</div>
+  <div class="article">9</div>
+</main>
+
+<footer>This is the end.</footer>
+
+</body>
+</html>
