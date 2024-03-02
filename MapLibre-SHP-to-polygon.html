@@ -1,0 +1,131 @@
+
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MapLibre render of SHP source data</title>
+  <!--<link rel="stylesheet" href="css/style.css">-->
+  <meta name="description" content="MapLibre render of SHP source data">
+
+  <meta property="og:title" content="">
+  <meta property="og:type" content="">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta property="og:image:alt" content="">
+
+<!--  <link rel="icon" href="/favicon.ico" sizes="any"> -->
+<!--  <link rel="icon" href="/icon.svg" type="image/svg+xml"> -->
+<!--  <link rel="apple-touch-icon" href="icon.png"> -->
+
+<!--  <  <link rel="manifest" href="site.webmanifest"> -->
+<!--  <  <meta name="theme-color" content="#fafafa"> -->
+
+  <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.0.2/dist/maplibre-gl.css' />
+  <script src='https://unpkg.com/maplibre-gl@4.0.2/dist/maplibre-gl.js'></script>
+  <style>
+      body { margin: 0; padding: 0; }
+      html, body, #map-container { height: 80%; }
+  </style>
+</head>
+
+<body>
+  <!-- Add your site or application content here -->
+  <p></p>
+
+  <div id="map-container"></div>
+
+  <script>
+      var map = new maplibregl.Map({
+          container: 'map-container',
+          center: [-71.698, 42.041],
+          zoom: 7.5,
+          style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+          maplibreLogo: true,
+          attributionControl: true
+      });
+  </script>
+
+  <script src='https://unpkg.com/shpjs@latest/dist/shp.js' type="module"></script>
+
+  <script type="module">
+      // You can now use the shp object/methods here
+      console.log(shp);
+      window.shp = shp; // Add shp to global scope
+  
+      // Call loadData() after shp is defined
+      async function loadData() {
+          try {
+              // Load all files simultaneously
+              const promises = [
+                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.zip").then(r => r.arrayBuffer()),
+                  //fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/BioMap3.zip").then(r => r.arrayBuffer()),
+                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/dcrtrails.zip").then(r => r.arrayBuffer())
+                  // Add more file URLs here if needed
+              ];
+
+              // Wait for all promises to resolve
+              const results = await Promise.all(promises);
+
+              // Parse each result
+              const rta_boundaries_interp = await shp.parseZip(results[0]);
+              console.log('RTA Boundaries loaded successfully:', rta_boundaries_interp);
+
+              //const BioMap3_interp = await shp.parseZip(results[1]);
+              //console.log('BioMap3 loaded successfully:', BioMap3_interp);
+
+              const dcr_trails_interp = await shp.parseZip(results[1]);
+              console.log('DCR Trails loaded successfully:', dcr_trails_interp);
+
+              // Add more data objects as needed
+
+              // Print success message after all data objects are loaded
+              console.log('All data objects loaded successfully');
+
+              // Now that data is loaded, update the map
+              updateMapLayers(rta_boundaries_interp);
+          } catch (error) {
+              // Print failure message if any data object failed to load
+              console.error('Failed to load data:', error);
+          }
+      };
+
+      // Call the loadData function
+      loadData();
+
+      function updateMapLayers(rta_boundaries_interp) {
+          // Add a new layer to visualize the polygon.
+          map.addLayer({
+              'id': 'rta_boundaries_interp_fill',
+              'type': 'fill',
+              'source': {
+                  'type': 'geojson',
+                  'data': rta_boundaries_interp
+              },
+              'layout': {},
+              'paint': {
+                  'fill-color': '#0080ff', // blue color fill
+                  'fill-opacity': 0.5
+              }
+          });
+          // Add a black outline around the polygon.
+          map.addLayer({
+              'id': 'rta_boundaries_interp_outline',
+              'type': 'line',
+              'source': {
+                  'type': 'geojson',
+                  'data': rta_boundaries_interp
+              },
+              'layout': {},
+              'paint': {
+                  'line-color': '#000',
+                  'line-width': 3
+              }
+          });
+      }
+  </script>
+
+</body>
+
+</html>
