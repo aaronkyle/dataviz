@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Your Map Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+  <style>
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    #map-container { position: absolute; top: 80px; bottom: 0; width: 80%; height: 660px; left: 10%; }
+    #image-input-container { position: absolute; top: 0; left: 0; width: 100%; padding: 10px; background-color: #fff; z-index: 1; }
+    #layer-input-container { position: absolute; top: 40px; left: 0; width: 100%; padding: 10px; background-color: #fff; z-index: 1; }
+  </style>  
+</head>
+<body>
+    <body>
+        <div id="image-input-container">
+          <label for="imageSelection">Select Image:</label>
+          <input type="radio" id="clear" name="imageSelection" value="clear" checked>
+          <label for="clear">Clear</label>
+          <input type="radio" id="2019" name="imageSelection" value="2019">
+          <label for="2019">2019</label>
+          <input type="radio" id="2021" name="imageSelection" value="2021">
+          <label for="2021">2021</label>
+          <input type="radio" id="elevation" name="imageSelection" value="elevation">
+          <label for="elevation">Elevation</label>
+      </div>
+<div id="layer-input-container">
+  <label for="layerSelection">Select Layer:</label>
+  <label for="berkshire_towns">Towns</label>
+  <input type="checkbox" id="berkshire_towns" name="layerSelection" value="berkshire_towns" checked>
+  
+  <label for="berkshires_acecs_poly">ACECS</label>
+  <input type="checkbox" id="berkshires_acecs_poly" name="layerSelection" value="berkshires_acecs_poly" checked>
+</div>
+
+<div id="map-container"></div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoidmluY2VudHNhcmFnbyIsImEiOiJjamxwa3JkaWkwZ3BjM3dudmZmazQwYjI2In0.eUzks_hqH-QVIlnXUKmKsA';
+
+  var map = new mapboxgl.Map({
+    container: 'map-container',
+    center: [-71.75, 42.1],
+    zoom: 7.5,
+    style: 'mapbox://styles/mapbox-map-design/ckhqrf2tz0dt119ny6azh975y'
+  });
+
+  var massgis_2021_wmts_view = (mapRef) => {
+      mapRef.addSource("massgis-2021-wmts", {
+        type: "raster",
+        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"],
+        tileSize: 256,
+        minzoom: 0,
+        maxzoom: 20
+      });
+      mapRef.addLayer({
+        id: "massgis-2021-wmts",
+        type: "raster",
+        source: "massgis-2021-wmts",
+        layout: {
+          visibility: "none"
+        }
+      });
+    };
+
+    var massgis_2019_wmts_view = (mapRef) => {
+      mapRef.addSource("massgis-2019-wmts", {
+        type: "raster",
+        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/USGS_Orthos_2019/MapServer/WMTS/tile/1.0.0/USGS_Orthos_2019/default/default028mm/{z}/{y}/{x}.jpg"],
+        tileSize: 256,
+        minzoom: 0,
+        maxzoom: 20
+      });
+      mapRef.addLayer({
+        id: "massgis-2019-wmts",
+        type: "raster",
+        source: "massgis-2019-wmts",
+        layout: {
+          visibility: "none"
+        }
+      });
+    };
+
+    var massgis_elevation_hillshade = (mapRef) => {
+      mapRef.addSource("massgis_elevation_hillshade", {
+        type: "raster",
+        tiles: ["https://tiles1.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/LiDAR_Elevation_Hillshade/MapServer/tile/{z}/{y}/{x}"],
+        tileSize: 256,
+        minzoom: 0,
+        maxzoom: 20
+      });
+      mapRef.addLayer({
+        id: "massgis_elevation_hillshade",
+        type: "raster",
+        source: "massgis_elevation_hillshade",
+        layout: {
+          visibility: "none"
+        }
+      });
+    };
+
+
+  var berkshire_towns_data, berkshires_acecs_poly_data;
+
+  // Define functions for adding and updating layers
+  var addOrUpdateLayer = (mapRef, layerId, sourceId, type, paint) => {
+    // Check if the source already exists
+    if (!mapRef.getSource(sourceId)) {
+      mapRef.addSource(sourceId, {
+        type: 'geojson',
+        data: sourceId === 'berkshire_towns' ? berkshire_towns_data : berkshires_acecs_poly_data
+      });
+    }
+
+    // Check if the layer already exists
+    if (!mapRef.getLayer(layerId)) {
+      mapRef.addLayer({
+        id: layerId,
+        type: type,
+        source: sourceId,
+        layout: {
+          visibility: 'visible'
+        },
+        paint: paint
+      });
+    }
+  };
+
+  // Load data and initialize layers
+  (async () => {
+    berkshire_towns_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshire_towns.geojson').then(res => res.json());
+    berkshires_acecs_poly_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshires_acecs_poly.geojson').then(res => res.json());
+
+    addOrUpdateLayer(map, 'berkshire_towns', 'berkshire_towns', 'line', {
+      'line-color': 'orange',
+      'line-width': 1.5,
+      'line-opacity': 0.4
+    });
+
+    addOrUpdateLayer(map, 'berkshires_acecs_poly_fill', 'berkshires_acecs_poly', 'fill', {
+      'fill-color': '#EE4031',
+      'fill-opacity': 0.3
+    });
+
+    addOrUpdateLayer(map, 'berkshires_acecs_poly_line', 'berkshires_acecs_poly', 'line', {
+      'line-color': '#EE4031',
+      'line-width': 1.5,
+      'line-opacity': 0.4
+    });
+  })();
+
+  // Function to set layer visibility
+   // Updated function to set layer visibility
+   function setLayerVisibility(mapRef, layerId, visibility) {
+    if (mapRef.getLayer(layerId)) {
+      mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Event listener for image selection changes
+    document.querySelectorAll('input[name="imageSelection"]').forEach(input => {
+      input.addEventListener('change', () => {
+        var layerSelection = input.value;
+
+        console.log("Selected value:", layerSelection);
+
+        // Set visibility for satellite layers
+        setLayerVisibility(map, "massgis-2021-wmts", layerSelection === "2021");
+        setLayerVisibility(map, "massgis-2019-wmts", layerSelection === "2019");
+        setLayerVisibility(map, "massgis_elevation_hillshade", layerSelection === "elevation");
+      });
+    });
+
+    // Event listener for checkbox changes
+    document.querySelectorAll('input[name="layerSelection"]').forEach(input => {
+      input.addEventListener('change', () => {
+        var isChecked = input.checked;
+        var layerSelection = input.value;
+
+        // Use the setLayerVisibility function for each layer
+        if (layerSelection === 'berkshire_towns') {
+          setLayerVisibility(map, 'berkshire_towns', isChecked);
+        } else if (layerSelection === 'berkshires_acecs_poly') {
+          setLayerVisibility(map, 'berkshires_acecs_poly_fill', isChecked);
+          setLayerVisibility(map, 'berkshires_acecs_poly_line', isChecked);
+        }
+        // Add similar handling for other layers...
+      });
+    });
+  });
+
+  // Event listener for map load
+  map.on('load', () => {
+    // Initialize layers with default visibility
+    massgis_2019_wmts_view(map);
+    massgis_2021_wmts_view(map);
+    massgis_elevation_hillshade(map);
+
+    // Optional: Set default image selection and layer visibility based on initial state
+    var defaultImageSelection = document.querySelector('input[name="imageSelection"]:checked').value;
+    document.querySelector('#' + defaultImageSelection).click(); // Trigger click event to initialize visibility
+  });
+
+</script>
+</body>
+</html>
