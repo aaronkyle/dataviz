@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><a href="https://www.mass.gov/info-details/massgis-data-mhc-historic-inventory">MHC Historic Inventory</a></title>
+    <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet">
+    <style>
+        *,
+        *::after,
+        *::before {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bar-width: 40px;
+            --bar-height: 6px;
+            --hamburger-gap: 4px;
+            --foreground: #333;
+            --background: white;
+            --hamburger-margin: 20px;
+            --animation-timing: 200ms ease-in-out;
+            --hamburger-height: calc(var(--bar-height) * 3 + var(--hamburger-gap) * 2);
+        }
+
+        .header {
+            h1 {
+                color: lightgrey;
+                font-size: 2em;
+                font-weight: 400;
+                margin-top: 10px; /* Reset any potential inherited margins */
+                margin-bottom: 10px; /* Reset any potential inherited margins */
+            }
+            background-color: rgb(64, 64, 74);
+            padding: 0px 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            z-index: 800; /* Ensure the header stays on top of other content */
+        }
+
+        .hamburger-menu {
+            --x-width: calc(var(--hamburger-height) * 1.41421356237);
+
+            display: flex;
+            flex-direction: column;
+            gap: var(--hamburger-gap);
+            width: max-content;
+            position: absolute;
+            right: var(--hamburger-margin);
+            z-index: 2;
+            cursor: pointer;
+            --foreground: lightgrey;
+            --background: #333;
+        }
+
+        .hamburger-menu:has(input:checked) {
+            --foreground: lightgrey;
+            --background: #333;
+        }
+
+        .hamburger-menu:has(input:focus-visible)::before,
+        .hamburger-menu:has(input:focus-visible)::after,
+        .hamburger-menu input:focus-visible {
+            border: 1px solid var(--background);
+            box-shadow: 0 0 0 1px var(--foreground);
+        }
+
+        .hamburger-menu::before,
+        .hamburger-menu::after,
+        .hamburger-menu input {
+            content: "";
+            width: var(--bar-width);
+            height: var(--bar-height);
+            background-color: var(--foreground);
+            border-radius: 9999px;
+            transform-origin: left center;
+            transition: opacity var(--animation-timing), width var(--animation-timing),
+            rotate var(--animation-timing), translate var(--animation-timing),
+            background-color var(--animation-timing);
+        }
+
+        .hamburger-menu input {
+            appearance: none;
+            padding: 0;
+            margin: 0;
+            outline: none;
+            pointer-events: none;
+        }
+
+        .hamburger-menu:has(input:checked)::before {
+            rotate: 45deg;
+            width: var(--x-width);
+            translate: 0 calc(var(--bar-height) / -2);
+        }
+
+        .hamburger-menu:has(input:checked)::after {
+            rotate: -45deg;
+            width: var(--x-width);
+            translate: 0 calc(var(--bar-height) / 2);
+        }
+
+        .hamburger-menu input:checked {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar {
+            transition: transform var(--animation-timing);
+            transform: translateX(100%);
+            padding: 0.5rem 1rem;
+            padding-top: calc(var(--hamburger-height) + var(--hamburger-margin) + 1rem);
+            /*background-color: var(--foreground);*/
+            /*color: var(--background);*/
+            color: lightgrey;
+            background-color: rgb(64, 64, 74);
+            max-width: 20rem;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            z-index: 1; /* Ensure sidebar is behind the hamburger menu */
+        }
+
+        .hamburger-menu input:checked ~ .sidebar {
+            transform: translateX(0);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            /*height: 100vh;*/
+            margin-top: 65px; /* Allow nav to account for sticky header */
+        }
+
+        .page {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 0; /* Allow content to overflow */
+        }
+
+        .cell {
+            background-color: lightblue;
+            padding: 10px;
+            margin: 2px;
+            text-align: center;
+            flex-grow: 1; /* Ensure equal height for cells within a row */
+            border: 3px solid #2e86bb;
+            color: white;
+            font-size: 14px;
+            /*position: relative;*/
+            /*overflow: hidden;*/ /* Prevent map from overflowing its container */
+        }
+
+        .col-30 {
+            flex-basis: 30%;
+        }
+
+        .col-70 {
+            flex-basis: 70%;
+        }
+
+        .col-50 {
+            flex-basis: 50%;
+        }
+
+        .col-80 {
+            flex-basis: 80%;
+        }
+
+        .col-20 {
+            flex-basis: 20%;
+        }
+
+        /* Adjust margin for sectionFive when scrolling */
+        #sectionFive {
+            scroll-margin-top: 65px; /* Add margin when scrolling to this section */
+        }
+
+
+        #map {
+            /*width: 100%;*/ /* Set map width to 100% of its container */
+            height: 99%; /* Set map height to 100% of its container */
+            z-index: 0; /* Ensure sidebar is behind the hamburger menu */
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MHC Historic Inventory</h1>
+        <label class="hamburger-menu">
+            <input type="checkbox" id="toggle-sidebar" />
+        </label>
+    </div>
+    
+    <aside class="sidebar">
+        <nav>
+            <div>This</div>
+            <div><a href="#sectionFive">Go to Section Five</a></div>
+            <div>The</div>
+            <div>Sidebar</div>
+        </nav>
+    </aside>
+    
+    <div class="container">
+        <div class="page">
+            <div class="column col-30">
+                <div class="cell" data-label="One">One</div>
+            </div>
+            <div class="column col-70">
+                <div id="map" class="cell" data-label="Two"></div>
+            </div>
+            <div class="column col-50">
+                <div class="cell" data-label="Three">Three</div>
+            </div>
+            <div class="column col-50">
+                <div class="cell" data-label="Four">Four</div>
+            </div>
+        </div>
+        <div class="page" id="sectionFive">
+            <div class="column col-80">
+                <div class="cell" data-label="Five">Five</div>
+            </div>
+            <div class="column col-20">
+                <div class="cell" data-label="Six">Six</div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <script>
+        document.getElementById('toggle-sidebar').addEventListener('change', function() {
+            if (this.checked) {
+                document.querySelector('.sidebar').style.transform = 'translateX(0)';
+            } else {
+                document.querySelector('.sidebar').style.transform = 'translateX(100%)';
+            }
+        });
+    </script>
+    
+
+    
+    <script src="https://unpkg.com/maplibre-gl"></script>
+
+
+
+    <script>
+        var map = new maplibregl.Map({
+            container: 'map',
+            center: [-71.698, 42.041],
+            zoom: 7.5,
+            style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+            maplibreLogo: true,
+            attributionControl: true
+        });
+      
+        var massgis_2021_wmts_view = (mapRef) => {
+            mapRef.addSource("massgis-2021-wmts", {
+              type: "raster",
+              tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"],
+              tileSize: 256,
+              minzoom: 0,
+              maxzoom: 20
+            });
+            mapRef.addLayer({
+              id: "massgis-2021-wmts",
+              type: "raster",
+              source: "massgis-2021-wmts",
+              layout: {
+                visibility: "none"
+              }
+            });
+          };
+      
+          var massgis_2019_wmts_view = (mapRef) => {
+            mapRef.addSource("massgis-2019-wmts", {
+              type: "raster",
+              tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/USGS_Orthos_2019/MapServer/WMTS/tile/1.0.0/USGS_Orthos_2019/default/default028mm/{z}/{y}/{x}.jpg"],
+              tileSize: 256,
+              minzoom: 0,
+              maxzoom: 20
+            });
+            mapRef.addLayer({
+              id: "massgis-2019-wmts",
+              type: "raster",
+              source: "massgis-2019-wmts",
+              layout: {
+                visibility: "none"
+              }
+            });
+          };
+      
+          var massgis_elevation_hillshade = (mapRef) => {
+            mapRef.addSource("massgis_elevation_hillshade", {
+              type: "raster",
+              tiles: ["https://tiles1.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/LiDAR_Elevation_Hillshade/MapServer/tile/{z}/{y}/{x}"],
+              tileSize: 256,
+              minzoom: 0,
+              maxzoom: 20
+            });
+            mapRef.addLayer({
+              id: "massgis_elevation_hillshade",
+              type: "raster",
+              source: "massgis_elevation_hillshade",
+              layout: {
+                visibility: "none"
+              }
+            });
+          };
+      
+      
+        var berkshire_towns_data, berkshires_acecs_poly_data;
+      
+        // Define functions for adding and updating layers
+        var addOrUpdateLayer = (mapRef, layerId, sourceId, type, paint) => {
+          // Check if the source already exists
+          if (!mapRef.getSource(sourceId)) {
+            mapRef.addSource(sourceId, {
+              type: 'geojson',
+              data: sourceId === 'berkshire_towns' ? berkshire_towns_data : berkshires_acecs_poly_data
+            });
+          }
+      
+          // Check if the layer already exists
+          if (!mapRef.getLayer(layerId)) {
+            mapRef.addLayer({
+              id: layerId,
+              type: type,
+              source: sourceId,
+              layout: {
+                visibility: 'visible'
+              },
+              paint: paint
+            });
+          }
+        };
+      
+        // Load data and initialize layers
+        (async () => {
+          berkshire_towns_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshire_towns.geojson').then(res => res.json());
+          berkshires_acecs_poly_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshires_acecs_poly.geojson').then(res => res.json());
+      
+          addOrUpdateLayer(map, 'berkshire_towns', 'berkshire_towns', 'line', {
+            'line-color': 'orange',
+            'line-width': 1.5,
+            'line-opacity': 0.4
+          });
+      
+          addOrUpdateLayer(map, 'berkshires_acecs_poly_fill', 'berkshires_acecs_poly', 'fill', {
+            'fill-color': '#EE4031',
+            'fill-opacity': 0.3
+          });
+      
+          addOrUpdateLayer(map, 'berkshires_acecs_poly_line', 'berkshires_acecs_poly', 'line', {
+            'line-color': '#EE4031',
+            'line-width': 1.5,
+            'line-opacity': 0.4
+          });
+        })();
+      
+        // Function to set layer visibility
+        function setLayerVisibility(mapRef, layerId, visibility) {
+          if (mapRef.getLayer(layerId)) {
+            mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
+          }
+        }
+      
+        document.addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll('input[name="imageSelection"]').forEach(input => {
+            input.addEventListener('change', () => {
+              var layerSelection = input.value;
+              console.log("Selected value:", layerSelection);
+      
+              map.setLayoutProperty("massgis-2021-wmts", "visibility", layerSelection === "2021" ? "visible" : "none");
+              map.setLayoutProperty("massgis-2019-wmts", "visibility", layerSelection === "2019" ? "visible" : "none");
+              map.setLayoutProperty("massgis_elevation_hillshade", "visibility", layerSelection === "elevation" ? "visible" : "none");
+            });
+          });
+      });
+      
+        // Event listener for checkbox changes
+        document.querySelectorAll('input[name="layerSelection"]').forEach(input => {
+          input.addEventListener('change', () => {
+            var isChecked = input.checked;
+            var layerSelection = input.value;
+      
+            // Use the setLayerVisibility function for each layer
+            if (layerSelection === 'berkshire_towns') {
+              setLayerVisibility(map, 'berkshire_towns', isChecked);
+            } else if (layerSelection === 'berkshires_acecs_poly') {
+              setLayerVisibility(map, 'berkshires_acecs_poly_fill', isChecked);
+              setLayerVisibility(map, 'berkshires_acecs_poly_line', isChecked);
+            }
+            // Repeat for other layers...
+          });
+        });
+      
+        // Event listener for map load
+        map.on('load', () => {
+          // Optional: You can initialize layers here as well
+          massgis_2019_wmts_view(map);
+            massgis_2021_wmts_view(map);
+            massgis_elevation_hillshade(map);
+        });
+      
+      </script>
+
+
+    </body>
+    </html>
