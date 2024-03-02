@@ -85,6 +85,7 @@
 
               // Now that data is loaded, update the map
               updateMapLayers(rta_boundaries_interp);
+              updateMapLayersDCRTrails(dcr_trails_interp);
           } catch (error) {
               // Print failure message if any data object failed to load
               console.error('Failed to load data:', error);
@@ -124,6 +125,25 @@
               }
           });
       }
+
+      function updateMapLayersDCRTrails(dcrtrails_interp) {
+    // Assuming dcrtrails_interp is an array of GeoJSON objects
+    dcrtrails_interp.forEach((geojson, index) => {
+        map.addLayer({
+            'id': `dcrtrails_outline_${index}`,
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data': geojson
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#FF0000', // red color
+                'line-width': 3
+            }
+        });
+    });
+}
   </script>
 
 </body>
