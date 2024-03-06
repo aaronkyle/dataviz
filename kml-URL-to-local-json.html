@@ -1,0 +1,46 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KML to GeoJSON</title>
+  <!--<link rel="stylesheet" href="css/style.css">-->
+  <meta name="description" content="Convert KML file into GeoJSON format">
+
+  <meta property="og:title" content="">
+  <meta property="og:type" content="">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta property="og:image:alt" content="">
+
+  <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+  <!-- Add your site or application content here -->
+  <p>Load a KML file and convert it to GeoJSON.</p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.15.0/togeojson.min.js"></script>
+
+  <script>
+    fetch('https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.kml')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch KML');
+        }
+        return response.text();
+      })
+      .then(kml => {
+        var geojson = toGeoJSON.kml(new DOMParser().parseFromString(kml, 'text/xml'));
+        console.log("JSON data attribute name:", geojson.name); // Log the JSON data attribute name
+        console.log("Feature Collection data:", geojson); // Log the Feature Collection data
+        console.log('KML successfully loaded and converted to GeoJSON');
+      })
+      .catch(error => {
+        console.error('Failed to load or convert KML:', error);
+      });
+  </script>
+</body>
+
+</html>
