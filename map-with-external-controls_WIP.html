@@ -153,7 +153,6 @@
   })();
 
   // Function to set layer visibility
-   // Updated function to set layer visibility
    function setLayerVisibility(mapRef, layerId, visibility) {
     if (mapRef.getLayer(layerId)) {
       mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
@@ -188,7 +187,7 @@
           setLayerVisibility(map, 'berkshires_acecs_poly_fill', isChecked);
           setLayerVisibility(map, 'berkshires_acecs_poly_line', isChecked);
         }
-        // Add similar handling for other layers...
+        // Add more layers....
       });
     });
   });
@@ -200,7 +199,7 @@
     massgis_2021_wmts_view(map);
     massgis_elevation_hillshade(map);
 
-    // Optional: Set default image selection and layer visibility based on initial state
+    // Set default image selection and layer visibility based on initial state
     var defaultImageSelection = document.querySelector('input[name="imageSelection"]:checked').value;
     document.querySelector('#' + defaultImageSelection).click(); // Trigger click event to initialize visibility
   });
