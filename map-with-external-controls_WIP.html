@@ -130,7 +130,7 @@
   };
 
   // Load data and initialize layers
-  (async () => {
+  var loadDataInitLayers = async () => {
     berkshire_towns_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshire_towns.geojson').then(res => res.json());
     berkshires_acecs_poly_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshires_acecs_poly.geojson').then(res => res.json());
 
@@ -150,10 +150,11 @@
       'line-width': 1.5,
       'line-opacity': 0.4
     });
-  })();
+  }
 
   // Function to set layer visibility
    function setLayerVisibility(mapRef, layerId, visibility) {
+    console.log("Setting visibility for layer:", layerId, "to", visibility);
     if (mapRef.getLayer(layerId)) {
       mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
     }
@@ -202,6 +203,8 @@
     // Set default image selection and layer visibility based on initial state
     var defaultImageSelection = document.querySelector('input[name="imageSelection"]:checked').value;
     document.querySelector('#' + defaultImageSelection).click(); // Trigger click event to initialize visibility
+
+    loadDataInitLayers();
   });
 
 </script>
