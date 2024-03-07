@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html class="no-js" lang="">
 
@@ -31,7 +32,7 @@
 </head>
 
 <body>
-  <!-- Add your site or application content here -->
+  <!-- Add site or application content here -->
   <p></p>
 
   <div id="map-container"></div>
@@ -50,7 +51,7 @@
   <script src='https://unpkg.com/shpjs@latest/dist/shp.js' type="module"></script>
 
   <script type="module">
-      // You can now use the shp object/methods here
+      // We can now use the shp object/methods here
       console.log(shp);
       window.shp = shp; // Add shp to global scope
   
@@ -59,9 +60,10 @@
           try {
               // Load all files simultaneously
               const promises = [
-                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.zip").then(r => r.arrayBuffer()),
+                  //fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.zip").then(r => r.arrayBuffer()),
                   //fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/BioMap3.zip").then(r => r.arrayBuffer()),
-                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/dcrtrails.zip").then(r => r.arrayBuffer())
+                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/dcrtrails.zip").then(r => r.arrayBuffer()),
+                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/counties.zip").then(r => r.arrayBuffer()),
                   // Add more file URLs here if needed
               ];
 
@@ -69,14 +71,17 @@
               const results = await Promise.all(promises);
 
               // Parse each result
-              const rta_boundaries_interp = await shp.parseZip(results[0]);
-              console.log('RTA Boundaries loaded successfully:', rta_boundaries_interp);
+              ///const rta_boundaries_interp = await shp.parseZip(results[0]);
+              //console.log('RTA Boundaries loaded successfully:', rta_boundaries_interp);
 
               //const BioMap3_interp = await shp.parseZip(results[1]);
               //console.log('BioMap3 loaded successfully:', BioMap3_interp);
 
-              const dcr_trails_interp = await shp.parseZip(results[1]);
+              const dcr_trails_interp = await shp.parseZip(results[0]);
               console.log('DCR Trails loaded successfully:', dcr_trails_interp);
+
+              const counties_interp = await shp.parseZip(results[1]);
+              console.log('Counties loaded successfully:', counties_interp);
 
               // Add more data objects as needed
 
@@ -84,7 +89,8 @@
               console.log('All data objects loaded successfully');
 
               // Now that data is loaded, update the map
-              updateMapLayers(rta_boundaries_interp);
+              //updateMapLayers(rta_boundaries_interp);
+              updateMapLayers(counties_interp);
               updateMapLayersDCRTrails(dcr_trails_interp);
           } catch (error) {
               // Print failure message if any data object failed to load
@@ -95,39 +101,70 @@
       // Call the loadData function
       loadData();
 
-      function updateMapLayers(rta_boundaries_interp) {
+      //function updateMapLayers(rta_boundaries_interp) {
+         // // Add a new layer to visualize the polygon.
+         // map.addLayer({
+            //  'id': 'rta_boundaries_interp_fill',
+            //  'type': 'fill',
+            //  'source': {
+            //      'type': 'geojson',
+            //      'data': rta_boundaries_interp
+            //  },
+            //  'layout': {},
+            //  'paint': {
+            //      'fill-color': '#0080ff', // blue color fill
+             //     'fill-opacity': 0.5
+            //  }
+        //  });
+        //  // Add a black outline around the polygon.
+        //  map.addLayer({
+        //      'id': 'rta_boundaries_interp_outline',
+         //     'type': 'line',
+         //     'source': {
+         //         'type': 'geojson',
+         //         'data': rta_boundaries_interp
+         //     },
+         //     'layout': {},
+          //    'paint': {
+          //        'line-color': '#000',
+          //        'line-width': 3
+         //     }
+       //   });
+    //  }
+
+    function updateMapLayers(counties_interp) {
           // Add a new layer to visualize the polygon.
           map.addLayer({
-              'id': 'rta_boundaries_interp_fill',
+              'id': 'counties_interp_fill',
               'type': 'fill',
               'source': {
                   'type': 'geojson',
-                  'data': rta_boundaries_interp
+                  'data': counties_interp[3]
               },
               'layout': {},
               'paint': {
                   'fill-color': '#0080ff', // blue color fill
-                  'fill-opacity': 0.5
+                  'fill-opacity': 0.2
               }
           });
           // Add a black outline around the polygon.
           map.addLayer({
-              'id': 'rta_boundaries_interp_outline',
+              'id': 'counties_interp_outline',
               'type': 'line',
               'source': {
                   'type': 'geojson',
-                  'data': rta_boundaries_interp
+                  'data': counties_interp[3]
               },
               'layout': {},
               'paint': {
                   'line-color': '#000',
-                  'line-width': 3
+                  'line-width': 1
               }
           });
       }
 
       function updateMapLayersDCRTrails(dcrtrails_interp) {
-    // Assuming dcrtrails_interp is an array of GeoJSON objects
+    // Now that dcrtrails_interp is an array of GeoJSON objects
     dcrtrails_interp.forEach((geojson, index) => {
         map.addLayer({
             'id': `dcrtrails_outline_${index}`,
