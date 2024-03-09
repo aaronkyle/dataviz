@@ -48,7 +48,7 @@
     style: 'mapbox://styles/mapbox-map-design/ckhqrf2tz0dt119ny6azh975y'
   });
 
-  var massgis_2021_wmts_view = (mapRef) => {
+       var massgis_2021_wmts_view = (mapRef) => {
       mapRef.addSource("massgis-2021-wmts", {
         type: "raster",
         tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"],
@@ -206,7 +206,6 @@
 
     loadDataInitLayers();
   });
-
 </script>
 </body>
 </html>
