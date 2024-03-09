@@ -1,459 +1,186 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html class="no-js" lang="">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><a href="https://www.mass.gov/info-details/massgis-data-mhc-historic-inventory">MHC Historic Inventory</a></title>
-    <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet">
-    <style>
-        *,
-        *::after,
-        *::before {
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MapLibre render of SHP source data</title>
+  <!--<link rel="stylesheet" href="css/style.css">-->
+  <meta name="description" content="MapLibre render of SHP source data">
 
-        :root {
-            --bar-width: 40px;
-            --bar-height: 6px;
-            --hamburger-gap: 4px;
-            --foreground: #333;
-            --background: white;
-            --hamburger-margin: 20px;
-            --animation-timing: 200ms ease-in-out;
-            --hamburger-height: calc(var(--bar-height) * 3 + var(--hamburger-gap) * 2);
-        }
+  <meta property="og:title" content="">
+  <meta property="og:type" content="">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta property="og:image:alt" content="">
 
-        .header {
-            h1 {
-                color: lightgrey;
-                font-size: 2em;
-                font-weight: 400;
-                margin-top: 10px; /* Reset any potential inherited margins */
-                margin-bottom: 10px; /* Reset any potential inherited margins */
-            }
-            background-color: rgb(64, 64, 74);
-            padding: 0px 20px;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            display: flex;
-            justify-content: left;
-            align-items: center;
-            z-index: 800; /* Ensure the header stays on top of other content */
-        }
+<!--  <link rel="icon" href="/favicon.ico" sizes="any"> -->
+<!--  <link rel="icon" href="/icon.svg" type="image/svg+xml"> -->
+<!--  <link rel="apple-touch-icon" href="icon.png"> -->
 
-        .hamburger-menu {
-            --x-width: calc(var(--hamburger-height) * 1.41421356237);
+<!--  <  <link rel="manifest" href="site.webmanifest"> -->
+<!--  <  <meta name="theme-color" content="#fafafa"> -->
 
-            display: flex;
-            flex-direction: column;
-            gap: var(--hamburger-gap);
-            width: max-content;
-            position: absolute;
-            right: var(--hamburger-margin);
-            z-index: 2;
-            cursor: pointer;
-            --foreground: lightgrey;
-            --background: #333;
-        }
-
-        .hamburger-menu:has(input:checked) {
-            --foreground: lightgrey;
-            --background: #333;
-        }
-
-        .hamburger-menu:has(input:focus-visible)::before,
-        .hamburger-menu:has(input:focus-visible)::after,
-        .hamburger-menu input:focus-visible {
-            border: 1px solid var(--background);
-            box-shadow: 0 0 0 1px var(--foreground);
-        }
-
-        .hamburger-menu::before,
-        .hamburger-menu::after,
-        .hamburger-menu input {
-            content: "";
-            width: var(--bar-width);
-            height: var(--bar-height);
-            background-color: var(--foreground);
-            border-radius: 9999px;
-            transform-origin: left center;
-            transition: opacity var(--animation-timing), width var(--animation-timing),
-            rotate var(--animation-timing), translate var(--animation-timing),
-            background-color var(--animation-timing);
-        }
-
-        .hamburger-menu input {
-            appearance: none;
-            padding: 0;
-            margin: 0;
-            outline: none;
-            pointer-events: none;
-        }
-
-        .hamburger-menu:has(input:checked)::before {
-            rotate: 45deg;
-            width: var(--x-width);
-            translate: 0 calc(var(--bar-height) / -2);
-        }
-
-        .hamburger-menu:has(input:checked)::after {
-            rotate: -45deg;
-            width: var(--x-width);
-            translate: 0 calc(var(--bar-height) / 2);
-        }
-
-        .hamburger-menu input:checked {
-            opacity: 0;
-            width: 0;
-        }
-
-        .sidebar {
-            transition: transform var(--animation-timing);
-            transform: translateX(100%);
-            padding: 0.5rem 1rem;
-            padding-top: calc(var(--hamburger-height) + var(--hamburger-margin) + 1rem);
-            /*background-color: var(--foreground);*/
-            /*color: var(--background);*/
-            color: lightgrey;
-            background-color: rgb(64, 64, 74);
-            max-width: 20rem;
-            min-height: 100vh;
-            position: fixed;
-            top: 0;
-            right: 0;
-            z-index: 1; /* Ensure sidebar is behind the hamburger menu */
-        }
-
-        .hamburger-menu input:checked ~ .sidebar {
-            transform: translateX(0);
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow-x: hidden;
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            /*height: 100vh;*/
-            margin-top: 65px; /* Allow nav to account for sticky header */
-        }
-
-        .page {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .column {
-            flex: 1;
-            min-width: 0; /* Allow content to overflow */
-        }
-
-        .cell {
-            background-color: lightblue;
-            padding: 10px;
-            margin: 2px;
-            text-align: left;
-            flex-grow: 1; /* Ensure equal height for cells within a row */
-            border: 3px solid #2e86bb;
-            color: white;
-            font-size: 14px;
-            /*position: relative;*/
-            /*overflow: hidden;*/ /* Prevent map from overflowing its container */
-        }
-
-        .col-30 {
-            flex-basis: 30%;
-        }
-
-        .col-70 {
-            flex-basis: 70%;
-        }
-
-        .col-50 {
-            flex-basis: 50%;
-        }
-
-        .col-80 {
-            flex-basis: 80%;
-        }
-
-        .col-20 {
-            flex-basis: 20%;
-        }
-
-        /* Adjust margin for sectionFive when scrolling */
-        #sectionFive {
-            scroll-margin-top: 65px; /* Add margin when scrolling to this section */
-        }
-
-
-        #map {
-            /*width: 100%;*/ /* Set map width to 100% of its container */
-            height: 99%; /* Set map height to 100% of its container */
-            z-index: 0; /* Ensure sidebar is behind the hamburger menu */
-        }
-    </style>
+  <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.0.2/dist/maplibre-gl.css' />
+  <script src='https://unpkg.com/maplibre-gl@4.0.2/dist/maplibre-gl.js'></script>
+  <style>
+      body { margin: 0; padding: 0; }
+      html, body, #map-container { height: 80%; }
+  </style>
 </head>
+
 <body>
-    <div class="header">
-        <h1>MHC Historic Inventory</h1>
-        <label class="hamburger-menu">
-            <input type="checkbox" id="toggle-sidebar" />
-        </label>
-    </div>
-    
-    <aside class="sidebar">
-        <nav>
-            <div>This</div>
-            <div><a href="#sectionFive">Go to Section Five</a></div>
-            <div>The</div>
-            <div>Sidebar</div>
-        </nav>
-    </aside>
-    
-    <div class="container">
-        <div class="page">
-            <div class="column col-30">
-                <div class="cell" data-label="One">
+  <!-- Add site or application content here -->
+  <p></p>
 
-             <div id="image-input-container">
-                    <label for="imageSelection"><strong>Select Image:</strong></label><br/>
-                    <input type="radio" id="clear" name="imageSelection" value="clear" checked>
-                    <label for="clear">Clear</label>
-                    <input type="radio" id="2019" name="imageSelection" value="2019">
-                    <label for="2019">2019</label>
-                    <input type="radio" id="2021" name="imageSelection" value="2021">
-                    <label for="2021">2021</label>
-                    <input type="radio" id="elevation" name="imageSelection" value="elevation">
-                    <label for="elevation">Elevation</label>
-              </div>
-              <p></p>
-              <div id="layer-input-container">
-                <label for="layerSelection"><strong>Select Layer:</strong></label><br/>
-                <label for="berkshire_towns">Towns</label>
-                <input type="checkbox" id="berkshire_towns" name="layerSelection" value="berkshire_towns" checked>
-                
-                <label for="berkshires_acecs_poly">ACECS</label>
-                <input type="checkbox" id="berkshires_acecs_poly" name="layerSelection" value="berkshires_acecs_poly" checked>
-              </div>
+  <div id="map-container"></div>
 
+  <script>
+      var map = new maplibregl.Map({
+          container: 'map-container',
+          center: [-71.698, 42.041],
+          zoom: 7.5,
+          style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+          maplibreLogo: true,
+          attributionControl: true
+      });
+  </script>
 
-                </div>
-            </div>
-            <div class="column col-70">
-                <div id="map" class="cell" data-label="Two"></div>
-            </div>
-            <div class="column col-50">
-                <div class="cell" data-label="Three">Three</div>
-            </div>
-            <div class="column col-50">
-                <div class="cell" data-label="Four">Four</div>
-            </div>
-        </div>
-        <div class="page" id="sectionFive">
-            <div class="column col-80">
-                <div class="cell" data-label="Five">Five</div>
-            </div>
-            <div class="column col-20">
-                <div class="cell" data-label="Six">Six</div>
-            </div>
-        </div>
-    </div>
-    
-    
-    <script>
-        document.getElementById('toggle-sidebar').addEventListener('change', function() {
-            if (this.checked) {
-                document.querySelector('.sidebar').style.transform = 'translateX(0)';
-            } else {
-                document.querySelector('.sidebar').style.transform = 'translateX(100%)';
+  <script src='https://unpkg.com/shpjs@latest/dist/shp.js' type="module"></script>
+
+  <script type="module">
+      // We can now use the shp object/methods here
+      console.log(shp);
+      window.shp = shp; // Add shp to global scope
+  
+      // Call loadData() after shp is defined
+      async function loadData() {
+          try {
+              // Load all files simultaneously
+              const promises = [
+                  //fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.zip").then(r => r.arrayBuffer()),
+                  //fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/BioMap3.zip").then(r => r.arrayBuffer()),
+                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/dcrtrails.zip").then(r => r.arrayBuffer()),
+                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/counties.zip").then(r => r.arrayBuffer()),
+                  // Add more file URLs here if needed
+              ];
+
+              // Wait for all promises to resolve
+              const results = await Promise.all(promises);
+
+              // Parse each result
+              ///const rta_boundaries_interp = await shp.parseZip(results[0]);
+              //console.log('RTA Boundaries loaded successfully:', rta_boundaries_interp);
+
+              //const BioMap3_interp = await shp.parseZip(results[1]);
+              //console.log('BioMap3 loaded successfully:', BioMap3_interp);
+
+              const dcr_trails_interp = await shp.parseZip(results[0]);
+              console.log('DCR Trails loaded successfully:', dcr_trails_interp);
+
+              const counties_interp = await shp.parseZip(results[1]);
+              console.log('Counties loaded successfully:', counties_interp);
+
+              // Add more data objects as needed
+
+              // Print success message after all data objects are loaded
+              console.log('All data objects loaded successfully');
+
+              // Now that data is loaded, update the map
+              //updateMapLayers(rta_boundaries_interp);
+              updateMapLayers(counties_interp);
+              updateMapLayersDCRTrails(dcr_trails_interp);
+          } catch (error) {
+              // Print failure message if any data object failed to load
+              console.error('Failed to load data:', error);
+          }
+      };
+
+      // Call the loadData function
+      loadData();
+
+      //function updateMapLayers(rta_boundaries_interp) {
+         // // Add a new layer to visualize the polygon.
+         // map.addLayer({
+            //  'id': 'rta_boundaries_interp_fill',
+            //  'type': 'fill',
+            //  'source': {
+            //      'type': 'geojson',
+            //      'data': rta_boundaries_interp
+            //  },
+            //  'layout': {},
+            //  'paint': {
+            //      'fill-color': '#0080ff', // blue color fill
+             //     'fill-opacity': 0.5
+            //  }
+        //  });
+        //  // Add a black outline around the polygon.
+        //  map.addLayer({
+        //      'id': 'rta_boundaries_interp_outline',
+         //     'type': 'line',
+         //     'source': {
+         //         'type': 'geojson',
+         //         'data': rta_boundaries_interp
+         //     },
+         //     'layout': {},
+          //    'paint': {
+          //        'line-color': '#000',
+          //        'line-width': 3
+         //     }
+       //   });
+    //  }
+
+    function updateMapLayers(counties_interp) {
+          // Add a new layer to visualize the polygon.
+          map.addLayer({
+              'id': 'counties_interp_fill',
+              'type': 'fill',
+              'source': {
+                  'type': 'geojson',
+                  'data': counties_interp[3]
+              },
+              'layout': {},
+              'paint': {
+                  'fill-color': '#0080ff', // blue color fill
+                  'fill-opacity': 0.2
+              }
+          });
+          // Add a black outline around the polygon.
+          map.addLayer({
+              'id': 'counties_interp_outline',
+              'type': 'line',
+              'source': {
+                  'type': 'geojson',
+                  'data': counties_interp[3]
+              },
+              'layout': {},
+              'paint': {
+                  'line-color': '#000',
+                  'line-width': 1
+              }
+          });
+      }
+
+      function updateMapLayersDCRTrails(dcrtrails_interp) {
+    // Now that dcrtrails_interp is an array of GeoJSON objects
+    dcrtrails_interp.forEach((geojson, index) => {
+        map.addLayer({
+            'id': `dcrtrails_outline_${index}`,
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data': geojson
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#FF0000', // red color
+                'line-width': 3
             }
         });
-    </script>
-    
-
-    
-    <script src="https://unpkg.com/maplibre-gl"></script>
-
-
-
-    <script>
-        var map = new maplibregl.Map({
-            container: 'map',
-            center: [-71.698, 42.041],
-            zoom: 7.5,
-            style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-            maplibreLogo: true,
-            attributionControl: true
-        });
-      
-        var massgis_2021_wmts_view = (mapRef) => {
-      mapRef.addSource("massgis-2021-wmts", {
-        type: "raster",
-        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis-2021-wmts",
-        type: "raster",
-        source: "massgis-2021-wmts",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
-
-    var massgis_2019_wmts_view = (mapRef) => {
-      mapRef.addSource("massgis-2019-wmts", {
-        type: "raster",
-        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/USGS_Orthos_2019/MapServer/WMTS/tile/1.0.0/USGS_Orthos_2019/default/default028mm/{z}/{y}/{x}.jpg"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis-2019-wmts",
-        type: "raster",
-        source: "massgis-2019-wmts",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
-
-    var massgis_elevation_hillshade = (mapRef) => {
-      mapRef.addSource("massgis_elevation_hillshade", {
-        type: "raster",
-        tiles: ["https://tiles1.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/LiDAR_Elevation_Hillshade/MapServer/tile/{z}/{y}/{x}"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis_elevation_hillshade",
-        type: "raster",
-        source: "massgis_elevation_hillshade",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
-
-
-  var berkshire_towns_data, berkshires_acecs_poly_data;
-
-  // Define functions for adding and updating layers
-  var addOrUpdateLayer = (mapRef, layerId, sourceId, type, paint) => {
-    // Check if the source already exists
-    if (!mapRef.getSource(sourceId)) {
-      mapRef.addSource(sourceId, {
-        type: 'geojson',
-        data: sourceId === 'berkshire_towns' ? berkshire_towns_data : berkshires_acecs_poly_data
-      });
-    }
-
-    // Check if the layer already exists
-    if (!mapRef.getLayer(layerId)) {
-      mapRef.addLayer({
-        id: layerId,
-        type: type,
-        source: sourceId,
-        layout: {
-          visibility: 'visible'
-        },
-        paint: paint
-      });
-    }
-  };
-
-  // Load data and initialize layers
-  var loadDataInitLayers = async () => {
-    berkshire_towns_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshire_towns.geojson').then(res => res.json());
-    berkshires_acecs_poly_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshires_acecs_poly.geojson').then(res => res.json());
-
-    addOrUpdateLayer(map, 'berkshire_towns', 'berkshire_towns', 'line', {
-      'line-color': 'orange',
-      'line-width': 1.5,
-      'line-opacity': 0.4
     });
+}
+  </script>
 
-    addOrUpdateLayer(map, 'berkshires_acecs_poly_fill', 'berkshires_acecs_poly', 'fill', {
-      'fill-color': '#EE4031',
-      'fill-opacity': 0.3
-    });
+</body>
 
-    addOrUpdateLayer(map, 'berkshires_acecs_poly_line', 'berkshires_acecs_poly', 'line', {
-      'line-color': '#EE4031',
-      'line-width': 1.5,
-      'line-opacity': 0.4
-    });
-  }
-
-  // Function to set layer visibility
-   function setLayerVisibility(mapRef, layerId, visibility) {
-    console.log("Setting visibility for layer:", layerId, "to", visibility);
-    if (mapRef.getLayer(layerId)) {
-      mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Event listener for image selection changes
-    document.querySelectorAll('input[name="imageSelection"]').forEach(input => {
-      input.addEventListener('change', () => {
-        var layerSelection = input.value;
-
-        console.log("Selected value:", layerSelection);
-
-        // Set visibility for satellite layers
-        setLayerVisibility(map, "massgis-2021-wmts", layerSelection === "2021");
-        setLayerVisibility(map, "massgis-2019-wmts", layerSelection === "2019");
-        setLayerVisibility(map, "massgis_elevation_hillshade", layerSelection === "elevation");
-      });
-    });
-
-    // Event listener for checkbox changes
-    document.querySelectorAll('input[name="layerSelection"]').forEach(input => {
-      input.addEventListener('change', () => {
-        var isChecked = input.checked;
-        var layerSelection = input.value;
-
-        // Use the setLayerVisibility function for each layer
-        if (layerSelection === 'berkshire_towns') {
-          setLayerVisibility(map, 'berkshire_towns', isChecked);
-        } else if (layerSelection === 'berkshires_acecs_poly') {
-          setLayerVisibility(map, 'berkshires_acecs_poly_fill', isChecked);
-          setLayerVisibility(map, 'berkshires_acecs_poly_line', isChecked);
-        }
-        // Add more layers....
-      });
-    });
-  });
-
-  // Event listener for map load
-  map.on('load', () => {
-    // Initialize layers with default visibility
-    massgis_2019_wmts_view(map);
-    massgis_2021_wmts_view(map);
-    massgis_elevation_hillshade(map);
-
-    // Set default image selection and layer visibility based on initial state
-    var defaultImageSelection = document.querySelector('input[name="imageSelection"]:checked').value;
-    document.querySelector('#' + defaultImageSelection).click(); // Trigger click event to initialize visibility
-
-    loadDataInitLayers();
-  });
-      </script>
-
-
-    </body>
-    </html>
+</html>
