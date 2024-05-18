@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Leaflet Test</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="preload" as="style" href="./_npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="./_npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="modulepreload" href="./_observablehq/client.js">
+<link rel="modulepreload" href="./_observablehq/runtime.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_npm/leaflet@1.9.4/_esm.js">
+<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
+<script type="module">
+
+import {define} from "./_observablehq/client.js";
+
+define({id: "f4ac832c", inputs: ["display","L"], outputs: ["div","map"], body: (display,L) => {
+const div = display(document.createElement("div"));
+div.style = "height: 400px;";
+
+const map = L.map(div)
+  .setView([51.505, -0.09], 13);
+
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+})
+  .addTo(map);
+
+L.marker([51.5, -0.09])
+  .addTo(map)
+  .bindPopup("A nice popup<br> indicating a point of interest.")
+  .openPopup();
+return {div,map};
+}});
+
+</script>
+<aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
+<nav>
+</nav>
+</aside>
+<div id="observablehq-center">
+<main id="observablehq-main" class="observablehq">
+<h1 id="leaflet-test" tabindex="-1"><a class="observablehq-header-anchor" href="#leaflet-test">Leaflet Test</a></h1>
+<div id="cell-f4ac832c" class="observablehq observablehq--block"></div>
+</main>
+<footer id="observablehq-footer">
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-05-18T07:45:31">May 18, 2024</a>.</div>
+</footer>
+</div>
