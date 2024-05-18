@@ -29,7 +29,7 @@ registerFile("./WDPA polygon 2010 - India.geojson", {"name":"./WDPA polygon 2010
 
 define({id: "19da92ba", inputs: ["display","width","L"], outputs: ["div","map","osmLayer","world_imagry","world_topo","baseLayers","controlLayers","control_layers"], body: (display,width,L) => {
 const div = display(document.createElement("div"));
-div.style = `width:${width}px;height:${width/1.6}px`;
+div.style = `height:600px`;
 
 const map = L.map(div)
   .setView([22.875572,79.6574379], 4);
