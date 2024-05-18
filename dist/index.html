@@ -29,7 +29,7 @@ registerFile("./WDPA polygon 2010 - India.geojson", {"name":"./WDPA polygon 2010
 
 define({id: "19da92ba", inputs: ["display","width","L"], outputs: ["div","map","osmLayer","world_imagry","world_topo","baseLayers","controlLayers","control_layers"], body: (display,width,L) => {
 const div = display(document.createElement("div"));
-div.style = `height:600px`;
+div.style = `width:${width}px;height:${width/1.6}px`;
 
 const map = L.map(div)
   .setView([22.875572,79.6574379], 4);
@@ -63,8 +63,8 @@ const baseLayers = {
   };
 
 const controlLayers = {
-       "wdpa_point_india_0": wdpa_point_india_2010_map.addTo(map),
-       "wdpa_polygon_india_0" : wdpa_polygon_india_2010_map.addTo(map),
+//       "wdpa_point_india_0": wdpa_point_india_2010_map.addTo(map),
+//       "wdpa_polygon_india_0" : wdpa_polygon_india_2010_map.addTo(map),
 };
 const control_layers = new L.control.layers(baseLayers, controlLayers, {
     position: 'topright',
@@ -160,6 +160,6 @@ return {wdpa_india_tooltip};
 <p><em>As noted above, this archive was not acquired from Protected Planet.  Use with discretion.</em></p>
 </main>
 <footer id="observablehq-footer">
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-05-18T07:37:12">May 18, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-05-18T08:41:33">May 18, 2024</a>.</div>
 </footer>
 </div>
