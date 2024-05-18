@@ -1,19 +1,137 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Project</title>
+<title>World Database on Protected Areas (WDPA) | India 2010 | Project</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
 <link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.css">
+<link rel="preload" as="style" href="./_npm/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
 <link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.css">
+<link rel="stylesheet" type="text/css" href="./_npm/leaflet@1.9.4/dist/leaflet.css">
 <link rel="modulepreload" href="./_observablehq/client.js">
 <link rel="modulepreload" href="./_observablehq/runtime.js">
 <link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_observablehq/stdlib/inputs.js">
+<link rel="modulepreload" href="./_npm/leaflet@1.9.4/_esm.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/_esm.js">
+<link rel="modulepreload" href="./_npm/isoformat@0.2.1/_esm.js">
 <link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
 <script type="module">
 
-import "./_observablehq/client.js";
+import {define} from "./_observablehq/client.js";
+import {registerFile} from "./_observablehq/stdlib.js";
+
+registerFile("./WDPA point 2010 - India.geojson", {"name":"./WDPA point 2010 - India.geojson","mimeType":"application/geo+json","path":"./_file/WDPA point 2010 - India.f95bf052.geojson","lastModified":1657294395125});
+registerFile("./WDPA polygon 2010 - India.geojson", {"name":"./WDPA polygon 2010 - India.geojson","mimeType":"application/geo+json","path":"./_file/WDPA polygon 2010 - India.e637ef59.geojson","lastModified":1657294409878});
+
+define({id: "19da92ba", inputs: ["display","width","L"], outputs: ["div","map","osmLayer","world_imagry","world_topo","baseLayers","controlLayers","control_layers"], body: (display,width,L) => {
+const div = display(document.createElement("div"));
+div.style = `width:${width}px;height:${width/1.6}px`;
+
+const map = L.map(div)
+  .setView([22.875572,79.6574379], 4);
+
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+const world_imagry = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution:
+        'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 17
+    }
+  );
+
+const world_topo = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution:
+        'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
+      maxZoom: 17
+    }
+  );
+
+const baseLayers = {
+       "Open Street Maps":osmLayer,
+       "ESRI World Imagery":world_imagry,
+       "ESRI World Topo":world_topo, 
+  };
+
+const controlLayers = {
+//       "wdpa_point_india_0": wdpa_point_india_2010_map.addTo(map),
+//       "wdpa_polygon_india_0" : wdpa_polygon_india_2010_map.addTo(map),
+};
+const control_layers = new L.control.layers(baseLayers, controlLayers, {
+    position: 'topright',
+    collapsed: false
+  });
+  map.addLayer(world_topo);
+  map.addControl(control_layers);
+
+
+return {div,map,osmLayer,world_imagry,world_topo,baseLayers,controlLayers,control_layers};
+}});
+
+define({id: "4a3132cb", inputs: ["view","Inputs","wdpa_point_india_2010"], outputs: ["search"], body: (view,Inputs,wdpa_point_india_2010) => {
+const search = view(Inputs.search(wdpa_point_india_2010.features.map(d => d.properties)))
+return {search};
+}});
+
+define({id: "9956da5e", inputs: ["view","Inputs","search"], outputs: ["table_view"], body: (view,Inputs,search) => {
+const table_view = view(Inputs.table(search))
+return {table_view};
+}});
+
+define({id: "ebfac517", inputs: ["FileAttachment"], outputs: ["wdpa_point_india_2010"], body: (FileAttachment) => {
+const wdpa_point_india_2010 = FileAttachment("./WDPA point 2010 - India.geojson").json()
+return {wdpa_point_india_2010};
+}});
+
+define({id: "c177c864", inputs: ["L","wdpa_point_india_2010","wdpa_india_tooltip"], outputs: ["wdpa_point_india_2010_map"], body: (L,wdpa_point_india_2010,wdpa_india_tooltip) => {
+const wdpa_point_india_2010_map = L.geoJson(wdpa_point_india_2010, {
+    onEachFeature: wdpa_india_tooltip,
+    pointToLayer: function(feature, latlng) {
+    return L.circleMarker(latlng, {
+    fillColor: "#3a7bf2",
+    fillOpacity: 0.2,
+    color: "#3a7bf2",
+    weight: 0.5,
+    opacity: 0.5,
+})}
+  })
+return {wdpa_point_india_2010_map};
+}});
+
+define({id: "4ab437c0", inputs: ["FileAttachment"], outputs: ["wdpa_polygon_india_2010"], body: (FileAttachment) => {
+const wdpa_polygon_india_2010 = FileAttachment("./WDPA polygon 2010 - India.geojson").json()
+return {wdpa_polygon_india_2010};
+}});
+
+define({id: "59dd83cb", inputs: ["L","wdpa_polygon_india_2010","wdpa_india_tooltip"], outputs: ["wdpa_polygon_india_2010_map"], body: (L,wdpa_polygon_india_2010,wdpa_india_tooltip) => {
+const wdpa_polygon_india_2010_map = L.geoJson(wdpa_polygon_india_2010, {
+    onEachFeature: wdpa_india_tooltip,
+    fillColor: "purple",
+    fillOpacity: 0.5,
+    color: "purple",
+    weight: 0.5,
+    opacity: 0.5,
+})
+return {wdpa_polygon_india_2010_map};
+}});
+
+define({id: "debe7c8b", outputs: ["wdpa_india_tooltip"], body: () => {
+const wdpa_india_tooltip = function(feature, layer) {
+  if (feature.properties) {
+    layer.bindPopup("<p><strong>Name: </strong>"  + feature.properties['NAME'] + "<br/>" + "<strong>Designation: </strong>" + feature.properties['DESIG'] + "</p>")
+  }
+}
+return {wdpa_india_tooltip};
+}});
 
 </script>
 <aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
@@ -22,11 +140,26 @@ import "./_observablehq/client.js";
 </aside>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<h1 id="project" tabindex="-1"><a class="observablehq-header-anchor" href="#project">Project</a></h1>
-<p>This is the home page of your new Observable Framework project.</p>
-<p>For more, see <a href="https://observablehq.com/framework/getting-started" target="_blank" rel="noopener noreferrer">https://observablehq.com/framework/getting-started</a>.</p>
+<h1 id="world-database-on-protected-areas-(wdpa)-%7C-india-2010" tabindex="-1"><a class="observablehq-header-anchor" href="#world-database-on-protected-areas-(wdpa)-%7C-india-2010">World Database on Protected Areas (WDPA) | India 2010<p></p></a></h1>
+<div id="cell-19da92ba" class="observablehq observablehq--block"></div>
+<br>
+<h3 id="wdpa-%7C-india---2010-%5Bweb-archive%5D*" tabindex="-1"><a class="observablehq-header-anchor" href="#wdpa-%7C-india---2010-%5Bweb-archive%5D*">WDPA | India - 2010 [web archive]<sup>*</sup><p></p></a></h3>
+<p>The <a href="https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA" target="_blank" rel="noopener noreferrer">World Database on Protected Areas</a> (WDPA) is a joint project between UN Environment and the International Union for Conservation of Nature (IUCN), managed by UN Environment World Conservation Monitoring Centre. Data for the WDPA is collected from international convention secretariats, governments, and collaborating NGOs. The WDPA uses the IUCN definition of a protected area as the main criteria for entries included in the database.</p>
+<p><em>Data in this notebook are from a 2010 version of the WDPA that I discovered on an obscure corner<sup><a href="https://web.archive.org/web/20230525193502/https://geometadatos.wordpress.com/2011/05/16/wdpa-world-database-on-protected-areas/" target="_blank" rel="noopener noreferrer">*</a></sup> of the Internet. Please note that official data shared today will differ significantly.</em></p>
+<div id="cell-4a3132cb" class="observablehq observablehq--block"></div>
+<div id="cell-9956da5e" class="observablehq observablehq--block"></div>
+<div id="cell-ebfac517" class="observablehq observablehq--block"></div>
+<div id="cell-c177c864" class="observablehq observablehq--block"></div>
+<div id="cell-4ab437c0" class="observablehq observablehq--block"></div>
+<div id="cell-59dd83cb" class="observablehq observablehq--block"></div>
+<div id="cell-debe7c8b" class="observablehq observablehq--block"></div>
+<hr>
+<h3 id="data-attribution" tabindex="-1"><a class="observablehq-header-anchor" href="#data-attribution">Data Attribution</a></h3>
+<p><em>The official maintainers of these data are:</em></p>
+<p>UNEP-WCMC and IUCN (2010), <em>Protected Planet: The World Database on Protected Areas (WDPA).</em> Cambridge, UK: UNEP-WCMC and IUCN.<br> Available at: <a href="http://www.protectedplanet.net" target="_blank" rel="noopener noreferrer">www.protectedplanet.net</a>.</p>
+<p><em>As noted above, this archive was not acquired from Protected Planet.  Use with discretion.</em></p>
 </main>
 <footer id="observablehq-footer">
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-05-18T07:01:11">May 18, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-05-18T07:34:18">May 18, 2024</a>.</div>
 </footer>
 </div>
