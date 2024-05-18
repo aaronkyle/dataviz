@@ -27,7 +27,24 @@ import {registerFile} from "./_observablehq/stdlib.js";
 registerFile("./WDPA point 2010 - India.geojson", {"name":"./WDPA point 2010 - India.geojson","mimeType":"application/geo+json","path":"./_file/WDPA point 2010 - India.f95bf052.geojson","lastModified":1657294395125});
 registerFile("./WDPA polygon 2010 - India.geojson", {"name":"./WDPA polygon 2010 - India.geojson","mimeType":"application/geo+json","path":"./_file/WDPA polygon 2010 - India.e637ef59.geojson","lastModified":1657294409878});
 
-define({id: "19da92ba", inputs: ["display","width","L"], outputs: ["div","map","osmLayer","world_imagry","world_topo","baseLayers","controlLayers","control_layers"], body: (display,width,L) => {
+define({id: "4ab437c0", inputs: ["FileAttachment"], outputs: ["wdpa_polygon_india_2010"], body: (FileAttachment) => {
+const wdpa_polygon_india_2010 = FileAttachment("./WDPA polygon 2010 - India.geojson").json()
+return {wdpa_polygon_india_2010};
+}});
+
+define({id: "59dd83cb", inputs: ["L","wdpa_polygon_india_2010","wdpa_india_tooltip"], outputs: ["wdpa_polygon_india_2010_map"], body: (L,wdpa_polygon_india_2010,wdpa_india_tooltip) => {
+const wdpa_polygon_india_2010_map = L.geoJson(wdpa_polygon_india_2010, {
+    onEachFeature: wdpa_india_tooltip,
+    fillColor: "purple",
+    fillOpacity: 0.5,
+    color: "purple",
+    weight: 0.5,
+    opacity: 0.5,
+})
+return {wdpa_polygon_india_2010_map};
+}});
+
+define({id: "a2752a90", inputs: ["display","width","L","wdpa_point_india_2010_map","wdpa_polygon_india_2010_map"], outputs: ["div","map","osmLayer","world_imagry","world_topo","baseLayers","controlLayers","control_layers"], body: (display,width,L,wdpa_point_india_2010_map,wdpa_polygon_india_2010_map) => {
 const div = display(document.createElement("div"));
 div.style = `width:${width}px;height:${width/1.6}px`;
 
@@ -63,8 +80,8 @@ const baseLayers = {
   };
 
 const controlLayers = {
-//       "wdpa_point_india_0": wdpa_point_india_2010_map.addTo(map),
-//       "wdpa_polygon_india_0" : wdpa_polygon_india_2010_map.addTo(map),
+       "wdpa_point_india_0": wdpa_point_india_2010_map.addTo(map),
+       "wdpa_polygon_india_0" : wdpa_polygon_india_2010_map.addTo(map),
 };
 const control_layers = new L.control.layers(baseLayers, controlLayers, {
     position: 'topright',
@@ -107,23 +124,6 @@ const wdpa_point_india_2010_map = L.geoJson(wdpa_point_india_2010, {
 return {wdpa_point_india_2010_map};
 }});
 
-define({id: "4ab437c0", inputs: ["FileAttachment"], outputs: ["wdpa_polygon_india_2010"], body: (FileAttachment) => {
-const wdpa_polygon_india_2010 = FileAttachment("./WDPA polygon 2010 - India.geojson").json()
-return {wdpa_polygon_india_2010};
-}});
-
-define({id: "59dd83cb", inputs: ["L","wdpa_polygon_india_2010","wdpa_india_tooltip"], outputs: ["wdpa_polygon_india_2010_map"], body: (L,wdpa_polygon_india_2010,wdpa_india_tooltip) => {
-const wdpa_polygon_india_2010_map = L.geoJson(wdpa_polygon_india_2010, {
-    onEachFeature: wdpa_india_tooltip,
-    fillColor: "purple",
-    fillOpacity: 0.5,
-    color: "purple",
-    weight: 0.5,
-    opacity: 0.5,
-})
-return {wdpa_polygon_india_2010_map};
-}});
-
 define({id: "debe7c8b", outputs: ["wdpa_india_tooltip"], body: () => {
 const wdpa_india_tooltip = function(feature, layer) {
   if (feature.properties) {
@@ -141,7 +141,9 @@ return {wdpa_india_tooltip};
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
 <h1 id="world-database-on-protected-areas-(wdpa)-%7C-india-2010" tabindex="-1"><a class="observablehq-header-anchor" href="#world-database-on-protected-areas-(wdpa)-%7C-india-2010">World Database on Protected Areas (WDPA) | India 2010<p></p></a></h1>
-<div id="cell-19da92ba" class="observablehq observablehq--block"></div>
+<div id="cell-4ab437c0" class="observablehq observablehq--block"></div>
+<div id="cell-59dd83cb" class="observablehq observablehq--block"></div>
+<div id="cell-a2752a90" class="observablehq observablehq--block"></div>
 <br>
 <h3 id="wdpa-%7C-india---2010-%5Bweb-archive%5D*" tabindex="-1"><a class="observablehq-header-anchor" href="#wdpa-%7C-india---2010-%5Bweb-archive%5D*">WDPA | India - 2010 [web archive]<sup>*</sup><p></p></a></h3>
 <p>The <a href="https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA" target="_blank" rel="noopener noreferrer">World Database on Protected Areas</a> (WDPA) is a joint project between UN Environment and the International Union for Conservation of Nature (IUCN), managed by UN Environment World Conservation Monitoring Centre. Data for the WDPA is collected from international convention secretariats, governments, and collaborating NGOs. The WDPA uses the IUCN definition of a protected area as the main criteria for entries included in the database.</p>
@@ -150,8 +152,6 @@ return {wdpa_india_tooltip};
 <div id="cell-9956da5e" class="observablehq observablehq--block"></div>
 <div id="cell-ebfac517" class="observablehq observablehq--block"></div>
 <div id="cell-c177c864" class="observablehq observablehq--block"></div>
-<div id="cell-4ab437c0" class="observablehq observablehq--block"></div>
-<div id="cell-59dd83cb" class="observablehq observablehq--block"></div>
 <div id="cell-debe7c8b" class="observablehq observablehq--block"></div>
 <hr>
 <h3 id="data-attribution" tabindex="-1"><a class="observablehq-header-anchor" href="#data-attribution">Data Attribution</a></h3>
@@ -160,6 +160,6 @@ return {wdpa_india_tooltip};
 <p><em>As noted above, this archive was not acquired from Protected Planet.  Use with discretion.</em></p>
 </main>
 <footer id="observablehq-footer">
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-05-18T08:41:33">May 18, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-05-18T08:47:03">May 18, 2024</a>.</div>
 </footer>
 </div>
