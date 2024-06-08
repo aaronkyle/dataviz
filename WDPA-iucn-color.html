@@ -1,0 +1,58 @@
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>WDPA</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.29/"></script>
+  <script>
+    require([
+      "esri/Map",
+      "esri/layers/VectorTileLayer",
+      "esri/layers/TileLayer",
+      "esri/Basemap",
+      "esri/views/MapView"
+    ], function(Map, VectorTileLayer, TileLayer, Basemap, MapView) {
+      const vtlLayer = new VectorTileLayer({
+        url: "https://data-gis.unep-wcmc.org/server/rest/services/Hosted/wdpa_latest_vts/VectorTileServer/resources/styles/root.json"
+      });
+
+      const basemapLayer = new TileLayer({
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+      });
+
+      const basemap = new Basemap({
+        baseLayers: [basemapLayer]
+      });
+
+      const map = new Map({
+        basemap: basemap,
+        layers: [vtlLayer]
+      });
+
+      const view = new MapView({
+        container: "viewDiv",
+        center: [-77.0,38.9],
+        zoom: 4,
+        map: map,
+        constraints: {
+          snapToZoom: false
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
