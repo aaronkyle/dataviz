@@ -1,29 +1,20 @@
-# World Database of Protected Areas (WDPA) 
+# World Database of Protected Areas (WDPA)
 
-The map below renders [WDPA dataset](https://www.protectedplanet.net/en/thematic-areas/wdpa) (polygon layers),  served by the [UN Environment Programme World Conservation Monitoring Centre](https://www.unep-wcmc.org/) (UNEP-WCMC)&mdash; a global centre of excellence on biodiversity and nature’s contribution to society and the economy.  
+The map below renders [WDPA dataset](https://www.protectedplanet.net/en/thematic-areas/wdpa) (polygon layers), served by the [UN Environment Programme World Conservation Monitoring Centre](https://www.unep-wcmc.org/) (UNEP-WCMC)&mdash; a global centre of excellence on biodiversity and nature’s contribution to society and the economy.
 
-The map first loads UNEP-WCMC's [vector tiles](https://data-gis.unep-wcmc.org/server/rest/services/Hosted/wdpa_latest_vts/VectorTileServer) showing the locations of marine and terrestrial protected areas.  _With a little patience and time_, an overlay will appear using their [feature server](https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/) that colors the data according to their IUCN Category. It also enables a tooltip showing a selection of data attributes associated with each area.
-
-
-
-```html
-<link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css' />
-    <style>
-        body { margin: 0; padding: 0; }
-         html, body, #map { /*height: 720px;*/ }
-    </style>
-
-    <style>
-    .maplibregl-popup-content{
-        color: black;
-    }
-    </style>
-<div id="map" style="width:720px; height:600px"></div>
-<!-- <div id="map" style="width: ${width}px;height:${width/1.4}px;"> -->
+```js
+const container = display(html`<div style="width:${width}px; height:600px"></div>`)
 ```
 
+The map first loads UNEP-WCMC's [vector tiles](https://data-gis.unep-wcmc.org/server/rest/services/Hosted/wdpa_latest_vts/VectorTileServer) showing the locations of marine and terrestrial protected areas. _With a little patience and time_, an overlay will appear using their [feature server](https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/) that colors the data according to their IUCN Category. It also enables a tooltip showing a selection of data attributes associated with each area.
 
-```html
+<link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css' />
+<style>
+  .maplibregl-popup-content{
+    color: black;
+}
+</style>
+
 <strong>Legend:</strong></p>
 
 ${swatch("#B42222")} Category Ia – strict nature reserve<br>
@@ -34,18 +25,16 @@ ${swatch("#FC4E2A")} Category IV – habitat or species management area<br>
 ${swatch("#FEB24C")} Category V – protected landscape or seascape<br>
 ${swatch("#FED976")} Category VI – protected area with sustainable use of natural resources<br>
 ${swatch("#898a90")} IUCN Category Not Assigned<br>
-```
 
 ---
 
 **About the Data:**
 
-The World Database of Protected Areas (WDPA) is a comprehensive global database of marine and terrestrial protected areas and is one of the key global biodiversity datasets used by scientists, businesses, governments, international organizations and others to inform planning, policy decisions and management. 
+The World Database of Protected Areas (WDPA) is a comprehensive global database of marine and terrestrial protected areas and is one of the key global biodiversity datasets used by scientists, businesses, governments, international organizations and others to inform planning, policy decisions and management.
 
 The WDPA is a joint project between UN Environment Programme and the International Union for Conservation of Nature (IUCN). The compilation and management of the WDPA is carried out by UN Environment Programme World Conservation Monitoring Centre (UNEP-WCMC), in collaboration with governments, non-governmental organisations, academia and industry. Data and information on the world's protected areas compiled in the WDPA are used for reporting to the Convention on Biological Diversity on progress towards reaching the Aichi Biodiversity Targets (particularly Target 11), to the UN to track progress towards the 2030 Sustainable Development Goals, to some of the Intergovernmental Science-Policy Platform on Biodiversity and Ecosystem Services (IPBES) core indicators, and other international assessments and reports including the Global Biodiversity Outlook, as well as for the publication of the United Nations List of Protected Areas.
 
 _Text adapted from:_ UNEP-WCMC and IUCN (2024), Protected Planet: The World Database on Protected Areas (WDPA)[On-line], [June 2024], Cambridge, UK: UNEP-WCMC and IUCN. Available at: https://doi.org/10.34892/6fwd-af11
-
 
 ```js
 import maplibregl from 'npm:maplibre-gl';
@@ -57,7 +46,7 @@ const map = new maplibregl.Map({
     pitch: 0,
     bearing: 0,
     maplibreLogo: true,
-    container: 'map',
+    container,
     center: [133.4,37.4],
     zoom: 5,
     style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
@@ -85,12 +74,12 @@ const map = new maplibregl.Map({
       'fill-opacity': 0.4,
     },
   });
-    
+
     const srcId = 'fs-src'
     const service = new FeatureService(srcId, map, {
       url: 'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/1'
     });
-    
+
     const fsLyrId = 'fs-fill-lyr'
     map.addLayer({
       'id': fsLyrId,
@@ -113,7 +102,7 @@ const map = new maplibregl.Map({
         ]
       }
     });
-    
+
     function hideFsLayer () {
        map.setLayoutProperty(fsLyrId, 'visibility', 'none')
        service.disableRequests()
@@ -132,7 +121,7 @@ const map = new maplibregl.Map({
     // Add a click event listener for the layer
     map.on('click', fsLyrId, (e) => {
       const feature = e.features[0];
-      
+
     // Create a popup and set its coordinates and content
       new maplibregl.Popup()
         .setLngLat(e.lngLat)
@@ -161,7 +150,6 @@ const map = new maplibregl.Map({
   });
 ```
 
-
 ```js
 // from https://observablehq.com/@d3/working-with-color
 function swatch(color) {
@@ -173,5 +161,3 @@ function swatch(color) {
 "></div>`;
 }
 ```
-
-
