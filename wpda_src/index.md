@@ -3,7 +3,9 @@
 The map below renders [WDPA dataset](https://www.protectedplanet.net/en/thematic-areas/wdpa) (polygon layers), served by the [UN Environment Programme World Conservation Monitoring Centre](https://www.unep-wcmc.org/) (UNEP-WCMC)&mdash; a global centre of excellence on biodiversity and nature’s contribution to society and the economy.
 
 ```js
-const container = display(html`<div style="width:${width}px; height:600px"></div>`)
+// @fil's suggestion, which solves the disappearing map issue by forcing the map to be re-drawn 
+// const container = display(html`<div style="width:${width}px; height:600px"></div>`)
+const container = display(html`<div style="width:720px; height:600px"></div>`)
 ```
 
 The map first loads UNEP-WCMC's [vector tiles](https://data-gis.unep-wcmc.org/server/rest/services/Hosted/wdpa_latest_vts/VectorTileServer) showing the locations of marine and terrestrial protected areas. _With a little patience and time_, an overlay will appear using their [feature server](https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/) that colors the data according to their IUCN Category. It also enables a tooltip showing a selection of data attributes associated with each area.
@@ -35,6 +37,7 @@ The World Database of Protected Areas (WDPA) is a comprehensive global database 
 The WDPA is a joint project between UN Environment Programme and the International Union for Conservation of Nature (IUCN). The compilation and management of the WDPA is carried out by UN Environment Programme World Conservation Monitoring Centre (UNEP-WCMC), in collaboration with governments, non-governmental organisations, academia and industry. Data and information on the world's protected areas compiled in the WDPA are used for reporting to the Convention on Biological Diversity on progress towards reaching the Aichi Biodiversity Targets (particularly Target 11), to the UN to track progress towards the 2030 Sustainable Development Goals, to some of the Intergovernmental Science-Policy Platform on Biodiversity and Ecosystem Services (IPBES) core indicators, and other international assessments and reports including the Global Biodiversity Outlook, as well as for the publication of the United Nations List of Protected Areas.
 
 _Text adapted from:_ UNEP-WCMC and IUCN (2024), Protected Planet: The World Database on Protected Areas (WDPA)[On-line], [June 2024], Cambridge, UK: UNEP-WCMC and IUCN. Available at: https://doi.org/10.34892/6fwd-af11
+
 
 ```js
 import maplibregl from 'npm:maplibre-gl';
@@ -161,3 +164,4 @@ function swatch(color) {
 "></div>`;
 }
 ```
+
