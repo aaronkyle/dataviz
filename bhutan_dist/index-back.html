@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Bhutan | Sources of Geospatial Data on Administrative Divisions&#x60; | Bhutan</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="modulepreload" href="./_observablehq/client.js">
+<link rel="modulepreload" href="./_observablehq/runtime.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_npm/d3@7.9.0/_esm.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-array@3.2.4/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-axis@3.0.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-brush@3.0.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-chord@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-color@3.1.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-contour@4.0.2/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-delaunay@6.0.4/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-dispatch@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-drag@3.0.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-dsv@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-ease@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-fetch@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-force@3.0.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-format@3.1.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-geo@3.1.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-hierarchy@3.1.2/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-interpolate@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-path@3.1.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-polygon@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-quadtree@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-random@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-scale@4.0.2/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-scale-chromatic@3.1.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-selection@3.0.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-shape@3.2.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-time@3.1.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-time-format@4.1.0/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-timer@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-transition@3.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/d3-zoom@3.0.0/_esm.js">
+<link rel="modulepreload" href="./_npm/internmap@2.0.3/_esm.js">
+<link rel="modulepreload" href="./_npm/delaunator@5.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/robust-predicates@3.0.2/_esm.js">
+<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
+<script type="module">
+
+import {define} from "./_observablehq/client.js";
+import {registerFile} from "./_observablehq/stdlib.js";
+
+registerFile("./gadm36_BTN_admin0.geojson", {"name":"./gadm36_BTN_admin0.geojson","mimeType":"application/geo+json","path":"./_file/gadm36_BTN_admin0.57de8fcd.geojson","lastModified":1573827311426});
+registerFile("./gadm36_BTN_admin1.geojson", {"name":"./gadm36_BTN_admin1.geojson","mimeType":"application/geo+json","path":"./_file/gadm36_BTN_admin1.57f85913.geojson","lastModified":1573827312069});
+registerFile("./gadm36_BTN_admin2.geojson", {"name":"./gadm36_BTN_admin2.geojson","mimeType":"application/geo+json","path":"./_file/gadm36_BTN_admin2.f6422928.geojson","lastModified":1573827313108});
+registerFile("./humdata_BTN_admin.geojson", {"name":"./humdata_BTN_admin.geojson","mimeType":"application/geo+json","path":"./_file/humdata_BTN_admin.ef6a1a82.geojson","lastModified":1573834995029});
+
+define({id: "d7e2f0aa", inputs: ["FileAttachment"], outputs: ["humdata_BTN_admin"], body: (FileAttachment) => {
+const humdata_BTN_admin = FileAttachment("./humdata_BTN_admin.geojson").json()
+return {humdata_BTN_admin};
+}});
+
+define({id: "44174690", inputs: ["html","width","height","path","humdata_BTN_admin","display"], body: async (html,width,height,path,humdata_BTN_admin,display) => {
+display(await(
+html.fragment`<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;width:70%;height:auto;">
+  <path d="${path(humdata_BTN_admin)}" fill="none" stroke="black" stroke-width="2"></path>
+</svg>`
+))
+}});
+
+define({id: "44174690-1", inputs: ["html","width","height","path","humdata_BTN_admin","display"], body: async (html,width,height,path,humdata_BTN_admin,display) => {
+display(await(
+html.fragment`<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;width:70%;height:auto;">
+  <path d="${path(humdata_BTN_admin)}" fill="none" stroke="black" stroke-width="2"></path>
+</svg>`
+))
+}});
+
+define({id: "398d9b40", inputs: ["FileAttachment"], outputs: ["gadm_BTN_admin0"], body: async (FileAttachment) => {
+const gadm_BTN_admin0 = await FileAttachment("./gadm36_BTN_admin0.geojson").json() 
+// state-level boundary
+return {gadm_BTN_admin0};
+}});
+
+define({id: "629e4b5c", inputs: ["FileAttachment"], outputs: ["gadm_BTN_admin1"], body: async (FileAttachment) => {
+const gadm_BTN_admin1 = await FileAttachment("./gadm36_BTN_admin1.geojson").json() 
+// district-level boundaries
+return {gadm_BTN_admin1};
+}});
+
+define({id: "94920d00", inputs: ["FileAttachment"], outputs: ["gadm_BTN_admin2"], body: async (FileAttachment) => {
+const gadm_BTN_admin2 = await FileAttachment("./gadm36_BTN_admin2.geojson").json() 
+// village-level boundaries
+return {gadm_BTN_admin2};
+}});
+
+define({id: "0a284fa6", inputs: ["html","width","height","path","gadm_BTN_admin0","gadm_BTN_admin1","gadm_BTN_admin2","display"], body: async (html,width,height,path,gadm_BTN_admin0,gadm_BTN_admin1,gadm_BTN_admin2,display) => {
+display(await(
+html.fragment`<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;width:70%;height:auto;">
+  <path d="${path(gadm_BTN_admin0)}" fill="none" stroke="black" stroke-width="2"></path>
+  <path d="${path(gadm_BTN_admin1)}" fill="none" stroke="blue" stroke-width="1.2"></path>
+  <path d="${path(gadm_BTN_admin2)}" fill="none" stroke="grey" stroke-width="0.8"></path>
+</svg>`
+))
+}});
+
+define({id: "0a284fa6-1", inputs: ["html","width","height","path","gadm_BTN_admin0","gadm_BTN_admin1","gadm_BTN_admin2","display"], body: async (html,width,height,path,gadm_BTN_admin0,gadm_BTN_admin1,gadm_BTN_admin2,display) => {
+display(await(
+html.fragment`<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;width:70%;height:auto;">
+  <path d="${path(gadm_BTN_admin0)}" fill="none" stroke="black" stroke-width="2"></path>
+  <path d="${path(gadm_BTN_admin1)}" fill="none" stroke="blue" stroke-width="1.2"></path>
+  <path d="${path(gadm_BTN_admin2)}" fill="none" stroke="grey" stroke-width="0.8"></path>
+</svg>`
+))
+}});
+
+define({id: "5d6fa984", body: () => {
+// const d3 = import * as d3 from "npm:d3@5";
+}});
+
+define({id: "fac3bb6f", outputs: ["width"], body: () => {
+const width = 975
+return {width};
+}});
+
+define({id: "9924a1aa", inputs: ["d3","width","gadm_BTN_admin0"], outputs: ["projection"], body: (d3,width,gadm_BTN_admin0) => {
+const projection = d3.geoIdentity()
+    .reflectY(true)
+    .fitWidth(width, gadm_BTN_admin0)
+return {projection};
+}});
+
+define({id: "1cff76e3", inputs: ["path","gadm_BTN_admin0"], outputs: ["height"], body: async (path,gadm_BTN_admin0) => {
+const height = await Math.ceil(path.bounds(gadm_BTN_admin0)[1][1])
+return {height};
+}});
+
+define({id: "aba4ba02", inputs: ["d3","projection"], outputs: ["path"], body: (d3,projection) => {
+const path = d3.geoPath(projection)
+return {path};
+}});
+
+</script>
+<input id="observablehq-sidebar-toggle" type="checkbox" title="Toggle sidebar">
+<label id="observablehq-sidebar-backdrop" for="observablehq-sidebar-toggle"></label>
+<nav id="observablehq-sidebar">
+  <ol>
+    <label id="observablehq-sidebar-close" for="observablehq-sidebar-toggle"></label>
+    <li class="observablehq-link"><a href="./">Bhutan</a></li>
+  </ol>
+  <ol>
+    <li class="observablehq-link observablehq-link-active"><a href="./index-back">Bhutan | Sources of Geospatial Data on Administrative Divisions&#x60;</a></li>
+  </ol>
+</nav>
+<script>{Object.assign(document.createElement("a"),{href:""}).password&&location.replace(location.href);const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
+<aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
+<nav>
+</nav>
+</aside>
+<div id="observablehq-center">
+<main id="observablehq-main" class="observablehq">
+<h1 id="bhutan-%7C-sources-of-geospatial-data-on-administrative-divisions%60" tabindex="-1"><a class="observablehq-header-anchor" href="#bhutan-%7C-sources-of-geospatial-data-on-administrative-divisions%60">Bhutan | Sources of Geospatial Data on Administrative Divisions`</a></h1>
+<p>As I am working more on safeguard issues in the Kingdom of Bhutan, I wish to improve my understanding of the state's geography and administrative divisions. This notebook reflects a sort of 'walk through' of my findings in this pursuit.</p>
+<p>To the greatest extent possible, I like to work with 'official' data sources—those published and maintained by state agencies.</p>
+<hr>
+<p>The first site I came across is the <a href="https://web.archive.org/web/20191101224221/http://geo.gov.bt/" target="_blank" rel="noopener noreferrer">Bhutan Geo Portal</a>, which was designed to allows users to share maps, data, and information about data (metadata) to enhance the awareness about data availability and improved access to geospatial information and different applications.<sup><a href="https://www.nlcs.gov.bt/?page_id=38" target="_blank" rel="noopener noreferrer">[ref]</a></sup> The Portal was developed by Bhutan's <a href="https://web.archive.org/web/20180717154132/http://www.nlcs.gov.bt/?page_id=70" target="_blank" rel="noopener noreferrer">Center for GIS Coordination</a> and the <a href="https://www.nlcs.gov.bt/" target="_blank" rel="noopener noreferrer">National Land Commission of Royal Government of Bhutan</a> with the support from the International Centre for <a href="http://www.icimod.org/" target="_blank" rel="noopener noreferrer">Integrated Mountain Development (ICIMOD)</a> and <a href="https://www.servirglobal.net/Regions/Himalaya" target="_blank" rel="noopener noreferrer">SERVIR-Himalaya</a> (a joint initiative of the <a href="https://www.usaid.gov/" target="_blank" rel="noopener noreferrer">United States Agency for International Development (USAID)</a>, the <a href="https://www.nasa.gov/" target="_blank" rel="noopener noreferrer">National Aeronautics and Space Administration (NASA)</a> and ICIMOD).</p>
+<hr>
+<p>On top of Bhutan's Geo Portal are a number of interesting applications.  Here's a quick run-down:</p>
+<ul>
+<li><a href="https://web.archive.org/web/20180305145346/http://geo.gov.bt/Home/ApplicationDetail?appId=6" target="_blank" rel="noopener noreferrer">Bhutan Data Viewer</a>
+<ul>
+<li>An interactive web mapping application to view geospatial data arranged in various thematic areas.</li>
+</ul>
+</li>
+<li><a href="https://web.archive.org/web/20180911105117/http://geo.gov.bt/Home/ApplicationDetail?appId=4" target="_blank" rel="noopener noreferrer">Road Planner</a>
+<ul>
+<li>An interactive web mapping application to support planning of farm road construction in Bhutan</li>
+</ul>
+</li>
+<li><a href="https://web.archive.org/web/20180912020231/http://geo.gov.bt/Home/ApplicationDetail?appId=5" target="_blank" rel="noopener noreferrer">Bhutan Cadastral Mapping</a>
+<ul>
+<li>A web&nbsp;mapping application for locating land parcels in a given Gewog and Dzongkhag based on Thrarm and Plot Id information.</li>
+</ul>
+</li>
+<li><a href="http://geo.gov.bt/Home/ApplicationDetail?appId=2" target="_blank" rel="noopener noreferrer">Glacier Dynamics in Bhutan Himalaya</a>
+<ul>
+<li>Interactive mapping of glacier dynamics in Bhutan for 1980, 1990, 2000, and 2010</li>
+</ul>
+</li>
+<li><a href="http://geo.gov.bt/Home/ApplicationDetail?appId=3" target="_blank" rel="noopener noreferrer">Forest Fire Detection &amp; Monitoring in Bhutan</a>
+<ul>
+<li>MODIS based active fire detection and monitoring system in Bhutan with SMS and email alerts</li>
+</ul>
+</li>
+<li><a href="http://geo.gov.bt/Home/ApplicationDetail?appId=1" target="_blank" rel="noopener noreferrer">Land Cover Dynamics in Bhutan</a>
+<ul>
+<li>Statistics on the harmonised land cover database of Bhutan for 1990, 2000 and 2010</li>
+</ul>
+</li>
+<li><a href="http://geo.gov.bt/Home/ApplicationDetail?appId=8" target="_blank" rel="noopener noreferrer">Topographic Base Map View (New)</a>
+<ul>
+<li>This is the sample topographic base map view of Southern belt.</li>
+</ul>
+</li>
+<li><a href="http://geo.gov.bt/Home/ApplicationDetail?appId=9" target="_blank" rel="noopener noreferrer">SamdrupJongKhar City Addressing App(New)</a>
+<ul>
+<li>TSamdrupJongKhar City Addressing App</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>Regrettably, at the time of writing this notebook, the Bhutan Geo Portal's main entry point was down. Since the apps listed above don't link to downloads of the underlying data layers, my search continues.</p>
+<hr>
+<p>The next set of files I find are hosted on <a href="https://data.humdata.org/" target="_blank" rel="noopener noreferrer">The Humanitarian Data Exchange (HDX)</a>, a service maintained by the <a href="https://www.unocha.org/" target="_blank" rel="noopener noreferrer">United Nations Office for the Coordination of Humanitarian Affairs (OCHA)</a>.  HDX has <a href="https://data.humdata.org/group/btn" target="_blank" rel="noopener noreferrer">a lot of interesting data on Bhutan</a>, including (at the time of writing) <a href="https://data.humdata.org/group/btn?ext_geodata=1&amp;q=&amp;ext_page_size=25" target="_blank" rel="noopener noreferrer">12 source of 'geodata'</a>.</p>
+<p>Being interested as I am in creating a map of the state's administrative divisions, I turn my attention to the layer entitled <a href="https://data.humdata.org/dataset/bhutan-administrative-boundaries-levels-0-2" target="_blank" rel="noopener noreferrer">Bhutan - Administrative Boundaries (levels 0 - 2)</a>, uploaded by <a href="https://data.humdata.org/user/dickoah" target="_blank" rel="noopener noreferrer">Ahmadou Dicko</a>. As described on the site, "The administrative level 0 and 1 shapefiles and geodatabase feature classes are suitable for database or GIS linkage to the Bhutan administrative level 0-1 population statistics CSV tables."  Sounds great (I'll eventually wish to start joining statistical data to these shapefiles)!</p>
+<p>Here's a quick list of the several files options HDX provides for this resource:</p>
+<ul>
+<li><a href="https://data.humdata.org/dataset/cff13277-eac9-49b0-8436-e80f42eb4684/resource/993e195f-3c7c-4472-ad2f-f04245a3537d/download/btn_adm_bnlc_shp.zip" target="_blank" rel="noopener noreferrer">`btn_adm_bnlc_SHP.zip`</a></li>
+<li><a href="https://data.humdata.org/dataset/cff13277-eac9-49b0-8436-e80f42eb4684/resource/c83c14ed-32a2-44a3-82a9-fe31b7e19a02/download/btn_adm_bnic_emf.zip" target="_blank" rel="noopener noreferrer">`btn_adm_bnic_EMF.zip`</a></li>
+<li><a href="https://data.humdata.org/dataset/cff13277-eac9-49b0-8436-e80f42eb4684/resource/f93371ea-de16-4b53-ad85-8cfd779aa8fe/download/btn_adm_bnlc_kmz.zip" target="_blank" rel="noopener noreferrer">`btn_adm_bnlc_KMZ.zip`</a></li>
+<li><a href="https://data.humdata.org/dataset/cff13277-eac9-49b0-8436-e80f42eb4684/resource/2625dea2-787b-4b56-a1ec-d52bb3906b06/download/btn_adm_bnlc.gdb.zip" target="_blank" rel="noopener noreferrer">`btn_adm_bnlc.gdb.zip`</a></li>
+<li><a href="https://data.humdata.org/dataset/cff13277-eac9-49b0-8436-e80f42eb4684/resource/e048ac82-5233-4693-bbd5-9303cf11d200/download/btn-cod-ab-2019-02-01.pdf" target="_blank" rel="noopener noreferrer">`BTN COD-AB 2019 02 01.pdf`</a></li>
+<li><a href="https://data.humdata.org/dataset/cff13277-eac9-49b0-8436-e80f42eb4684/resource/38d88f26-a81a-49be-aeb1-f2c3e5a4ea60/download/btn_adm_gazetteer.xls" target="_blank" rel="noopener noreferrer">`btn_adm_gazetteer.xls`</a></li>
+</ul>
+<p>Yet something appears to be amiss!  This is what I get when loading in and rendering out the <code>btn_adm_bnlc_SHP.zip</code> shapefile:</p>
+<div id="cell-d7e2f0aa" class="observablehq observablehq--block"></div>
+<div id="cell-44174690" class="observablehq observablehq--block"><span class="observablehq-loading"></span></div>
+<pre data-language="html"><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">svg</span> <span class="hljs-attr">width</span>=<span class="hljs-string">"${width}"</span> <span class="hljs-attr">height</span>=<span class="hljs-string">"${height}"</span> <span class="hljs-attr">viewBox</span>=<span class="hljs-string">"0 0 ${width} ${height}"</span> <span class="hljs-attr">style</span>=<span class="hljs-string">"display:block;width:70%;height:auto;"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(humdata_BTN_admin)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"black"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">svg</span>&gt;</span>
+</code></pre>
+<div id="cell-44174690-1" class="observablehq observablehq--block"><span class="observablehq-loading"></span></div>
+<pre data-language="html"><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">svg</span> <span class="hljs-attr">width</span>=<span class="hljs-string">"${width}"</span> <span class="hljs-attr">height</span>=<span class="hljs-string">"${height}"</span> <span class="hljs-attr">viewBox</span>=<span class="hljs-string">"0 0 ${width} ${height}"</span> <span class="hljs-attr">style</span>=<span class="hljs-string">"display:block;width:70%;height:auto;"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(humdata_BTN_admin)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"black"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">svg</span>&gt;</span>
+</code></pre>
+<p>Not ideal.  The <code>admin0</code> level doesn't exactly conform to my expectations, and the <code>admin1</code> and <code>admin2</code> levels aren't readily visible.  I might be able to overcome these shortcomings with some work (the object properties differentiate boundaries down to  <code>admin4</code>), but I imagine there are easier-to-use datasets out there. Again, my search continues.</p>
+<hr>
+<p>After a bit more digging (and broadening my search to 'non-official' sources), I arrive at <a href="https://gadm.org/" target="_blank" rel="noopener noreferrer">GADM, the Database of Global Administrative Areas</a><!--, hosted by the [Center for Spatial Sciences](https://spatial.ucdavis.edu/) at the [University of California, Davis](https://www.ucdavis.edu/)-->. GADM wants to map the <a href="https://gadm.org/download_country_v3.html" target="_blank" rel="noopener noreferrer">administrative areas of all countries</a> at all levels of sub-division—capturing high spatial resolution and of a extensive set of attributes.</p>
+<p>Here are the GADM offerings for Bhutan:</p>
+<ul>
+<li><a href="https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/gadm36_BTN_gpkg.zip" target="_blank" rel="noopener noreferrer">Geopackage</a></li>
+<li><a href="https://biogeo.ucdavis.edu/data/gadm3.6/shp/gadm36_BTN_shp.zip" target="_blank" rel="noopener noreferrer">Shapefile</a></li>
+<li>R (sp):&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/Rsp/gadm36_BTN_0_sp.rds" target="_blank" rel="noopener noreferrer">level-0</a>,&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/Rsp/gadm36_BTN_1_sp.rds" target="_blank" rel="noopener noreferrer">level1</a>,&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/Rsp/gadm36_BTN_2_sp.rds" target="_blank" rel="noopener noreferrer">level2</a></li>
+<li>R (sf):&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/Rsf/gadm36_BTN_0_sf.rds" target="_blank" rel="noopener noreferrer">level-0</a>,&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/Rsf/gadm36_BTN_1_sf.rds" target="_blank" rel="noopener noreferrer">level1</a>,&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/Rsf/gadm36_BTN_2_sf.rds" target="_blank" rel="noopener noreferrer">level2</a></li>
+<li>KMZ:&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/kmz/gadm36_BTN_0.kmz" target="_blank" rel="noopener noreferrer">level-0</a>,&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/kmz/gadm36_BTN_1.kmz" target="_blank" rel="noopener noreferrer">level1</a>,&nbsp;<a href="https://biogeo.ucdavis.edu/data/gadm3.6/kmz/gadm36_BTN_2.kmz" target="_blank" rel="noopener noreferrer">level2</a></li>
+</ul>
+<p>I'll load in the GADM shapefile data (after manually converting it to geojson format) and re-draw the map:</p>
+<div id="cell-398d9b40" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> gadm_BTN_admin0 = <span class="hljs-keyword">await</span> <span class="hljs-title class_">FileAttachment</span>(<span class="hljs-string">"gadm36_BTN_admin0.geojson"</span>).<span class="hljs-title function_">json</span>() 
+<span class="hljs-comment">// state-level boundary</span>
+</code></pre>
+<div id="cell-629e4b5c" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> gadm_BTN_admin1 = <span class="hljs-keyword">await</span> <span class="hljs-title class_">FileAttachment</span>(<span class="hljs-string">"gadm36_BTN_admin1.geojson"</span>).<span class="hljs-title function_">json</span>() 
+<span class="hljs-comment">// district-level boundaries</span>
+</code></pre>
+<div id="cell-94920d00" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> gadm_BTN_admin2 = <span class="hljs-keyword">await</span> <span class="hljs-title class_">FileAttachment</span>(<span class="hljs-string">"gadm36_BTN_admin2.geojson"</span>).<span class="hljs-title function_">json</span>() 
+<span class="hljs-comment">// village-level boundaries</span>
+</code></pre>
+<div id="cell-0a284fa6" class="observablehq observablehq--block"><span class="observablehq-loading"></span></div>
+<pre data-language="html"><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">svg</span> <span class="hljs-attr">width</span>=<span class="hljs-string">"${width}"</span> <span class="hljs-attr">height</span>=<span class="hljs-string">"${height}"</span> <span class="hljs-attr">viewBox</span>=<span class="hljs-string">"0 0 ${width} ${height}"</span> <span class="hljs-attr">style</span>=<span class="hljs-string">"display:block;width:70%;height:auto;"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(gadm_BTN_admin0)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"black"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(gadm_BTN_admin1)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"blue"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"1.2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(gadm_BTN_admin2)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"grey"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"0.8"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">svg</span>&gt;</span>
+</code></pre>
+<div id="cell-0a284fa6-1" class="observablehq observablehq--block"><span class="observablehq-loading"></span></div>
+<pre data-language="html"><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">svg</span> <span class="hljs-attr">width</span>=<span class="hljs-string">"${width}"</span> <span class="hljs-attr">height</span>=<span class="hljs-string">"${height}"</span> <span class="hljs-attr">viewBox</span>=<span class="hljs-string">"0 0 ${width} ${height}"</span> <span class="hljs-attr">style</span>=<span class="hljs-string">"display:block;width:70%;height:auto;"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(gadm_BTN_admin0)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"black"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(gadm_BTN_admin1)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"blue"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"1.2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">path</span> <span class="hljs-attr">d</span>=<span class="hljs-string">"${path(gadm_BTN_admin2)}"</span> <span class="hljs-attr">fill</span>=<span class="hljs-string">"none"</span> <span class="hljs-attr">stroke</span>=<span class="hljs-string">"grey"</span> <span class="hljs-attr">stroke-width</span>=<span class="hljs-string">"0.8"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">path</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">svg</span>&gt;</span>
+</code></pre>
+<p>Okay. I'm getting somewhere – this map appears to conform to Bhutan's current political organization.</p>
+<hr>
+<p>For good measure, I'll have another look around the Internet to see if I can find another source to verify the GADM dataset.</p>
+<p>One quick-to-find resource is <a href="https://mapcruzin.com/" target="_blank" rel="noopener noreferrer">MapCruzin</a> is an independent firm specializing in GIS data for professional research and analysis.</p>
+<p>MapCruzin provides the following data for Bhutan:<sup><a href="https://mapcruzin.com/free-bhutan-country-city-place-gis-shapefiles.htm" target="_blank" rel="noopener noreferrer">[ref]</a></sup></p>
+<ul>
+<li><a href="https://mapcruzin.com/bhutan-shapefiles/bhutan_administrative.zip" target="_blank" rel="noopener noreferrer">Administrative</a></li>
+<li><a href="https://mapcruzin.com/bhutan-shapefiles/bhutan_coastline.zip" target="_blank" rel="noopener noreferrer">Coastline</a></li>
+<li><a href="https://mapcruzin.com/bhutan-shapefiles/bhutan_highway.zip" target="_blank" rel="noopener noreferrer">Roads</a></li>
+<li><a href="https://mapcruzin.com/bhutan-shapefiles/bhutan_location.zip" target="_blank" rel="noopener noreferrer">Places</a></li>
+<li><a href="https://mapcruzin.com/bhutan-shapefiles/bhutan_natural.zip" target="_blank" rel="noopener noreferrer">Natural Features</a></li>
+<li><a href="https://mapcruzin.com/bhutan-shapefiles/bhutan_poi.zip" target="_blank" rel="noopener noreferrer">Points of Interest</a></li>
+<li><a href="https://mapcruzin.com/bhutan-shapefiles/bhutan_water.zip" target="_blank" rel="noopener noreferrer">Water</a></li>
+</ul>
+<p>Regrettably, the MapCruzin `bhutan_administrative.zip` appears to contain the same data as the HDX `btn_adm_bnlc_SHP.zip`, so no dice!</p>
+<p>Alas - I'm fairly contented with the GADM-based map, so I'll end my pursuit of administrative division geodata here (for now).</p>
+<hr>
+<p>Before concluding this notebook, I'd like to note a few additional sources of geospatial data for Bhutan that look interesting (and worth further exploration... in another future notebook).</p>
+<ul>
+<li>
+<p><a href="https://web.archive.org/web/20180715191814/http://www.nlcs.gov.bt/?page_id=203" target="_blank" rel="noopener noreferrer">Bhutan National Land Commission Secretariat</a></p>
+<ul>
+<li>The National Land Commission Secretariat is a national mapping organization, mandated to produce topographic base maps, thematic maps, cadastral maps and large scale maps for projects. Their <a href="#" title="Previously at: https://www.nlcs.gov.bt/topo_map/gsimaps/#9/27.390000/90.400000">topographic base map</a> sub-divides the country into 56 map tiles for referential convenience. The following offerings can be accessed on request:
+<ul>
+<li>Topographic maps on 1:50000 scale</li>
+<li>Topographic maps on 1:25,000 scale</li>
+<li>Cadastral maps</li>
+<li>Administrative maps</li>
+<li>Physical maps</li>
+<li>Guide maps</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><a href="https://globalmaps.github.io/" target="_blank" rel="noopener noreferrer">Global Map data archives</a></p>
+<ul>
+<li>Global Map data archives is repository of geospatial information developed for the the Global Mapping Project<sup><a href="https://g4aw.spaceoffice.nl/en/projects/international/data-and-services/data/global-mapping-project/" target="_blank" rel="noopener noreferrer">[ref]</a></sup>—an initiative launched in 1996 as a voluntary international cooperation of national mapping organizations, and led by the International Steering Committee for Global Mapping (ISCGM) and its Secretariat, c/o Geospatial Information Authority of Japan (GSI). The aim of the Global Mapping Project was to develop and provide Global Map data set with the following characteristics:
+<ul>
+<li>Fundamental geospatial information covering the whole land of the globe</li>
+<li>Geospatial information developed and authorized by NGIAs of respective countries and regions around the world.</li>
+<li>Digital geospatial information composed of eight layers being developed with consistent specifications</li>
+<li>Freely available for download, and in case of non-commercial purposes, in principle, anyone can use the data freely.</li>
+</ul>
+</li>
+<li>The resolution of the termination of ISCGM and the transfer of Global Map data to the Geospatial Information Section in the UN was adopted at the 23rd ISCGM meeting on August 2, 2016. In this context, ISCGM terminated its website service on December 19, 2016. The Global Map data archives host the project data as it is existed on ISCGM termination.</li>
+<li>The following data are archived for Bhutan: <a href="https://github.com/globalmaps/gmbt10" target="_blank" rel="noopener noreferrer">gmbt10</a>, <a href="https://github.com/globalmaps/gmbt20" target="_blank" rel="noopener noreferrer">gmbt20</a>.</li>
+</ul>
+</li>
+</ul>
+<!-- ### Appendix -->
+<!-- #### JavaScript Visualization Code -->
+<div id="cell-5d6fa984" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-comment">// const d3 = import * as d3 from "npm:d3@5";</span>
+</code></pre>
+<div id="cell-fac3bb6f" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> width = <span class="hljs-number">975</span>
+</code></pre>
+<div id="cell-9924a1aa" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> projection = d3.<span class="hljs-title function_">geoIdentity</span>()
+    .<span class="hljs-title function_">reflectY</span>(<span class="hljs-literal">true</span>)
+    .<span class="hljs-title function_">fitWidth</span>(width, gadm_BTN_admin0)
+</code></pre>
+<div id="cell-1cff76e3" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> height = <span class="hljs-keyword">await</span> <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">ceil</span>(path.<span class="hljs-title function_">bounds</span>(gadm_BTN_admin0)[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>])
+</code></pre>
+<div id="cell-aba4ba02" class="observablehq observablehq--block"></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> path = d3.<span class="hljs-title function_">geoPath</span>(projection)
+</code></pre>
+</main>
+<footer id="observablehq-footer">
+<nav><a rel="prev" href="./"><span>Bhutan</span></a></nav>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-14T16:45:31">Jun 14, 2024</a>.</div>
+</footer>
+</div>
