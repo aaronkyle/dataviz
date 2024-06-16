@@ -67,13 +67,48 @@ registerFile("./data/mobile_money_account_by_sex.png", {"name":"./data/mobile_mo
 registerFile("./data/own_house_or_land_by_sex.png", {"name":"./data/own_house_or_land_by_sex.png","mimeType":"image/png","path":"./_file/data/own_house_or_land_by_sex.f0bbe564.png","lastModified":1686350470127});
 registerFile("./data/saved_money_last_year_by_sex.png", {"name":"./data/saved_money_last_year_by_sex.png","mimeType":"image/png","path":"./_file/data/saved_money_last_year_by_sex.3bffb62e.png","lastModified":1686350469446});
 
-define({id: "24a81051", body: () => {
-// toc("h2, h3")
+define({id: "5b6310f0", inputs: ["toc"], outputs: ["document_toc"], body: (toc) => {
+const document_toc = toc("h2, h3")
+return {document_toc};
 }});
 
-define({id: "f7efae95", body: () => {
+define({id: "c5d046fe", mode: "inline", inputs: ["document_toc","display"], body: async (document_toc,display) => {
+display(await(
+document_toc
+))
+}});
+
+define({id: "9bc4399c", inputs: ["Generators","MutationObserver"], outputs: ["toc"], body: (Generators,MutationObserver) => {
 // This is a little helper function used to generate the Table of Contents
 //import {toc} from '@categorise/toc'
+function toc(selector = "h2,h3,h4,h5,h6") {
+  return Generators.observe(notify => {
+    let headings = [];
+
+    function observed() {
+      const h = Array.from(document.querySelectorAll(selector));
+      if (h.length !== headings.length || h.some((heading, i) => headings[i] !== heading)) {
+        headings = h;
+        const tocContent = document.createElement('div');
+        tocContent.innerHTML = `<b>Contents</b>${generateTOC(headings)}`;
+        notify(tocContent);
+      }
+    }
+
+    function generateTOC(headings) {
+      return `<ul>${headings.map(h => {
+        const level = parseInt(h.tagName.slice(1));
+        return `${'<ul>'.repeat(level - 1)}<li><a href="#${h.id}">${h.textContent}</a></li>${'</ul>'.repeat(level - 1)}`;
+      }).join('')}</ul>`;
+    }
+
+    const observer = new MutationObserver(observed);
+    observer.observe(document.body, {childList: true, subtree: true});
+    observed();
+    return () => observer.disconnect();
+  });
+}
+return {toc};
 }});
 
 define({id: "eb4a73b9", inputs: ["display","FileAttachment"], outputs: ["assets"], body: async (display,FileAttachment) => {
@@ -230,15 +265,9 @@ return {
 return {indicators_group_year_country_min};
 }});
 
-define({id: "a26f89d7", inputs: ["FileAttachment"], outputs: ["mobile_money_account_by_sex"], body: async (FileAttachment) => {
-const mobile_money_account_by_sex = await FileAttachment("./data/mobile_money_account_by_sex.png").image()
+define({id: "078cd8b6", inputs: ["display","FileAttachment"], outputs: ["mobile_money_account_by_sex"], body: async (display,FileAttachment) => {
+const mobile_money_account_by_sex = display(await FileAttachment("./data/mobile_money_account_by_sex.png").image())
 return {mobile_money_account_by_sex};
-}});
-
-define({id: "638b98a0", inputs: ["FileAttachment","display"], body: async (FileAttachment,display) => {
-display(await(
-(await FileAttachment("./data/mobile_money_account_by_sex.png")).image()
-))
 }});
 
 define({id: "0dab33d8", inputs: ["display","assets"], outputs: ["aggregated_economies"], body: (display,assets) => {
@@ -357,15 +386,9 @@ ${Plot.plot({
 ))
 }});
 
-define({id: "06290dc8", inputs: ["FileAttachment"], outputs: ["saved_money_last_year_by_sex"], body: async (FileAttachment) => {
-const saved_money_last_year_by_sex = await FileAttachment("./data/saved_money_last_year_by_sex.png").image()
+define({id: "d2b20035", inputs: ["display","FileAttachment"], outputs: ["saved_money_last_year_by_sex"], body: async (display,FileAttachment) => {
+const saved_money_last_year_by_sex = display(await FileAttachment("./data/saved_money_last_year_by_sex.png").image())
 return {saved_money_last_year_by_sex};
-}});
-
-define({id: "50f77ef9", inputs: ["FileAttachment","display"], body: async (FileAttachment,display) => {
-display(await(
-(await FileAttachment("./data/saved_money_last_year_by_sex.png")).image()
-))
 }});
 
 define({id: "b361b205", inputs: ["assets"], outputs: ["aggregated_money_savings_last_year"], body: (assets) => {
@@ -526,15 +549,9 @@ ${Plot.plot({
 ))
 }});
 
-define({id: "37487953", inputs: ["FileAttachment"], outputs: ["own_house_or_land_by_sex"], body: async (FileAttachment) => {
-const own_house_or_land_by_sex = await FileAttachment("./data/own_house_or_land_by_sex.png").image()
+define({id: "8f81f763", inputs: ["display","FileAttachment"], outputs: ["own_house_or_land_by_sex"], body: async (display,FileAttachment) => {
+const own_house_or_land_by_sex = display(await FileAttachment("./data/own_house_or_land_by_sex.png").image())
 return {own_house_or_land_by_sex};
-}});
-
-define({id: "a581caa2", inputs: ["FileAttachment","display"], body: async (FileAttachment,display) => {
-display(await(
-(await FileAttachment("./data/own_house_or_land_by_sex.png")).image()
-))
 }});
 
 define({id: "a38f7cc0", inputs: ["display","FileAttachment"], outputs: ["country_and_lending_group_classifications"], body: async (display,FileAttachment) => {
@@ -990,15 +1007,9 @@ html.fragment`<span style="font-family: Andes, Arial, sans-serif; font-size: 20p
 ))
 }});
 
-define({id: "0043ad4d", inputs: ["FileAttachment"], outputs: ["marriage_grants_equal_authority"], body: async (FileAttachment) => {
-const marriage_grants_equal_authority = await FileAttachment("./data/marriage_grants_equal_authority.png").image()
+define({id: "2c594a6f", inputs: ["display","FileAttachment"], outputs: ["marriage_grants_equal_authority"], body: async (display,FileAttachment) => {
+const marriage_grants_equal_authority = display(await FileAttachment("./data/marriage_grants_equal_authority.png").image())
 return {marriage_grants_equal_authority};
-}});
-
-define({id: "9c1c287e", inputs: ["FileAttachment","display"], body: async (FileAttachment,display) => {
-display(await(
-(await FileAttachment("./data/marriage_grants_equal_authority.png")).image()
-))
 }});
 
 define({id: "3be46bfd", inputs: ["country_and_lending_group_classification_economies"], outputs: ["economies_name_map"], body: (country_and_lending_group_classification_economies) => {
@@ -1268,7 +1279,7 @@ ${d3
 </script>
 <aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
 <nav>
-<div>Contents</div>
+<div></div>
 <ol>
 <li class="observablehq-secondary-link"><a href="#objective">Objective</a></li>
 <li class="observablehq-secondary-link"><a href="#data-access">Data Access</a></li>
@@ -1287,8 +1298,9 @@ ${d3
 <h2 id="objective" tabindex="-1"><a class="observablehq-header-anchor" href="#objective">Objective</a></h2>
 <p>This notebook examines the <a href="https://genderdata.worldbank.org/#explore-topics" target="_blank" rel="noopener noreferrer">topic</a> of <a href="https://genderdata.worldbank.org/topics/assets" target="_blank" rel="noopener noreferrer">Assets</a>. We will walk through how to load in <code>asset</code> data and will reproduce the visualizations on the <a href="https://genderdata.worldbank.org/topics/assets" target="_blank" rel="noopener noreferrer">topic summary page</a>.</p>
 <!--- -->
-<div class="observablehq observablehq--block"><!--:24a81051:--></div>
-<div class="observablehq observablehq--block"><!--:f7efae95:--></div>
+<div class="observablehq observablehq--block"><!--:5b6310f0:--></div>
+<p><observablehq-loading></observablehq-loading><!--:c5d046fe:--></p>
+<div class="observablehq observablehq--block"><!--:9bc4399c:--></div>
 <hr>
 <h2 id="data-access" tabindex="-1"><a class="observablehq-header-anchor" href="#data-access">Data Access</a></h2>
 <p>The Data Portal offers users a few ways to access <a href="https://genderdata.worldbank.org/topics/assets/" target="_blank" rel="noopener noreferrer">Assets</a> data, including a <a href="https://genderdata.worldbank.org/indicators/#assets" target="_blank" rel="noopener noreferrer">list of all asset indicators</a>,  <a href="https://genderdata.worldbank.org/data/download/zips/assets.zip" target="_blank" rel="noopener noreferrer"><code>.csv</code> file downloads</a> and API access via <a href="https://databank.worldbank.org/source/gender-statistics" target="_blank" rel="noopener noreferrer">Databank</a>.  The the topic page is also available as <a href="https://genderdata.worldbank.org/data/download/pdfs/topics/assets.pdf" target="_blank" rel="noopener noreferrer"><code>.pdf</code></a>.</p>
@@ -1372,8 +1384,7 @@ ${d3
 <hr>
 <h3 id="account-ownership-at-a-financial-institution-or-with-a-mobile-money-service-provider-by-sex-and-income-group" tabindex="-1"><a class="observablehq-header-anchor" href="#account-ownership-at-a-financial-institution-or-with-a-mobile-money-service-provider-by-sex-and-income-group">Account ownership at a financial institution or with a mobile-money-service provider by sex and income group</a></h3>
 <p>Here's the first visualization on the <a href="https://genderdata.worldbank.org/topics/assets" target="_blank" rel="noopener noreferrer"><code>Assets</code> topic summary</a> page:</p>
-<div class="observablehq observablehq--block"><!--:a26f89d7:--></div>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:638b98a0:--></div>
+<div class="observablehq observablehq--block"><!--:078cd8b6:--></div>
 <p>This visualization shows `<code>account ownership at a financial institution or with a mobile-money-service provider by sex and income group</code>`. Data are a weighted average, aggregated and faceted by economy (the income group classification for each country). The visualization helps to compare the male and female values for each region and across regions.</p>
 <p>As we discovered in reviewing the data for <a href="https://observablehq.com/d/7fb248de83bc0ad4#countries_group" target="_blank" rel="noopener noreferrer"><code>countries_group</code></a>, above, the source <a href="https://observablehq.com/d/7fb248de83bc0ad4#assets" target="_blank" rel="noopener noreferrer"><code>assets</code></a> data file already contains aggregated regional vales.</p>
 <div class="observablehq observablehq--block"><!--:0dab33d8:--></div>
@@ -1482,8 +1493,7 @@ ${Plot.plot({
 <hr>
 <h3 id="saved-any-money-in-the-past-year-by-sex-and-income-group" tabindex="-1"><a class="observablehq-header-anchor" href="#saved-any-money-in-the-past-year-by-sex-and-income-group">Saved any money in the past year by sex and income group</a></h3>
 <p>The second visualization on the <a href="https://genderdata.worldbank.org/topics/assets" target="_blank" rel="noopener noreferrer"><code>Assets</code> topic summary</a> page compares the percent of population above age 15 that saved any money in the past year.</p>
-<div class="observablehq observablehq--block"><!--:06290dc8:--></div>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:50f77ef9:--></div>
+<div class="observablehq observablehq--block"><!--:d2b20035:--></div>
 <p>Reproducing this visualization is a very similar process to our first exercise: just focus on our target indicator and economies.</p>
 <div class="observablehq observablehq--block"><!--:b361b205:--></div>
 <pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> aggregated_money_savings_last_year = assets.<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">asset</span> =&gt;</span> {
@@ -1642,8 +1652,7 @@ ${Plot.plot({
 <hr>
 <h3 id="men-and-women-who-own-a-house-or-land-by-sex" tabindex="-1"><a class="observablehq-header-anchor" href="#men-and-women-who-own-a-house-or-land-by-sex">Men and women who own a house or land by sex</a></h3>
 <p>This third visualization from the Gender Portal <a href="https://genderdata.worldbank.org/topics/assets" target="_blank" rel="noopener noreferrer"><code>Assets</code> topic summary</a> page is comprised of two scatter plots.  The visualization shows distributions of economies by the percentage of men and women who own a house alone, jointly, or both alone and jointly. The chart on the left shows these ownership distributions for houses.  The chart on the right shows distributions for land.</p>
-<div class="observablehq observablehq--block"><!--:37487953:--></div>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:a581caa2:--></div>
+<div class="observablehq observablehq--block"><!--:8f81f763:--></div>
 <p>In order to create this visualization, our data must be encoded with both economy and region so that we can assign colors to the dots. As the source <a href="https://observablehq.com/d/7fb248de83bc0ad4#assets" target="_blank" rel="noopener noreferrer"><code>assets.csv</code></a> file does not contain this encoding (it provides only regional aggregates; it does not identify country assignments to regions), we must find a reference index.  For this, we'll use the World Bank <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups" target="_blank" rel="noopener noreferrer">Country and Lending Groups</a> classifications.</p>
 <div class="observablehq observablehq--block"><!--:a38f7cc0:--></div>
 <p>Before going further, let's pause to verify whether the names of countries/economies in the <code>country_and_lending_group_classifications</code> dataset matches those we have for gender <code>assets</code>.</p>
@@ -2059,8 +2068,7 @@ ${Plot.plot({
 <hr>
 <h3 id="law-grants-spouses-equal-administrative-authority-over-assets-during-marriage-%26-sons-and-daughters-have-equal-rights-to-inherit-assets-from-their-parents" tabindex="-1"><a class="observablehq-header-anchor" href="#law-grants-spouses-equal-administrative-authority-over-assets-during-marriage-%26-sons-and-daughters-have-equal-rights-to-inherit-assets-from-their-parents">Law grants spouses equal administrative authority over assets during marriage <br>&amp; Sons and daughters have equal rights to inherit assets from their parents</a></h3>
 <p>The fourth and final visualization on the <a href="https://genderdata.worldbank.org/" target="_blank" rel="noopener noreferrer">Gender Data Portal</a>, <a href="https://genderdata.worldbank.org/topics/assets/" target="_blank" rel="noopener noreferrer">Assets topic page</a>, plots two different indicators next to one another as square marks with darker and lighter colors representing 'Yes' and 'No' values.  This topic examines the relative equality of men and women with respect to control over family assets.  Here's the target visualization:</p>
-<div class="observablehq observablehq--block"><!--:0043ad4d:--></div>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:9c1c287e:--></div>
+<div class="observablehq observablehq--block"><!--:2c594a6f:--></div>
 <p>We'll start by re-mapping the <a href="https://observablehq.com/d/7fb248de83bc0ad4#country_and_lending_group_classification_economies" target="_blank" rel="noopener noreferrer"><code>country_and_lending_group_classification_economies</code></a> dataset to create an index of country names that aligns with those in the source <code>assets</code> dataset.</p>
 <div class="observablehq observablehq--block"><!--:3be46bfd:--></div>
 <pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> economies_name_map = (<span class="hljs-function">() =&gt;</span> country_and_lending_group_classification_economies.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">country</span>) =&gt;</span> {
@@ -2325,6 +2333,6 @@ And thanks to <code>@pstuffa</code> for showing me many SQL equivalents to the J
 <hr>
 </main>
 <footer id="observablehq-footer">
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-16T11:23:53">Jun 16, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-16T18:19:09">Jun 16, 2024</a>.</div>
 </footer>
 </div>
