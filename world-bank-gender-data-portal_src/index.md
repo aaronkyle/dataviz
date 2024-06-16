@@ -13,12 +13,44 @@ This notebook examines the [topic](https://genderdata.worldbank.org/#explore-top
 <!--- -->
 
 ```js
-// toc("h2, h3")
+const document_toc = toc("h2, h3")
 ```
+
+
+${document_toc}
+
+
 
 ```js
 // This is a little helper function used to generate the Table of Contents
 //import {toc} from '@categorise/toc'
+function toc(selector = "h2,h3,h4,h5,h6") {
+  return Generators.observe(notify => {
+    let headings = [];
+
+    function observed() {
+      const h = Array.from(document.querySelectorAll(selector));
+      if (h.length !== headings.length || h.some((heading, i) => headings[i] !== heading)) {
+        headings = h;
+        const tocContent = document.createElement('div');
+        tocContent.innerHTML = `<b>Contents</b>${generateTOC(headings)}`;
+        notify(tocContent);
+      }
+    }
+
+    function generateTOC(headings) {
+      return `<ul>${headings.map(h => {
+        const level = parseInt(h.tagName.slice(1));
+        return `${'<ul>'.repeat(level - 1)}<li><a href="#${h.id}">${h.textContent}</a></li>${'</ul>'.repeat(level - 1)}`;
+      }).join('')}</ul>`;
+    }
+
+    const observer = new MutationObserver(observed);
+    observer.observe(document.body, {childList: true, subtree: true});
+    observed();
+    return () => observer.disconnect();
+  });
+}
 ```
 
 ---
@@ -209,12 +241,9 @@ Now let's have a look at how the World Bank showcases the `assets` dataset.
 Here's the first visualization on the [`Assets` topic summary](https://genderdata.worldbank.org/topics/assets) page:
 
 ```js
-const mobile_money_account_by_sex = await FileAttachment("/data/mobile_money_account_by_sex.png").image()
+const mobile_money_account_by_sex = display(await FileAttachment("/data/mobile_money_account_by_sex.png").image())
 ```
 
-```js
-(await FileAttachment("/data/mobile_money_account_by_sex.png")).image()
-```
 
 This visualization shows \``account ownership at a financial institution or with a mobile-money-service provider by sex and income group`\`. Data are a weighted average, aggregated and faceted by economy (the income group classification for each country). The visualization helps to compare the male and female values for each region and across regions.  
 
@@ -352,12 +381,9 @@ Splendid. We have effectively reproduced the visualization.  Of course, there's 
 The second visualization on the [`Assets` topic summary](https://genderdata.worldbank.org/topics/assets) page compares the percent of population above age 15 that saved any money in the past year.
 
 ```js
-const saved_money_last_year_by_sex = await FileAttachment("./data/saved_money_last_year_by_sex.png").image()
+const saved_money_last_year_by_sex = display(await FileAttachment("./data/saved_money_last_year_by_sex.png").image())
 ```
 
-```js
-(await FileAttachment("./data/saved_money_last_year_by_sex.png")).image()
-```
 
 Reproducing this visualization is a very similar process to our first exercise: just focus on our target indicator and economies.
 
@@ -538,12 +564,9 @@ Excellent.
 This third visualization from the Gender Portal [`Assets` topic summary](https://genderdata.worldbank.org/topics/assets) page is comprised of two scatter plots.  The visualization shows distributions of economies by the percentage of men and women who own a house alone, jointly, or both alone and jointly. The chart on the left shows these ownership distributions for houses.  The chart on the right shows distributions for land.
 
 ```js
-const own_house_or_land_by_sex = await FileAttachment("./data/own_house_or_land_by_sex.png").image()
+const own_house_or_land_by_sex = display(await FileAttachment("./data/own_house_or_land_by_sex.png").image())
 ```
 
-```js
-(await FileAttachment("./data/own_house_or_land_by_sex.png")).image()
-```
 
 In order to create this visualization, our data must be encoded with both economy and region so that we can assign colors to the dots. As the source [`assets.csv`](https://observablehq.com/d/7fb248de83bc0ad4#assets) file does not contain this encoding (it provides only regional aggregates; it does not identify country assignments to regions), we must find a reference index.  For this, we'll use the World Bank [Country and Lending Groups](https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups) classifications.
 
@@ -1010,11 +1033,7 @@ And that's a wrap for this visualization.
 The fourth and final visualization on the [Gender Data Portal](https://genderdata.worldbank.org/), [Assets topic page](https://genderdata.worldbank.org/topics/assets/), plots two different indicators next to one another as square marks with darker and lighter colors representing 'Yes' and 'No' values.  This topic examines the relative equality of men and women with respect to control over family assets.  Here's the target visualization:
 
 ```js
-const marriage_grants_equal_authority = await FileAttachment("./data/marriage_grants_equal_authority.png").image()
-```
-
-```js
-(await FileAttachment("./data/marriage_grants_equal_authority.png")).image()
+const marriage_grants_equal_authority = display(await FileAttachment("./data/marriage_grants_equal_authority.png").image())
 ```
 
 
