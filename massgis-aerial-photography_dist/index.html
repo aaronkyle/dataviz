@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Comparing MassGIS Aerial Photography 2015-2021 | Comparing MassGIS Aerial Photography</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="preload" as="style" href="./_npm/mapbox-gl@3.4.0/dist/mapbox-gl.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="./_npm/mapbox-gl@3.4.0/dist/mapbox-gl.css">
+<link rel="modulepreload" href="./_observablehq/client.js">
+<link rel="modulepreload" href="./_observablehq/runtime.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_npm/mapbox-gl@3.4.0/_esm.js">
+<link rel="modulepreload" href="./_npm/mapbox-gl-compare@0.4.0/_esm.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/_esm.js">
+<link rel="modulepreload" href="./_npm/@mapbox/mapbox-gl-sync-move@0.3.1/_esm.js">
+<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
+<script type="module">
+
+import {define} from "./_observablehq/client.js";
+
+define({id: "6b17d1e4", inputs: ["location"], outputs: ["count","Id","uid","contextWebGL"], body: (location) => {
+var count = 0;
+
+function Id(id) {
+  this.id = id;
+  this.href = new URL(`#${id}`, location) + "";
+}
+
+function uid(name) {
+  return new Id("O-" + (name == null ? "" : name + "-") + ++count);
+}
+
+function contextWebGL(width, height, dpi) {
+  if (dpi == null) dpi = devicePixelRatio;
+  var canvas = document.createElement("canvas");
+  canvas.width = width * dpi;
+  canvas.height = height * dpi;
+  canvas.style.width = width + "px";
+  var context = canvas.getContext("webgl");
+  if (!context) {
+    console.error("WebGL not supported");
+    return null;
+  }
+  return canvas;
+}
+return {count,Id,uid,contextWebGL};
+}});
+
+define({id: "585a8054", inputs: ["uid","htl","display","html","compare","mapboxgl","layer_contour_labels","layer_contours","layer_sky"], outputs: ["map_3d"], body: (uid,htl,display,html,compare,mapboxgl,layer_contour_labels,layer_contours,layer_sky) => {
+const map_3d = (() => {
+  //const scope = DOM.uid().id;
+  const scope =  uid().id;
+  const containerBefore = htl.html`<div class="${scope}-map">`;
+  const containerAfter = htl.html`<div class="${scope}-map">`;
+  const container = display(html`<div class="${scope}">
+    ${containerBefore}
+    ${containerAfter}
+    <style>
+@import url(https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-compare/v0.4.0/mapbox-gl-compare.css);
+.${scope} {
+  height:600px;
+  position:relative;
+  /* Margin of -17px negates Observable's cell margins. */
+  margin: 0 -17px;
+}
+.${scope}-map {
+  position: absolute;
+  top: 0;
+  bottom:0;
+  width: 100%;
+}
+/* Prevent attribution from getting selected while dragging */
+.${scope} .mapboxgl-ctrl-attrib-inner {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+    </style>
+  </div>`);
+
+  const mapBefore = initMap(
+    containerBefore,
+    "imagery2015"
+  );
+  const mapAfter = initMap(
+    containerAfter,
+    "orthos2021"
+  );
+
+  new compare(mapBefore, mapAfter, container, {
+    // Set this to enable comparing two maps by mouse movement:
+    // mousemove: true
+  });
+
+  function initMap(container, layerName) {
+    const map = new mapboxgl.Map({
+      container,
+      accessToken: "pk.eyJ1IjoidmluY2VudHNhcmFnbyIsImEiOiJjamxwa3JkaWkwZ3BjM3dudmZmazQwYjI2In0.eUzks_hqH-QVIlnXUKmKsA",
+      center: [
+        -73.3567649, 42.2350711],
+      zoom: 15,
+      pitch: 55,
+      bearing: 0,
+      style: "mapbox://styles/mapbox-map-design/ckhqrf2tz0dt119ny6azh975y",
+      scrollZoom: true
+    });
+
+    map.on("load", () => {
+      map.addLayer({
+        id: "basemap",
+        type: "raster",
+        source: {
+          type: "raster",
+          tileSize: 256,
+          tiles: [
+"https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/" + layerName + "/MapServer/WMTS/tile/1.0.0/" + layerName + "/default/default028mm/{z}/{y}/{x}.jpg"
+    ]
+        },
+        paint: {
+          "raster-fade-duration": 0,
+          "raster-opacity": 0.8
+        }
+      });
+
+      map.addSource("mapbox-dem", {
+        type: "raster-dem",
+        url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+        tileSize: 512,
+        maxzoom: 14
+      });
+      // add the DEM source as a terrain layer with exaggerated height
+      map.setTerrain({ source: "mapbox-dem", exaggeration: 1 });
+
+      map.addLayer(layer_contour_labels);
+      map.addLayer(layer_contours);
+      // add a sky layer that will show when the map is highly pitched
+      map.addLayer(layer_sky);
+    });
+
+    return map;
+  }
+})()
+return {map_3d};
+}});
+
+define({id: "71ce59ac", outputs: ["layer_contour_labels"], body: () => {
+const layer_contour_labels = ({
+  id: "countour-labels",
+  type: "symbol",
+  source: {
+    type: "vector",
+    url: "mapbox://mapbox.mapbox-terrain-v2"
+  },
+  "source-layer": "contour",
+  layout: {
+    visibility: "visible",
+    "symbol-placement": "line",
+    "text-field": ["concat", ["to-string", ["get", "ele"]], "m"]
+  },
+  paint: {
+    "icon-color": "#fff44f",
+    "icon-halo-width": 0.5,
+    "text-color": "#fff44f",
+    "text-halo-width": 1,
+    "text-opacity": 0.6
+  }
+})
+return {layer_contour_labels};
+}});
+
+define({id: "c894b50c", outputs: ["layer_contours"], body: () => {
+const layer_contours = ({
+  id: "countours",
+  type: "line",
+  source: { type: "vector", url: "mapbox://mapbox.mapbox-terrain-v2" },
+  "source-layer": "contour",
+  layout: {
+    visibility: "visible",
+    "line-join": "round",
+    "line-cap": "round"
+  },
+  paint: {
+    "line-color": "#fff44f",
+    "line-width": 1,
+    "line-opacity": 0.4
+  }
+})
+return {layer_contours};
+}});
+
+define({id: "c20264b8", outputs: ["layer_sky"], body: () => {
+const layer_sky = ({
+  id: "sky",
+  type: "sky",
+  paint: {
+    "sky-type": "atmosphere",
+    "sky-atmosphere-sun": [0.0, 0.0],
+    "sky-atmosphere-sun-intensity": 15
+  }
+})
+return {layer_sky};
+}});
+
+define({id: "2a2f2500", body: () => {
+//const mapboxgl = {
+//  const gl = await require("mapbox-gl");
+//  if (!gl.accessToken) {
+//    gl.accessToken =
+//      "pk.eyJ1IjoidmluY2VudHNhcmFnbyIsImEiOiJjamxwa3JkaWkwZ3BjM3dudmZmazQwYjI2In0.eUzks_hqH-QVIlnXUKmKsA";
+//    const href = await require.resolve("https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.css");
+//    document.head.appendChild(html`<link href=${href} rel=stylesheet>`);
+
+//  }
+//  return gl;
+//}
+}});
+
+define({id: "8772d035", outputs: ["mapboxgl"], body: async () => {
+const {default: mapboxgl} = await import("./_npm/mapbox-gl@3.4.0/_esm.js");
+
+return {mapboxgl};
+}});
+
+define({id: "ac691d03", outputs: ["compare"], body: async () => {
+const {default: compare} = await import("./_npm/mapbox-gl-compare@0.4.0/_esm.js");
+// const compare = require('https://bundle.run/mapbox-gl-compare@0.4.0');
+
+return {compare};
+}});
+
+define({id: "8d450a87", body: () => {
+// To apply base styles when the notebook is downloaded/exported
+// substratum({invalidation})
+}});
+
+define({id: "04d739f9", body: () => {
+//import {substratum} from "@categorise/substratum"
+}});
+
+</script>
+<aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
+<nav>
+<div>Contents</div>
+<ol>
+<li class="observablehq-secondary-link"><a href="#acknowledgements">Acknowledgements</a></li>
+</ol>
+</nav>
+</aside>
+<div id="observablehq-center">
+<main id="observablehq-main" class="observablehq">
+<h1 id="comparing-massgis-aerial-photography-2015-2021" tabindex="-1"><a class="observablehq-header-anchor" href="#comparing-massgis-aerial-photography-2015-2021">Comparing MassGIS Aerial Photography 2015-2021</a></h1>
+<p>Use the slider below to compare <a href="https://www.mass.gov/info-details/massgis-data-layers#image-data-" target="_blank" rel="noopener noreferrer">MassGIS historical image data</a>.</p>
+<hr>
+<p><code>Control</code> + <code>mouse scroll</code> to zoom in/out and turn around.</p>
+<div class="observablehq observablehq--block"><!--:6b17d1e4:--></div>
+<div class="observablehq observablehq--block"><!--:585a8054:--></div>
+<hr>
+<!--### Additional Layers-->
+<div class="observablehq observablehq--block"><!--:71ce59ac:--></div>
+<div class="observablehq observablehq--block"><!--:c894b50c:--></div>
+<div class="observablehq observablehq--block"><!--:c20264b8:--></div>
+<!--### Dependencies-->
+<div class="observablehq observablehq--block"><!--:2a2f2500:--></div>
+<div class="observablehq observablehq--block"><!--:8772d035:--></div>
+<div class="observablehq observablehq--block"><!--:ac691d03:--></div>
+<div class="observablehq observablehq--block"><!--:8d450a87:--></div>
+<div class="observablehq observablehq--block"><!--:04d739f9:--></div>
+<h2 id="acknowledgements" tabindex="-1"><a class="observablehq-header-anchor" href="#acknowledgements">Acknowledgements</a></h2>
+<p>Thanks to <a href="https://in.linkedin.com/in/sudhira" target="_blank" rel="noopener noreferrer">Dr. Sudhira H.S.</a> for introducing me to this technique!</p>
+</main>
+<footer id="observablehq-footer">
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-23T11:20:37">Jun 23, 2024</a>.</div>
+</footer>
+</div>
