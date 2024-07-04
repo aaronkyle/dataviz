@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Pretty Tables</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.css">
+<link rel="modulepreload" href="./_observablehq/client.js">
+<link rel="modulepreload" href="./_observablehq/runtime.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_npm/json5-to-table@0.1.8/_esm.js">
+<link rel="modulepreload" href="./_npm/isoformat@0.2.1/_esm.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/_esm.js">
+<link rel="modulepreload" href="./_observablehq/stdlib/inputs.js">
+<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
+<script type="module">
+
+import {define} from "./_observablehq/client.js";
+
+define({id: "c407b505", inputs: ["sampleArray"], outputs: ["sampleObject"], body: (sampleArray) => {
+const sampleObject = sampleArray[0]
+return {sampleObject};
+}});
+
+define({id: "c0b75ffc", inputs: ["formatTable","sampleObject","display"], body: async (formatTable,sampleObject,display) => {
+display(await(
+formatTable(sampleObject)
+))
+}});
+
+define({id: "1a5ed374", inputs: ["sampleArray","display"], body: async (sampleArray,display) => {
+display(await(
+sampleArray
+))
+}});
+
+define({id: "63048440", inputs: ["formatTable","sampleArray","display"], body: async (formatTable,sampleArray,display) => {
+display(await(
+formatTable(sampleArray)
+))
+}});
+
+define({id: "efe00d19", inputs: ["formatTable","sampleArray","display"], body: async (formatTable,sampleArray,display) => {
+display(await(
+formatTable(sampleArray, [
+  {
+    path: "name",
+    title: "Name"
+  },
+  {
+    path: "courses",
+    title: "Subjects",
+    props: [
+      {
+        path: "title",
+        title: "Title"
+      },
+      {
+        path: "score",
+        title: "Score"
+      }
+    ]
+  }
+])
+))
+}});
+
+define({id: "a703c6b0", inputs: ["Inputs","sampleArray","display"], body: async (Inputs,sampleArray,display) => {
+display(await(
+Inputs.table(sampleArray)
+))
+}});
+
+define({id: "2fb59d9e", inputs: ["formatTable","sampleArray","display"], body: async (formatTable,sampleArray,display) => {
+display(await(
+formatTable(sampleArray, null, {
+  height: 200, // Set height of the table
+
+  width: "80%", // Set width of the table
+
+  // Format date types
+  dateFormat: (datum, path) => new Intl.DateTimeFormat("en-US").format(datum),
+
+  // Format values. dateFormat take precedence for Date types
+  format: (datum, path) => {
+    if (path === "courses.score") {
+      return `${datum}/100`;
+    }
+    return datum;
+  }
+})
+))
+}});
+
+define({id: "39b76cd8", inputs: ["isoformat","cleanseData","length","html","json2table"], outputs: ["formatTable"], body: (isoformat,cleanseData,length,html,json2table) => {
+function formatTable(
+  data,
+  props, // See https://github.com/yetrun/json5-to-table#props%E5%AE%9A%E5%88%B6%E5%B5%8C%E5%A5%97%E5%B1%9E%E6%80%A7
+  opts = {}
+) {
+  const options = Object.assign(
+    {
+      // Format Date data types. Use path to selectively format.
+      dateFormat: (datum, path) => isoformat.format(datum),
+
+      // Format all values. Use path to selectively format.
+      // 📝 dateFormat take precedence for Date types
+      format: (datum, path) => datum,
+
+      height: 274, // Set height of the table. Default is on the Inputs.table
+      width: null // Set width of the table.
+    },
+    opts
+  );
+
+  const minHeight = 33;
+  let { height, width } = options;
+  const copy = cleanseData(data, options);
+
+  height = height > minHeight ? height : null;
+
+  const generateHTMLTableoptions = {
+    attributes: {
+      table: {
+        // Based on Observable table styles
+        style: `
+max-width: initial;
+${minHeight != null ? `min-height: ${length(minHeight)};` : ""}
+margin: 0;
+border-spacing: 0;
+font-variant-numeric: tabular-nums;`
+      },
+      th: {
+        style: `padding: 3px 6.5px; position: sticky; top: 0; background: #fff;`
+      },
+      td: {
+        style: `padding: 3px 6.5px`
+      }
+    }
+  };
+
+  return html`<div style="overflow-x: auto;${
+    height ? `max-height: ${height}px;` : ""
+  }${width != null ? `width: ${length(width)};` : ""}">
+  ${json2table.default.generateHTMLTable(copy, props, generateHTMLTableoptions)}
+</div>`;
+}
+return {formatTable};
+}});
+
+define({id: "74dc991e", inputs: ["blacklistRegex","isDate","isObject"], outputs: ["cleanseData"], body: (blacklistRegex,isDate,isObject) => {
+function cleanseData(d, opts, path) {
+  function cleanseObject(o) {
+    const newObj = {};
+    for (const [k, v] of Object.entries(o)) {
+      const currentPath = path == null ? k : `${path}.${k}`;
+      newObj[cleanKey(k)] = cleanseData(v, opts, currentPath);
+    }
+    return newObj;
+  }
+
+  function cleanKey(k) {
+    return k.replaceAll(blacklistRegex, "_");
+  }
+
+  if (Array.isArray(d)) {
+    return d.map(cleanseObject);
+  }
+
+  if (isDate(d)) {
+    return typeof opts.dateFormat === "function"
+      ? opts.dateFormat(d, path)
+      : d.toString();
+  }
+
+  if (isObject(d)) {
+    return cleanseObject(d);
+  }
+
+  return typeof opts.format === "function" ? opts.format(d, path) : d;
+}
+return {cleanseData};
+}});
+
+define({id: "73d30691", outputs: ["isObject"], body: () => {
+function isObject(a) {
+  // https://stackoverflow.com/a/8511350
+  return typeof a === "object" && !Array.isArray(a) && a !== null;
+}
+return {isObject};
+}});
+
+define({id: "31ca6205", outputs: ["isDate"], body: () => {
+function isDate(value) {
+  return value instanceof Date;
+}
+return {isDate};
+}});
+
+define({id: "8a5323ff", outputs: ["length"], body: () => {
+function length(x) {
+  return x == null ? null : typeof x === "number" ? `${x}px` : `${x}`;
+}
+return {length};
+}});
+
+define({id: "0b3c0712", outputs: ["blacklistRegex"], body: () => {
+const blacklistRegex = /(\.){1}/g
+return {blacklistRegex};
+}});
+
+define({id: "e8dec1ee", outputs: ["sampleArray"], body: () => {
+const sampleArray = [
+  {
+    name: "Jim",
+    birthday: new Date(Date.UTC(1990, 1, 18)),
+    courses: [
+      { title: "English", score: 87 },
+      { title: "Chinese", score: 67 }
+    ]
+  },
+  {
+    name: "Lucy",
+    birthday: new Date(Date.UTC(1994, 4, 4)),
+    courses: [
+      { title: "Math", score: 97 },
+      { title: "Music", score: 77 },
+      { title: "Gym", score: 57 }
+    ]
+  },
+  {
+    name: "Karen",
+    birthday: new Date(Date.UTC(1994, 2, 27)),
+    courses: [
+      { title: "Math", score: 98 },
+      { title: "Music", score: 81 },
+      { title: "English", score: 79 }
+    ]
+  }
+]
+return {sampleArray};
+}});
+
+define({id: "5d5f6406", outputs: ["json2table"], body: async () => {
+const json2table = await import("./_npm/json5-to-table@0.1.8/_esm.js");
+//json2table = require('json5-to-table@0.1.8/dist/bundle.js')
+
+return {json2table};
+}});
+
+define({id: "6f2d375f", outputs: ["isoformat"], body: async () => {
+const {default: isoformat} = await import("./_npm/isoformat@0.2.1/_esm.js");
+//isoformat = import("https://unpkg.com/isoformat@0.2.1/src/index.js?module")
+
+return {isoformat};
+}});
+
+define({id: "6febdd86", outputs: ["groupBy"], body: () => {
+//import { groupBy } from "@saneef/micro-lodash"
+function groupBy(array, fn) {
+  return array.reduce(
+    (r, v, i, a, k = fn(v)) => ((r[k] || (r[k] = [])).push(v), r),
+    {}
+  );
+}
+return {groupBy};
+}});
+
+define({id: "09f1b83d", body: () => {
+//import { footer } from "@saneef/notebooks-footer"
+}});
+
+define({id: "7fc93e47", body: () => {
+//footer
+}});
+
+</script>
+<aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
+<nav>
+<div>Contents</div>
+<ol>
+<li class="observablehq-secondary-link"><a href="#usage">Usage</a></li>
+<li class="observablehq-secondary-link"><a href="#implementation">Implementation</a></li>
+<li class="observablehq-secondary-link"><a href="#sample-data">Sample Data</a></li>
+<li class="observablehq-secondary-link"><a href="#changelog">Changelog</a></li>
+<li class="observablehq-secondary-link"><a href="#imports">Imports</a></li>
+</ol>
+</nav>
+</aside>
+<div id="observablehq-center">
+<main id="observablehq-main" class="observablehq">
+<h1 id="pretty-tables" tabindex="-1"><a class="observablehq-header-anchor" href="#pretty-tables">Pretty Tables</a></h1>
+<p>Pretty tables display JavaScript Objects and Arrays in a tabular format.
+Importantly, <em>it supports nested objects.</em></p>
+<p>Pretty Tables is built using
+<a href="https://github.com/yetrun/json5-to-table" target="_blank" rel="noopener noreferrer">json5-to-table</a>.</p>
+<p>Thanks to <a href="https://observablehq.com/@aaronkyle" target="_blank" rel="noopener noreferrer">Aaron</a>, for suggesting this
+idea.</p>
+<h2 id="usage" tabindex="-1"><a class="observablehq-header-anchor" href="#usage">Usage</a></h2>
+<h3 id="1.-import-to-your-notebook%3A" tabindex="-1"><a class="observablehq-header-anchor" href="#1.-import-to-your-notebook%3A">1. Import to your notebook:</a></h3>
+<pre><code>import { formatTable } from "@saneef/pretty-tables"
+</code></pre>
+<h3 id="2.-generate-html-table" tabindex="-1"><a class="observablehq-header-anchor" href="#2.-generate-html-table">2. Generate HTML table</a></h3>
+<p>In a cell:</p>
+<pre><code>formatTable(objOrArray)
+</code></pre>
+<p>Also, you can customize the columns using the second argument, <code>props</code>. Read
+more about on
+<a href="https://github.com/yetrun/json5-to-table#props%E5%AE%9A%E5%88%B6%E5%B5%8C%E5%A5%97%E5%B1%9E%E6%80%A7" target="_blank" rel="noopener noreferrer"><code>json5-to-table</code> documentation</a>.
+⚠️ <em>It is in Chinese.</em></p>
+<pre><code>formatTable(objOrArray, props)
+</code></pre>
+<p>📒 Period character (<code>.</code>) in the object keys will be replaced with underscore (<code>_</code>). Mindful of those when
+using <code>props</code>.</p>
+<h3 id="examples" tabindex="-1"><a class="observablehq-header-anchor" href="#examples">Examples</a></h3>
+<h4 id="simple" tabindex="-1"><a class="observablehq-header-anchor" href="#simple">Simple</a></h4>
+<div class="observablehq observablehq--block"><!--:c407b505:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> sampleObject = sampleArray[<span class="hljs-number">0</span>]
+</code></pre>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:c0b75ffc:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-title function_">formatTable</span>(sampleObject)
+</code></pre>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:1a5ed374:--></div>
+<pre data-language="js"><code class="language-js">sampleArray
+</code></pre>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:63048440:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-title function_">formatTable</span>(sampleArray)
+</code></pre>
+<h4 id="using-props" tabindex="-1"><a class="observablehq-header-anchor" href="#using-props">Using <code>props</code></a></h4>
+<p>You can use <code>props</code> to cherry-pick columns, and change column name. You can read
+the documentation on
+<a href="https://github.com/yetrun/json5-to-table#props%E5%AE%9A%E5%88%B6%E5%B5%8C%E5%A5%97%E5%B1%9E%E6%80%A7" target="_blank" rel="noopener noreferrer"><code>json5-to-table</code> repo</a>.</p>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:efe00d19:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-title function_">formatTable</span>(sampleArray, [
+  {
+    <span class="hljs-attr">path</span>: <span class="hljs-string">"name"</span>,
+    <span class="hljs-attr">title</span>: <span class="hljs-string">"Name"</span>
+  },
+  {
+    <span class="hljs-attr">path</span>: <span class="hljs-string">"courses"</span>,
+    <span class="hljs-attr">title</span>: <span class="hljs-string">"Subjects"</span>,
+    <span class="hljs-attr">props</span>: [
+      {
+        <span class="hljs-attr">path</span>: <span class="hljs-string">"title"</span>,
+        <span class="hljs-attr">title</span>: <span class="hljs-string">"Title"</span>
+      },
+      {
+        <span class="hljs-attr">path</span>: <span class="hljs-string">"score"</span>,
+        <span class="hljs-attr">title</span>: <span class="hljs-string">"Score"</span>
+      }
+    ]
+  }
+])
+</code></pre>
+<h4 id="using-additional-options" tabindex="-1"><a class="observablehq-header-anchor" href="#using-additional-options">Using additional options</a></h4>
+<p>View all supported options <a href="#formatTable">in function definition</a>.</p>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:a703c6b0:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-title class_">Inputs</span>.<span class="hljs-title function_">table</span>(sampleArray)
+</code></pre>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:2fb59d9e:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-title function_">formatTable</span>(sampleArray, <span class="hljs-literal">null</span>, {
+  <span class="hljs-attr">height</span>: <span class="hljs-number">200</span>, <span class="hljs-comment">// Set height of the table</span>
+
+  <span class="hljs-attr">width</span>: <span class="hljs-string">"80%"</span>, <span class="hljs-comment">// Set width of the table</span>
+
+  <span class="hljs-comment">// Format date types</span>
+  <span class="hljs-attr">dateFormat</span>: <span class="hljs-function">(<span class="hljs-params">datum, path</span>) =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Intl</span>.<span class="hljs-title class_">DateTimeFormat</span>(<span class="hljs-string">"en-US"</span>).<span class="hljs-title function_">format</span>(datum),
+
+  <span class="hljs-comment">// Format values. dateFormat take precedence for Date types</span>
+  <span class="hljs-attr">format</span>: <span class="hljs-function">(<span class="hljs-params">datum, path</span>) =&gt;</span> {
+    <span class="hljs-keyword">if</span> (path === <span class="hljs-string">"courses.score"</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${datum}</span>/100`</span>;
+    }
+    <span class="hljs-keyword">return</span> datum;
+  }
+})
+</code></pre>
+<h2 id="implementation" tabindex="-1"><a class="observablehq-header-anchor" href="#implementation">Implementation</a></h2>
+<p>This is built using <a href="https://github.com/yetrun/json5-to-table" target="_blank" rel="noopener noreferrer">json5-to-table</a>.</p>
+<div class="observablehq observablehq--block"><!--:39b76cd8:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">function</span> <span class="hljs-title function_">formatTable</span>(<span class="hljs-params">
+  data,
+  props, <span class="hljs-comment">// See https://github.com/yetrun/json5-to-table#props%E5%AE%9A%E5%88%B6%E5%B5%8C%E5%A5%97%E5%B1%9E%E6%80%A7</span>
+  opts = {}
+</span>) {
+  <span class="hljs-keyword">const</span> options = <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">assign</span>(
+    {
+      <span class="hljs-comment">// Format Date data types. Use path to selectively format.</span>
+      <span class="hljs-attr">dateFormat</span>: <span class="hljs-function">(<span class="hljs-params">datum, path</span>) =&gt;</span> isoformat.<span class="hljs-title function_">format</span>(datum),
+
+      <span class="hljs-comment">// Format all values. Use path to selectively format.</span>
+      <span class="hljs-comment">// 📝 dateFormat take precedence for Date types</span>
+      <span class="hljs-attr">format</span>: <span class="hljs-function">(<span class="hljs-params">datum, path</span>) =&gt;</span> datum,
+
+      <span class="hljs-attr">height</span>: <span class="hljs-number">274</span>, <span class="hljs-comment">// Set height of the table. Default is on the Inputs.table</span>
+      <span class="hljs-attr">width</span>: <span class="hljs-literal">null</span> <span class="hljs-comment">// Set width of the table.</span>
+    },
+    opts
+  );
+
+  <span class="hljs-keyword">const</span> minHeight = <span class="hljs-number">33</span>;
+  <span class="hljs-keyword">let</span> { height, width } = options;
+  <span class="hljs-keyword">const</span> copy = <span class="hljs-title function_">cleanseData</span>(data, options);
+
+  height = height &gt; minHeight ? height : <span class="hljs-literal">null</span>;
+
+  <span class="hljs-keyword">const</span> generateHTMLTableoptions = {
+    <span class="hljs-attr">attributes</span>: {
+      <span class="hljs-attr">table</span>: {
+        <span class="hljs-comment">// Based on Observable table styles</span>
+        <span class="hljs-attr">style</span>: <span class="hljs-string">`
+max-width: initial;
+<span class="hljs-subst">${minHeight != <span class="hljs-literal">null</span> ? <span class="hljs-string">`min-height: <span class="hljs-subst">${length(minHeight)}</span>;`</span> : <span class="hljs-string">""</span>}</span>
+margin: 0;
+border-spacing: 0;
+font-variant-numeric: tabular-nums;`</span>
+      },
+      <span class="hljs-attr">th</span>: {
+        <span class="hljs-attr">style</span>: <span class="hljs-string">`padding: 3px 6.5px; position: sticky; top: 0; background: #fff;`</span>
+      },
+      <span class="hljs-attr">td</span>: {
+        <span class="hljs-attr">style</span>: <span class="hljs-string">`padding: 3px 6.5px`</span>
+      }
+    }
+  };
+
+  <span class="hljs-keyword">return</span> html`<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">style</span>=<span class="hljs-string">"overflow-x: auto;</span></span></span><span class="hljs-subst">${
+    height ? <span class="hljs-string">`max-height: <span class="hljs-subst">${height}</span>px;`</span> : <span class="hljs-string">""</span>
+  }</span><span class="hljs-subst">${width != <span class="hljs-literal">null</span> ? <span class="hljs-string">`width: <span class="hljs-subst">${length(width)}</span>;`</span> : <span class="hljs-string">""</span>}</span><span class="language-xml"><span class="hljs-tag"><span class="hljs-string">"</span>&gt;</span>
+  </span><span class="hljs-subst">${json2table.<span class="hljs-keyword">default</span>.generateHTMLTable(copy, props, generateHTMLTableoptions)}</span><span class="language-xml">
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>`</span>;
+}
+</code></pre>
+<div class="observablehq observablehq--block"><!--:74dc991e:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">function</span> <span class="hljs-title function_">cleanseData</span>(<span class="hljs-params">d, opts, path</span>) {
+  <span class="hljs-keyword">function</span> <span class="hljs-title function_">cleanseObject</span>(<span class="hljs-params">o</span>) {
+    <span class="hljs-keyword">const</span> newObj = {};
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [k, v] <span class="hljs-keyword">of</span> <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">entries</span>(o)) {
+      <span class="hljs-keyword">const</span> currentPath = path == <span class="hljs-literal">null</span> ? k : <span class="hljs-string">`<span class="hljs-subst">${path}</span>.<span class="hljs-subst">${k}</span>`</span>;
+      newObj[<span class="hljs-title function_">cleanKey</span>(k)] = <span class="hljs-title function_">cleanseData</span>(v, opts, currentPath);
+    }
+    <span class="hljs-keyword">return</span> newObj;
+  }
+
+  <span class="hljs-keyword">function</span> <span class="hljs-title function_">cleanKey</span>(<span class="hljs-params">k</span>) {
+    <span class="hljs-keyword">return</span> k.<span class="hljs-title function_">replaceAll</span>(blacklistRegex, <span class="hljs-string">"_"</span>);
+  }
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-title class_">Array</span>.<span class="hljs-title function_">isArray</span>(d)) {
+    <span class="hljs-keyword">return</span> d.<span class="hljs-title function_">map</span>(cleanseObject);
+  }
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">isDate</span>(d)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">typeof</span> opts.<span class="hljs-property">dateFormat</span> === <span class="hljs-string">"function"</span>
+      ? opts.<span class="hljs-title function_">dateFormat</span>(d, path)
+      : d.<span class="hljs-title function_">toString</span>();
+  }
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">isObject</span>(d)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">cleanseObject</span>(d);
+  }
+
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">typeof</span> opts.<span class="hljs-property">format</span> === <span class="hljs-string">"function"</span> ? opts.<span class="hljs-title function_">format</span>(d, path) : d;
+}
+</code></pre>
+<div class="observablehq observablehq--block"><!--:73d30691:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isObject</span>(<span class="hljs-params">a</span>) {
+  <span class="hljs-comment">// https://stackoverflow.com/a/8511350</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">typeof</span> a === <span class="hljs-string">"object"</span> &amp;&amp; !<span class="hljs-title class_">Array</span>.<span class="hljs-title function_">isArray</span>(a) &amp;&amp; a !== <span class="hljs-literal">null</span>;
+}
+</code></pre>
+<div class="observablehq observablehq--block"><!--:31ca6205:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isDate</span>(<span class="hljs-params">value</span>) {
+  <span class="hljs-keyword">return</span> value <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Date</span>;
+}
+</code></pre>
+<div class="observablehq observablehq--block"><!--:8a5323ff:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">function</span> <span class="hljs-title function_">length</span>(<span class="hljs-params">x</span>) {
+  <span class="hljs-keyword">return</span> x == <span class="hljs-literal">null</span> ? <span class="hljs-literal">null</span> : <span class="hljs-keyword">typeof</span> x === <span class="hljs-string">"number"</span> ? <span class="hljs-string">`<span class="hljs-subst">${x}</span>px`</span> : <span class="hljs-string">`<span class="hljs-subst">${x}</span>`</span>;
+}
+</code></pre>
+<div class="observablehq observablehq--block"><!--:0b3c0712:--></div>
+<pre data-language="js"><code class="language-js"><span class="hljs-keyword">const</span> blacklistRegex = <span class="hljs-regexp">/(\.){1}/g</span>
+</code></pre>
+<h2 id="sample-data" tabindex="-1"><a class="observablehq-header-anchor" href="#sample-data">Sample Data</a></h2>
+<div class="observablehq observablehq--block"><!--:e8dec1ee:--></div>
+<h2 id="changelog" tabindex="-1"><a class="observablehq-header-anchor" href="#changelog">Changelog</a></h2>
+<ul>
+<li>2022-07-04: Initial release</li>
+<li>2022-07-12: Horizontal scroll for wide tables.</li>
+<li>2022-07-20: Fix - Data from object keys with period (<code>.</code>) are not displayed.</li>
+<li>2022-07-25: Format Date objects</li>
+<li>2022-08-18: Max height and sticky headers</li>
+<li>2022-09-22: Replace periods in keys with underscore instead of removing it.</li>
+</ul>
+<h2 id="imports" tabindex="-1"><a class="observablehq-header-anchor" href="#imports">Imports</a></h2>
+<div class="observablehq observablehq--block"><!--:5d5f6406:--></div>
+<div class="observablehq observablehq--block"><!--:6f2d375f:--></div>
+<div class="observablehq observablehq--block"><!--:6febdd86:--></div>
+<div class="observablehq observablehq--block"><!--:09f1b83d:--></div>
+<hr>
+<div class="observablehq observablehq--block"><!--:7fc93e47:--></div>
+</main>
+<footer id="observablehq-footer">
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-07-04T15:53:52">Jul 4, 2024</a>.</div>
+</footer>
+</div>
