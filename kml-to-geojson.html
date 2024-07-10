@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>KML to GeoJSON Converter</title>
+
+    <!-- Load toGeoJSON library from unpkg CDN -->
+
+    <script src=https://unpkg.com/@tmcw/togeojson></script>
+
+</head>
+
+<body>
+
+ 
+
+    <h1>KML to GeoJSON Converter</h1>
+
+    <input type="file" id="fileInput" accept=".kml">
+
+    <button id="convertButton">Convert to GeoJSON</button>
+
+    <button id="downloadButton" style="display: none;">Download GeoJSON</button>
+
+    <pre id="result"></pre>
+
+ 
+
+    <script>
+
+        document.getElementById('convertButton').addEventListener('click', function () {
+
+            const fileInput = document.getElementById('fileInput');
+
+            if (fileInput.files.length === 0) {
+
+                alert('Please select a KML file first.');
+
+                return;
+
+            }
+
+ 
+
+            const file = fileInput.files[0];
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                const kmlText = e.target.result;
+
+                const parser = new DOMParser();
+
+                const kml = parser.parseFromString(kmlText, 'text/xml');
+
+                const converted = toGeoJSON.kml(kml);
+
+                const geojsonStr = JSON.stringify(converted, null, 2);
+
+                document.getElementById('result').textContent = geojsonStr;
+
+ 
+
+                const downloadButton = document.getElementById('downloadButton');
+
+                downloadButton.style.display = 'inline';
+
+                downloadButton.onclick = function () {
+
+                    const blob = new Blob([geojsonStr], {type: 'application/json'});
+
+                    const url = URL.createObjectURL(blob);
+
+                    const a = document.createElement('a');
+
+                    a.setAttribute('href', url);
+
+                    a.setAttribute('download', 'converted.geojson');
+
+                    a.click();
+
+                    URL.revokeObjectURL(url); // Clean up the URL object
+
+                };
+
+            };
+
+            reader.readAsText(file);
+
+        });
+
+    </script>
+
+ 
+
+</body>
+
+</html>
