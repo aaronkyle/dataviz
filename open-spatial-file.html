@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+
+    <title>GeoJSON/KML/KMZ Upload and Render</title>
+
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <script src=https://unpkg.com/maplibre-gl/dist/maplibre-gl.js></script>
+
+    <script src=https://cdn.jsdelivr.net/npm/@mapbox/togeojson></script>
+
+    <script src=https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js></script>
+
+    <link href=https://unpkg.com/maplibre-gl/dist/maplibre-gl.css rel="stylesheet" />
+
+    <style>
+
+        body { margin: 0; padding: 0; }
+
+        #map { position: absolute; top: 0; bottom: 0; width: 75%; }
+
+        #file-input { position: absolute; top: 10px; left: 10px; z-index: 100; }
+
+        #side-panel {
+
+            position: absolute;
+
+            top: 0;
+
+            right: 0;
+
+            width: 25%;
+
+            bottom: 0;
+
+            overflow-y: auto;
+
+            background-color: #fff;
+
+            border-left: 1px solid #ccc;
+
+            padding: 10px;
+
+            box-sizing: border-box;
+
+        }
+
+        pre {
+
+            white-space: pre-wrap;
+
+            word-wrap: break-word;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id='map'></div>
+
+    <input id="file-input" type="file" accept=".geojson,.kml,.kmz" />
+
+    <div id="side-panel"><pre id="geojson-display"></pre></div>
+
+    <script>
+
+        const map = new maplibregl.Map({
+
+            container: 'map',
+
+            style: 'https://geoserveis.icgc.cat/contextmaps/icgc_orto_hibrida.json', // Use a default style; replace with your own if needed
+
+            center: [0, 0],
+
+            zoom: 2
+
+        });
+
+ 
+
+        const handleFileUpload = (event) => {
+
+            const file = event.target.files[0];
+
+            if (file) {
+
+                const reader = new FileReader();
+
+                reader.onload = async (e) => {
+
+                    let data;
+
+                    if (file.name.endsWith('.geojson')) {
+
+                        data = JSON.parse(e.target.result);
+
+                    } else if (file.name.endsWith('.kml')) {
+
+                        const kml = (new DOMParser()).parseFromString(e.target.result, 'text/xml');
+
+                        data = toGeoJSON.kml(kml);
+
+                    } else if (file.name.endsWith('.kmz')) {
+
+                        try {
+
+                            const zip = new JSZip();
+
+                            const zipContents = await zip.loadAsync(e.target.result);
+
+                            const kmlFileName = Object.keys(zipContents.files).find(fileName => fileName.endsWith('.kml'));
+
+                            const kmlFile = await zipContents.file(kmlFileName).async('string');
+
+                            const kml = (new DOMParser()).parseFromString(kmlFile, 'text/xml');
+
+                            data = toGeoJSON.kml(kml);
+
+                        } catch (err) {
+
+                            alert('Error reading KMZ file: ' + err.message);
+
+                            return;
+
+                        }
+
+                    }
+
+ 
+
+                    if (data && data.type === 'FeatureCollection') {
+
+                        displayGeoJSONText(data);
+
+                        renderGeoJSON(data);
+
+                        flyToGeoJSONBounds(data);
+
+                    } else {
+
+                        alert('The file is not a valid GeoJSON, KML, or KMZ FeatureCollection.');
+
+                    }
+
+                };
+
+                if (file.name.endsWith('.geojson') || file.name.endsWith('.kml')) {
+
+                    reader.readAsText(file);
+
+                } else if (file.name.endsWith('.kmz')) {
+
+                    reader.readAsArrayBuffer(file);
+
+                }
+
+            }
+
+        };
+
+ 
+
+        const displayGeoJSONText = (geojsonData) => {
+
+            const formattedText = JSON.stringify(geojsonData, null, 2);
+
+            document.getElementById('geojson-display').textContent = formattedText;
+
+        };
+
+ 
+
+        const renderGeoJSON = (geojsonData) => {
+
+            if (map.getSource('geojson-source')) {
+
+                map.getSource('geojson-source').setData(geojsonData);
+
+            } else {
+
+                map.addSource('geojson-source', {
+
+                    type: 'geojson',
+
+                    data: geojsonData
+
+                });
+
+                map.addLayer({
+
+                    id: 'geojson-layer',
+
+                    type: 'fill', // Change this depending on your data
+
+                    source: 'geojson-source',
+
+                    layout: {},
+
+                    paint: {
+
+                        'fill-color': '#888', // Customize this as needed
+
+                        'fill-opacity': 0.4 // Customize this as needed
+
+                    }
+
+                });
+
+            }
+
+        };
+
+ 
+
+        const flyToGeoJSONBounds = (geojsonData) => {
+
+            const bounds = new maplibregl.LngLatBounds();
+
+            geojsonData.features.forEach((feature) => {
+
+                processFeatureForBounds(feature, bounds);
+
+            });
+
+ 
+
+            if (!bounds.isEmpty()) {
+
+                map.fitBounds(bounds, {
+
+                    padding: 20,
+
+                    duration: 2000
+
+                });
+
+            }
+
+        };
+
+ 
+
+        const processFeatureForBounds = (feature, bounds) => {
+
+            const geometry = feature.geometry;
+
+            if (geometry) {
+
+                if (geometry.type === 'Point') {
+
+                    bounds.extend(geometry.coordinates);
+
+                } else if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
+
+                    geometry.coordinates.forEach((coord) => bounds.extend(coord));
+
+                } else if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
+
+                    geometry.coordinates.flat().forEach((coord) => bounds.extend(coord));
+
+                } else if (geometry.type === 'MultiPolygon') {
+
+                    geometry.coordinates.flat(2).forEach((coord) => bounds.extend(coord));
+
+                }
+
+            }
+
+        };
+
+ 
+
+        document.getElementById('file-input').addEventListener('change', handleFileUpload);
+
+    </script>
+
+</body>
+
+</html>
