@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+
+    <title>GeoJSON Upload and Render with FlyTo Bounds</title>
+
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <!-- Include MapLibre GL JS and MapLibre GL CSS from a CDN -->
+
+    <script src=https://unpkg.com/maplibre-gl/dist/maplibre-gl.js></script>
+
+    <link href=https://unpkg.com/maplibre-gl/dist/maplibre-gl.css rel="stylesheet" />
+
+    <style>
+
+        body { margin: 0; padding: 0; }
+
+        #map { position: absolute; top: 0; bottom: 0; width: 75%; }
+
+        #file-input { position: absolute; top: 10px; left: 10px; z-index: 100; }
+
+        #side-panel {
+
+            position: absolute;
+
+            top: 0;
+
+            right: 0;
+
+            width: 25%;
+
+            bottom: 0;
+
+            overflow-y: auto;
+
+            background-color: #fff;
+
+            border-left: 1px solid #ccc;
+
+            padding: 10px;
+
+            box-sizing: border-box;
+
+        }
+
+        pre {
+
+            white-space: pre-wrap;
+
+            word-wrap: break-word;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id='map'></div>
+
+    <input id="file-input" type="file" accept=".geojson" />
+
+    <div id="side-panel"><pre id="geojson-display"></pre></div>
+
+    <script>
+
+        const map = new maplibregl.Map({
+
+            container: 'map',
+
+            style: 'https://demotiles.maplibre.org/style.json', // Replace with your style URL
+
+            center: [0, 0],
+
+            zoom: 0
+
+        });
+
+ 
+
+        const handleFileUpload = (event) => {
+
+            const file = event.target.files[0];
+
+            if (file) {
+
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+
+                    const data = JSON.parse(e.target.result);
+
+                    if (data.type === 'FeatureCollection') {
+
+                        displayGeoJSONText(data);
+
+                        renderGeoJSON(data);
+
+                        flyToGeoJSONBounds(data);
+
+                    } else {
+
+                        alert('The file is not a valid GeoJSON FeatureCollection.');
+
+                    }
+
+                };
+
+                reader.readAsText(file);
+
+            }
+
+        };
+
+ 
+
+        const displayGeoJSONText = (geojsonData) => {
+
+            const formattedText = JSON.stringify(geojsonData, null, 2);
+
+            document.getElementById('geojson-display').textContent = formattedText;
+
+        };
+
+ 
+
+        const renderGeoJSON = (geojsonData) => {
+
+            if (map.getSource('geojson-source')) {
+
+                map.getSource('geojson-source').setData(geojsonData);
+
+            } else {
+
+                map.addSource('geojson-source', {
+
+                    type: 'geojson',
+
+                    data: geojsonData
+
+                });
+
+                map.addLayer({
+
+                    id: 'geojson-layer',
+
+                    type: 'fill',
+
+                    source: 'geojson-source',
+
+                    layout: {},
+
+                    paint: {
+
+                        'fill-color': '#888',
+
+                        'fill-opacity': 0.4
+
+                    }
+
+                });
+
+            }
+
+        };
+
+ 
+
+        const flyToGeoJSONBounds = (geojsonData) => {
+
+            const bounds = geojsonData.features.reduce((bounds, feature) => {
+
+                return bounds.extend(getFeatureBounds(feature));
+
+            }, new maplibregl.LngLatBounds());
+
+ 
+
+            map.fitBounds(bounds, {
+
+                padding: 20,
+
+                duration: 2000
+
+            });
+
+        };
+
+ 
+
+        // Function to get bounds from a feature
+
+        const getFeatureBounds = (feature) => {
+
+            const bounds = new maplibregl.LngLatBounds();
+
+            const geometry = feature.geometry;
+
+ 
+
+            if (geometry.type === 'Point') {
+
+                bounds.extend(geometry.coordinates);
+
+            } else if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
+
+                geometry.coordinates.forEach(coord => bounds.extend(coord));
+
+            } else if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
+
+                geometry.coordinates.flat().forEach(coord => bounds.extend(coord));
+
+            } else if (geometry.type === 'MultiPolygon') {
+
+                geometry.coordinates.flat(2).forEach(coord => bounds.extend(coord));
+
+            }
+
+ 
+
+            return bounds;
+
+        };
+
+ 
+
+        // Add event listener to file input
+
+        document.getElementById('file-input').addEventListener('change', handleFileUpload);
+
+    </script>
+
+</body>
+
+</html>
+
