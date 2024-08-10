@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Protected and Conserved Areas</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.css">
+<link rel="modulepreload" href="./_observablehq/client.js">
+<link rel="modulepreload" href="./_observablehq/runtime.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_npm/shapefile@0.6.6/_esm.js">
+<link rel="modulepreload" href="./_npm/maplibre-gl@4.4.1/_esm.js">
+<link rel="modulepreload" href="./_npm/mapbox-gl-arcgis-featureserver@0.0.8/_esm.js">
+<link rel="modulepreload" href="./_npm/htl@0.3.1/_esm.js">
+<link rel="modulepreload" href="./_observablehq/stdlib/inputs.js">
+<link rel="modulepreload" href="./_npm/isoformat@0.2.1/_esm.js">
+<link rel="modulepreload" href="./_npm/path-source@0.1.3/_esm.js">
+<link rel="modulepreload" href="./_npm/array-source@0.0.4/_esm.js">
+<link rel="modulepreload" href="./_npm/stream-source@0.3.5/_esm.js">
+<link rel="modulepreload" href="./_npm/slice-source@0.4.1/_esm.js">
+<link rel="modulepreload" href="./_npm/@mapbox/tilebelt@1.0.2/_esm.js">
+<link rel="modulepreload" href="./_npm/arcgis-pbf-parser@0.0.1/_esm.js">
+<link rel="modulepreload" href="./_npm/pbf@3.3.0/_esm.js">
+<link rel="modulepreload" href="./_npm/ieee754@1.2.1/_esm.js">
+<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
+<script type="module">
+
+import {define} from "./_observablehq/client.js";
+import {registerFile} from "./_observablehq/stdlib.js";
+
+registerFile("./data/kba-2022-10-poly-simp.geojson", {"name":"./data/kba-2022-10-poly-simp.geojson","mimeType":"application/geo+json","path":"./_file/data/kba-2022-10-poly-simp.1be3c614.geojson","lastModified":1722790985717});
+
+define({id: "5cd5039e", inputs: ["display","html"], outputs: ["container"], body: (display,html) => {
+const container = display(html`<div style="width:620px; height:600px"></div>`)
+return {container};
+}});
+
+define({id: "74667c28", inputs: ["view","Inputs"], outputs: ["image_selection"], body: (view,Inputs) => {
+const image_selection = view(Inputs.radio(["CartoDB Voyager", "NASA Blue Marble", "ESRI World Imagery", "ESRI World Terrain Base", "ESRI Topographic", "USGS Topographic", "ModisTerraBands721CR"], {
+  label: "Select Basemap",
+  value: "CartoDB Voyager"
+}))
+return {image_selection};
+}});
+
+define({id: "a4c1f0fc", inputs: ["view","Inputs","toc"], outputs: ["tableOfContents"], body: (view,Inputs,toc) => {
+const tableOfContents = view(Inputs.checkbox(toc, {
+  label: "Toggle Layer Visibility",
+  value: toc.values()
+}))
+return {tableOfContents};
+}});
+
+define({id: "791d474d", outputs: ["proxyUrl"], body: () => {
+            // Add WMS layer using CORS proxy
+const proxyUrl = 'https://corsproxy.io/?';
+return {proxyUrl};
+}});
+
+define({id: "80949e84", inputs: ["container","maplibregl","invalidation","nat_geo","world_imagery","terrain","blue_marble","topo","usgs_topo","kba_wms_view","kba_2022_10_POL_view","kba_2022_10_POL","wdpa_vector","wdpa_raster"], outputs: ["map"], body: (container,maplibregl,invalidation,nat_geo,world_imagery,terrain,blue_marble,topo,usgs_topo,kba_wms_view,kba_2022_10_POL_view,kba_2022_10_POL,wdpa_vector,wdpa_raster) => {
+const map = (() => {
+  // Create the "map" object with the maplibregl.Map constructor, referencing the container div
+
+  const mapRef = (container.value = new maplibregl.Map({
+    container: container,
+    center: [42.3322896, -19.1363974],
+    zoom: 4,
+    pitch: 0,
+    bearing: 0,
+    maplibreglLogo: false,
+    style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+    attributionControl: false
+}));
+
+
+
+  // Add some navigation controls.
+  mapRef.addControl(new maplibregl.NavigationControl(), "top-right");
+
+  // When the user interacts with the map, propagate the values to inputs.
+  //map.on("zoom", () => (viewof zoom.value = map.getZoom()));;
+
+  // If this cell is invalidated, dispose of the map.
+  invalidation.then(() => mapRef.remove());
+
+  // The map must be loaded before we can add sources.
+  new Promise((resolve, reject) => {
+    mapRef.on("load", async () => {
+
+      nat_geo(mapRef);
+
+      world_imagery(mapRef);
+      //physical(mapRef); //no close zoom
+      //shaded(mapRef); //no close zoom
+      //street(mapRef);
+      terrain(mapRef);
+      //world_topo(mapRef); //broken
+      //delorme(mapRef); // 404
+      blue_marble(mapRef);
+      topo(mapRef);
+      usgs_topo(mapRef);
+
+      kba_wms_view(mapRef);
+      kba_2022_10_POL_view(mapRef, kba_2022_10_POL);
+      wdpa_vector(mapRef)
+      wdpa_raster(mapRef)
+
+
+ //     resolve();
+
+    });
+  });
+
+  //yield container;
+
+
+  return mapRef;
+
+  
+ })()
+return {map};
+}});
+
+define({id: "8063f928", inputs: ["proxyUrl"], outputs: ["kba_wms_view"], body: (proxyUrl) => {
+const kba_wms_view = (mapRef) => {
+    mapRef.addSource('kba-wms', {
+                'type': 'raster',
+                'tiles': [
+                    proxyUrl + 'https://birdlaa8.birdlife.org/geoserver/gwc/service/wms?service=WMS&request=GetMap&layers=birdlife_dz:ibas_global_2024_wm&styles=&format=image/png&transparent=true&version=1.1.1&height=256&width=256&srs=EPSG:3857&bbox={bbox-epsg-3857}'
+                ],
+                'tileSize': 256
+            });
+
+    mapRef.addLayer({
+                'id': 'kba-wms',
+                'type': 'raster',
+                'source': 'kba-wms',
+                'paint': { 'raster-opacity': 0.6 }
+            });
+            }
+return {kba_wms_view};
+}});
+
+define({id: "9d9b470e", inputs: ["FileAttachment"], outputs: ["kba_2022_10_POL"], body: async (FileAttachment) => {
+const kba_2022_10_POL = await FileAttachment("./data/kba-2022-10-poly-simp.geojson").json()
+return {kba_2022_10_POL};
+}});
+
+define({id: "ab04e062", inputs: ["maplibregl"], outputs: ["kba_2022_10_POL_view"], body: (maplibregl) => {
+const kba_2022_10_POL_view = (mapRef, kba_2022_10_POL) => {
+  mapRef.addSource("kba_2022_10_POL", {
+    type: "geojson",
+    data: kba_2022_10_POL
+  });
+  mapRef.addLayer({
+    id: "kba_2022_10_POL_fill",
+    type: "fill",
+    source: "kba_2022_10_POL",
+    layout: {
+      visibility: "visible"
+    },
+    paint: {
+      "fill-color": "yellow",
+      "fill-opacity": 0.05
+    }
+  });
+
+  mapRef.addLayer({
+    id: "kba_2022_10_POL_line",
+    type: "line",
+    source: "kba_2022_10_POL",
+    layout: {
+      visibility: "visible"
+    },
+    paint: {
+      "line-color": "yellow",
+      "line-width": 0.05,
+      "line-opacity": 0.01
+    }
+  });
+
+  // Add popup functionality
+  mapRef.on('click', 'kba_2022_10_POL_fill', function (e) {
+    const feature = e.features[0];
+    const properties = feature.properties;
+
+    // Create the popup content
+    const popupContent = `
+      <p>
+        <strong>${properties['IntName']}</strong><br />
+        <strong>Site ID:</strong> ${properties['SitRecID']}<br />
+        <strong>Triggers:</strong> ${properties['triggers']}<br />
+        <strong>Country:</strong> ${properties['Country']}<br />
+        <strong>Region:</strong> ${properties['Region']}
+      </p>
+    `;
+
+    // Create a new popup and set its coordinates and content
+    new maplibregl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(popupContent)
+      .addTo(mapRef);
+  });
+
+  // Change the cursor to a pointer when the mouse is over the polygon layer
+  mapRef.on('mouseenter', 'kba_2022_10_POL_fill', function () {
+    mapRef.getCanvas().style.cursor = 'pointer';
+  });
+
+  // Change the cursor back to default when the mouse leaves the polygon layer
+  mapRef.on('mouseleave', 'kba_2022_10_POL_fill', function () {
+    mapRef.getCanvas().style.cursor = '';
+  });
+};
+
+return {kba_2022_10_POL_view};
+}});
+
+define({id: "6347c692", outputs: ["toc"], body: () => {
+const toc = new Map([
+  [
+    "KBA",
+    {
+      label: "kba_2022_10_POL",
+      layers: ["kba_2022_10_POL_fill", "kba_2022_10_POL_line", "kba-wms"]
+    }
+  ],
+    [
+    "WDPA",
+    {
+      label: "wdpa-raster",
+      layers: ["wdpa-vector", "wdpa-raster-fill"]
+    }
+  ],
+])
+return {toc};
+}});
+
+define({id: "02a017f3", inputs: ["toc","map","tableOfContents"], outputs: ["layer_visibility"], body: (toc,map,tableOfContents) => {
+const layer_visibility = (() => {
+  for (const entry of toc.values()) {
+    for (const layer of entry.layers) {
+      if (map.getLayer(layer)) {
+        map.setLayoutProperty(
+          layer,
+          "visibility",
+          tableOfContents.map((d) => d.label).includes(entry.label)
+            ? "visible"
+            : "none"
+        );
+      }
+    }
+  }
+  // return tableOfContents;
+})()
+return {layer_visibility};
+}});
+
+define({id: "38258a09", outputs: ["wdpa_vector"], body: () => {
+const wdpa_vector = (mapRef) => {
+
+  mapRef.addSource('wdpa', {
+    type: 'vector',
+    tiles: ['https://data-gis.unep-wcmc.org/server/rest/services/Hosted/wdpa_latest_vts/VectorTileServer/tile/{z}/{y}/{x}.pbf'],
+    promoteId: 'id',
+  });
+
+  mapRef.addLayer({
+    'id': 'wdpa-vector',
+    'type': 'fill',
+    'source': 'wdpa',
+    'source-layer': 'WDPA_poly_latest', // Make sure this matches the correct source layer name
+    'layout': {},
+    'paint': {
+      'fill-color': '#888888',
+      'fill-opacity': 0.4,
+    },
+  });
+    
+}
+return {wdpa_vector};
+}});
+
+define({id: "1c709aed", inputs: ["FeatureService","maplibregl"], outputs: ["wdpa_raster"], body: (FeatureService,maplibregl) => {
+const wdpa_raster = (mapRef) => {
+  const srcId = 'wdpa-raster-src'
+    const service = new FeatureService(srcId, mapRef, {
+      url: 'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/1'
+    });
+    const fsLyrId = 'wdpa-raster-fill'
+    mapRef.addLayer({
+      'id': fsLyrId,
+      'source': srcId,
+      'type': 'fill',
+      'paint': {
+        'fill-opacity': 0.5,
+        'fill-color': [
+          'match',
+          ['get', 'iucn_cat'],
+          'Ia', '#B42222',
+          'Ib', '#68e94e',
+          'II', '#1ea503',
+          'III', '#d388dd',
+          'IV', '#FC4E2A',
+          'V', '#FEB24C',
+          'VI', '#FED976',
+          'Not Assigned', '#898a90',
+          /* default */ '#e2e3e9'
+        ]
+      }
+    });   
+
+    function hideFsLayer () {
+       mapRef.setLayoutProperty(fsLyrId, 'visibility', 'none')
+       service.disableRequests()
+    }
+
+    function showFsLayer () {
+       mapRef.setLayoutProperty(fsLyrId, 'visibility', 'visible')
+       service.enableRequests()
+    }
+
+    function removeFsCompletelyFromMap () {
+      mapRef.removeLayer(fsLyrId)
+      service.destroySource()
+    }
+
+    // Add a click event listener for the layer
+    mapRef.on('click', fsLyrId, (e) => {
+      const feature = e.features[0];
+      
+    // Create a popup and set its coordinates and content
+      new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <strong>Name:</strong> ${feature.properties.name}<br>
+          <strong>Original Name:</strong> ${feature.properties.orig_name}<br>
+          <strong>Designation:</strong> ${feature.properties.desig}<br>
+          <strong>Designation (Eng):</strong> ${feature.properties.desig_eng}<br>
+          <strong>Designation Type:</strong> ${feature.properties.desig_type}<br>
+          <strong>IUCN Category:</strong> ${feature.properties.iucn_cat}<br>
+          <strong>International Criteria:</strong> ${feature.properties.int_crit}<br>
+          <!--<strong>Marine:</strong> ${feature.properties.marine}-->
+        `)
+        .addTo(mapRef);
+            });
+
+}
+return {wdpa_raster};
+}});
+
+define({id: "6a3c6451", outputs: ["nat_geo"], body: () => {
+const nat_geo = (mapRef) => {
+  mapRef.addSource("nat_geo", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "nat_geo",
+    type: "raster",
+    source: "nat_geo",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+return {nat_geo};
+}});
+
+define({id: "7bff445a", inputs: ["map","image_selection"], outputs: ["nat_geo_visibility"], body: (map,image_selection) => {
+const nat_geo_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "nat_geo",
+      "visibility",
+      (image_selection.includes("NatGeo World Map")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "nat_geo",
+        "visibility",
+        (image_selection.includes("NatGeo World Map")) ? "visible" : "none"
+      );
+    });
+  }
+  // return html`\`nat_geo_visibility\``;
+})();
+return {nat_geo_visibility};
+}});
+
+define({id: "bb496e55", outputs: ["usgs_topo"], body: () => {
+const usgs_topo = (mapRef) => {
+  mapRef.addSource("usgs_topo", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "usgs_topo",
+    type: "raster",
+    source: "usgs_topo",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+return {usgs_topo};
+}});
+
+define({id: "8c2bad9a", inputs: ["map","image_selection"], outputs: ["usgs_topo_visibility"], body: (map,image_selection) => {
+const usgs_topo_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "usgs_topo",
+      "visibility",
+      (image_selection.includes("USGS Topographic")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "usgs_topo",
+        "visibility",
+        (image_selection.includes("USGS Topographic")) ? "visible" : "none"
+      );
+    });
+  }
+  // return html`\`usgs_topo_visibility\``;
+})();
+return {usgs_topo_visibility};
+}});
+
+define({id: "a757721a", outputs: ["world_imagery"], body: () => {
+const world_imagery = (mapRef) => {
+  mapRef.addSource("world_imagery", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "world_imagery",
+    type: "raster",
+    source: "world_imagery",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+return {world_imagery};
+}});
+
+define({id: "e7bb8745", inputs: ["map","image_selection"], outputs: ["world_imagery_visibility"], body: (map,image_selection) => {
+const world_imagery_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "world_imagery",
+      "visibility",
+      (image_selection.includes("World Imagery")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "world_imagery",
+        "visibility",
+        (image_selection.includes("World Imagery")) ? "visible" : "none"
+      );
+    });
+  }
+  // return html`\`world_imagery_visibility\``;
+})();
+return {world_imagery_visibility};
+}});
+
+define({id: "98d2e57f", outputs: ["terrain"], body: () => {
+const terrain = (mapRef) => {
+  mapRef.addSource("terrain", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "terrain",
+    type: "raster",
+    source: "terrain",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+return {terrain};
+}});
+
+define({id: "1fd98449", inputs: ["map","image_selection"], outputs: ["terrain_visibility"], body: (map,image_selection) => {
+const terrain_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "terrain",
+      "visibility",
+      (image_selection.includes("World Terrain Base")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "terrain",
+        "visibility",
+        (image_selection.includes("World Terrain Base")) ? "visible" : "none"
+      );
+    });
+  }
+  // return html`\`terrain_visibility\``;
+})();
+return {terrain_visibility};
+}});
+
+define({id: "adc5a770", outputs: ["topo"], body: () => {
+const topo = (mapRef) => {
+  mapRef.addSource("topo", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "topo",
+    type: "raster",
+    source: "topo",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+return {topo};
+}});
+
+define({id: "b43e9550", inputs: ["map","image_selection"], outputs: ["topo_visibility"], body: (map,image_selection) => {
+const topo_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "topo",
+      "visibility",
+      (image_selection.includes("ESRI Topographic")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "topo",
+        "visibility",
+        (image_selection.includes("ESRI Topographic")) ? "visible" : "none"
+      );
+    });
+  }
+  // return html`\`topo_visibility\``;
+})();
+return {topo_visibility};
+}});
+
+define({id: "34744811", outputs: ["blue_marble"], body: () => {
+const blue_marble = (mapRef) => {
+  mapRef.addSource("blue_marble", {
+    type: "raster",
+    tiles: [
+        "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg"
+      ],
+    tileSize: 256,
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "blue_marble",
+    type: "raster",
+    source: "blue_marble",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+return {blue_marble};
+}});
+
+define({id: "75f42fe8", inputs: ["map","image_selection"], outputs: ["blue_marble_visibility"], body: (map,image_selection) => {
+const blue_marble_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "blue_marble",
+      "visibility",
+      (image_selection.includes("NASA Blue Marble")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "blue_marble",
+        "visibility",
+        (image_selection.includes("NASA Blue Marble")) ? "visible" : "none"
+      );
+    });
+  }
+  // return html`\`blue_marble_visibility\``;
+})();
+return {blue_marble_visibility};
+}});
+
+define({id: "69d231ea", outputs: ["shapefile"], body: async () => {
+const shapefile = await import("./_npm/shapefile@0.6.6/_esm.js");
+
+return {shapefile};
+}});
+
+define({id: "f75b3618", outputs: ["maplibregl","FeatureService"], body: async () => {
+const [{default: maplibregl}, {default: FeatureService}] = await Promise.all([import("./_npm/maplibre-gl@4.4.1/_esm.js"), import("./_npm/mapbox-gl-arcgis-featureserver@0.0.8/_esm.js")]);
+
+return {maplibregl,FeatureService};
+}});
+
+</script>
+<div id="observablehq-center">
+<main id="observablehq-main" class="observablehq">
+<h2 id="protected-and-conserved-areas" tabindex="-1"><a class="observablehq-header-anchor" href="#protected-and-conserved-areas">Protected and Conserved Areas</a></h2>
+<p>The map below renders data from the Proected Plant <a href="https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA" target="_blank" rel="noopener noreferrer">World Database on Protected Areas </a> and BirdLife Internatonal <a href="https://www.keybiodiversityareas.org/" target="_blank" rel="noopener noreferrer">Key Biodviersity Areas</a> datasets.</p>
+<p>Data are served from the official servers of the respective organization.  Please be patient while the data render.</p>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css">
+<style>
+  .maplibregl-popup-content{
+    color: black;
+}
+</style>
+<div class="observablehq observablehq--block"><!--:5cd5039e:--></div>
+<div class="observablehq observablehq--block"><!--:74667c28:--></div>
+<div class="observablehq observablehq--block"><!--:a4c1f0fc:--></div>
+<hr>
+<h2 id="world-database-of-protected-areas-(wdpa)" tabindex="-1"><a class="observablehq-header-anchor" href="#world-database-of-protected-areas-(wdpa)">World Database of Protected Areas (WDPA)</a></h2>
+<p>The <a href="https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA" target="_blank" rel="noopener noreferrer">World Database of Protected Areas</a> (WDPA) is a comprehensive global database of marine and terrestrial protected areas and is one of the key global biodiversity datasets used by scientists, businesses, governments, international organizations and others to inform planning, policy decisions and management.</p>
+<p>The WDPA is a joint project between <a href="https://www.unep.org/" target="_blank" rel="noopener noreferrer">UN Environment Programme</a> and the <a href="https://iucn.org/" target="_blank" rel="noopener noreferrer">International Union for Conservation of Nature</a> (IUCN). The compilation and management of the WDPA is carried out by UN Environment Programme World Conservation Monitoring Centre (<a href="https://www.unep-wcmc.org/en" target="_blank" rel="noopener noreferrer">UNEP-WCMC</a>), in collaboration with governments, non-governmental organisations, academia and industry. Data and information on the world's protected areas compiled in the WDPA are used for reporting to the <a href="https://www.cbd.int/" target="_blank" rel="noopener noreferrer">Convention on Biological Diversity</a> on progress towards reaching the Aichi Biodiversity Targets (particularly Target 11), to the UN to track progress towards the 2030 Sustainable Development Goals, to some of the Intergovernmental Science-Policy Platform on Biodiversity and Ecosystem Services (IPBES) core indicators, and other international assessments and reports including the Global Biodiversity Outlook, as well as for the publication of the United Nations List of Protected Areas.</p>
+<p><em>Text adapted from:</em> UNEP-WCMC and IUCN (2024), Protected Planet: The World Database on Protected Areas (WDPA)[On-line], [June 2024], Cambridge, UK: UNEP-WCMC and IUCN. Available at: <a href="https://doi.org/10.34892/6fwd-af11" target="_blank" rel="noopener noreferrer">https://doi.org/10.34892/6fwd-af11</a></p>
+<h2 id="key-biodiversity-areas" tabindex="-1"><a class="observablehq-header-anchor" href="#key-biodiversity-areas">Key Biodiversity Areas</a></h2>
+<p>The <a href="https://wdkba.keybiodiversityareas.org/" target="_blank" rel="noopener noreferrer">World Database of Key Biodiversity Areas</a> is managed by <a href="https://www.birdlife.org/?gad_source=1&amp;gclid=CjwKCAjw_Na1BhAlEiwAM-dm7KWRcYTD7g6NyuMKjliQLOCOBX18cuRseeMqS4x9gHeN-unck_h9yxoC4B0QAvD_BwE" target="_blank" rel="noopener noreferrer">BirdLife International</a> on behalf of the <a href="https://www.keybiodiversityareas.org/working-with-kbas/programme/partnership" target="_blank" rel="noopener noreferrer">KBA Partnership</a>.<sup><a href="https://www.keybiodiversityareas.org/kba-news/wdkba" target="_blank" rel="noopener noreferrer">[*]</a></sup> It hosts data on global and regional <a href="https://www.keybiodiversityareas.org/" target="_blank" rel="noopener noreferrer">Key Biodiversity Areas</a> (KBAs), including Important Bird and Biodiversity Areas identified by the <a href="https://www.birdlife.org/partnership/" target="_blank" rel="noopener noreferrer">BirdLife International Partnership</a>, <a href="https://zeroextinction.org/" target="_blank" rel="noopener noreferrer">Alliance for Zero Extinction</a> sites, KBAs identified through hotspot ecosystem profiles supported by the <a href="https://www.cepf.net/" target="_blank" rel="noopener noreferrer">Critical Ecosystem Partnership Fund</a>, and a small number of other KBAs. The database was developed from the <a href="https://www.globalconservation.info/" target="_blank" rel="noopener noreferrer">World Bird and Biodiversity Database (WBDB)</a> managed by BirdLife International.</p>
+<hr>
+<div class="observablehq observablehq--block"><!--:791d474d:--></div>
+<div class="observablehq observablehq--block"><!--:80949e84:--></div>
+<div class="observablehq observablehq--block"><!--:8063f928:--></div>
+<div class="observablehq observablehq--block"><!--:9d9b470e:--></div>
+<div class="observablehq observablehq--block"><!--:ab04e062:--></div>
+<!--- --- --->
+<div class="observablehq observablehq--block"><!--:6347c692:--></div>
+<div class="observablehq observablehq--block"><!--:02a017f3:--></div>
+<div class="observablehq observablehq--block"><!--:38258a09:--></div>
+<div class="observablehq observablehq--block"><!--:1c709aed:--></div>
+<div class="observablehq observablehq--block"><!--:6a3c6451:--></div>
+<div class="observablehq observablehq--block"><!--:7bff445a:--></div>
+<div class="observablehq observablehq--block"><!--:bb496e55:--></div>
+<div class="observablehq observablehq--block"><!--:8c2bad9a:--></div>
+<div class="observablehq observablehq--block"><!--:a757721a:--></div>
+<div class="observablehq observablehq--block"><!--:e7bb8745:--></div>
+<div class="observablehq observablehq--block"><!--:98d2e57f:--></div>
+<div class="observablehq observablehq--block"><!--:1fd98449:--></div>
+<div class="observablehq observablehq--block"><!--:adc5a770:--></div>
+<div class="observablehq observablehq--block"><!--:b43e9550:--></div>
+<div class="observablehq observablehq--block"><!--:34744811:--></div>
+<div class="observablehq observablehq--block"><!--:75f42fe8:--></div>
+<div class="observablehq observablehq--block"><!--:69d231ea:--></div>
+<div class="observablehq observablehq--block"><!--:f75b3618:--></div>
+</main>
+<footer id="observablehq-footer">
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-08-10T09:03:24">Aug 10, 2024</a>.</div>
+</footer>
+</div>
