@@ -454,13 +454,14 @@ const layer_visibility = (() => {
 })()
 ```
 
-
+```js
+const bounds = map.getBounds();
+```
 
 
 ```js
 const bounding_box_view = Mutable({});
 const updateBoundingBox = () => {
-  const bounds = map.getBounds();
   bounding_box_view.value = {
     north: bounds.getNorth(),
     south: bounds.getSouth(),
