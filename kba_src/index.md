@@ -1,8 +1,5 @@
 # Key Biodiversity Areas
 
-The World Database of Key Biodiversity Areas is managed by BirdLife International on behalf of the KBA Partnership. It hosts data on global and regional Key Biodiversity Areas (KBAs), including Important Bird and Biodiversity Areas identified by the BirdLife International Partnership, Alliance for Zero Extinction sites, KBAs identified through hotspot ecosystem profiles supported by the Critical Ecosystem Partnership Fund, and a small number of other KBAs. The database was developed from the World Bird and Biodiversity Database (WBDB) managed by BirdLife International.
-
-
 ```html
 <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css' />
 <style>
@@ -13,76 +10,51 @@ The World Database of Key Biodiversity Areas is managed by BirdLife Internationa
 ```
 
 
+The [World Database of Key Biodiversity Areas](https://wdkba.keybiodiversityareas.org/) is managed by [BirdLife International](https://www.birdlife.org/?gad_source=1&gclid=CjwKCAjw_Na1BhAlEiwAM-dm7KWRcYTD7g6NyuMKjliQLOCOBX18cuRseeMqS4x9gHeN-unck_h9yxoC4B0QAvD_BwE) on behalf of the [KBA Partnership](https://www.keybiodiversityareas.org/working-with-kbas/programme/partnership).<sup>[[*]](https://www.keybiodiversityareas.org/kba-news/wdkba)</sup> It hosts data on global and regional [Key Biodiversity Areas](https://www.keybiodiversityareas.org/) (KBAs), including Important Bird and Biodiversity Areas identified by the [BirdLife International Partnership](https://www.birdlife.org/partnership/), [Alliance for Zero Extinction](https://zeroextinction.org/) sites, KBAs identified through hotspot ecosystem profiles supported by the [Critical Ecosystem Partnership Fund](https://www.cepf.net/), and a small number of other KBAs. The database was developed from the [World Bird and Biodiversity Database (WBDB)](https://www.globalconservation.info/) managed by BirdLife International.
+
 ```js
-const container = display(html`<div style="width:840px; height:600px"></div>`)
+const container = display(html`<div style="width:800px; height:600px"></div>`)
+```
+
+```js
+const image_selection = view(Inputs.radio(["CartoDB Voyager", "NASA Blue Marble", "ESRI World Imagery", "ESRI World Terrain Base", "ESRI Topographic", "USGS Topographic"], {
+  label: "Select Basemap",
+  value: "CartoDB Voyager"
+}))
+```
+
+```js
+const tableOfContents = view(Inputs.checkbox(toc, {
+  label: "Toggle Visibility",
+  value: toc.values()
+}))
+```
+
+
+
+---
+
+### Explore Visible Features
+
+_The table below automatically adjusts to the map's viewing area._
+
+```js
+display(bounding_box_view);
+display(visibleFeatures)
 ```
 
 
 ```js
-import maplibregl from 'npm:maplibre-gl';
-import FeatureService from 'npm:mapbox-gl-arcgis-featureserver';
+Inputs.table(visibleFeatures.features.map(d => d.properties))
 ```
 
+---
+
+### KBA Source Data
 
 ```js
-const map_one = (() => {
-  // Create the "map" object with the maplibregl.Map constructor, referencing the container div
-
-  const mapRef = (container.value = new maplibregl.Map({
-    container: container,
-    center: [-73.2380902, 42.3824162],
-    zoom: 8.5,
-    maplibreglLogo: true,
-    style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-    attributionControl: true
-}));
-
-
-
-  // Add some navigation controls.
-  mapRef.addControl(new maplibregl.NavigationControl(), "top-right");
-
-  // When the user interacts with the map, propagate the values to inputs.
-  //map.on("zoom", () => (viewof zoom.value = map.getZoom()));;
-
-  // If this cell is invalidated, dispose of the map.
-  invalidation.then(() => mapRef.remove());
-
-  // The map must be loaded before we can add sources.
-  new Promise((resolve, reject) => {
-    mapRef.on("load", async () => {
-      wms_layer_view(mapRef);
-
-      kba_2022_10_POL_view(
-        mapRef,
-        kba_2022_10_POL
-      );
-
-
- //     resolve();
-
-    });
-  });
-
-  //yield container;
-
-
-  return mapRef;
-
-  
- })()
-```
-
-
-```js
-            // Add WMS layer using CORS proxy
-const proxyUrl = 'https://corsproxy.io/?';
-```
-
-
-```js
-const wms_layer_view = (mapRef) => {
-    map.addSource('wms-layer', {
+const kba_wms_view = (mapRef) => {
+    mapRef.addSource('kba-wms', {
                 'type': 'raster',
                 'tiles': [
                     proxyUrl + 'https://birdlaa8.birdlife.org/geoserver/gwc/service/wms?service=WMS&request=GetMap&layers=birdlife_dz:ibas_global_2024_wm&styles=&format=image/png&transparent=true&version=1.1.1&height=256&width=256&srs=EPSG:3857&bbox={bbox-epsg-3857}'
@@ -90,24 +62,27 @@ const wms_layer_view = (mapRef) => {
                 'tileSize': 256
             });
 
-    map.addLayer({
-                'id': 'wms-layer',
+    mapRef.addLayer({
+                'id': 'kba-wms',
                 'type': 'raster',
-                'source': 'wms-layer',
-                'paint': { 'raster-opacity': 0.5 }
+                'source': 'kba-wms',
+                'paint': { 'raster-opacity': 1 }
             });
             }
 ```
 
 ```js
-const kba_2022_10_POL_view = (mapRef, kba_2022_10_POL) => {
-// Adding source for the polygon feature collection
-map.addSource('kba_2022_10_POL', {
-  type: 'geojson',
-  data: kba_2022_10_POL,
-});
+// archival and unofficial copy of "https://birdlaa8.birdlife.org/geoserver/wfs?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME=birdlife_dz:ibas_pol_20240515_wm_selected&OUTPUTFORMAT=application/json"
 
-// Adding layer for the polygon feature collection
+const kba_2022_10_POL = display(await FileAttachment("kba-2022-10-poly-simp.geojson").json())
+```
+
+```js
+const kba_2022_10_POL_view = (mapRef, kba_2022_10_POL) => {
+  mapRef.addSource("kba_2022_10_POL", {
+    type: "geojson",
+    data: kba_2022_10_POL
+  });
   mapRef.addLayer({
     id: "kba_2022_10_POL_fill",
     type: "fill",
@@ -116,10 +91,11 @@ map.addSource('kba_2022_10_POL', {
       visibility: "visible"
     },
     paint: {
-      "fill-color": "#EE4031",
-      "fill-opacity": 0.3
+      "fill-color": "yellow",
+      "fill-opacity": 0.05
     }
   });
+
   mapRef.addLayer({
     id: "kba_2022_10_POL_line",
     type: "line",
@@ -128,211 +104,471 @@ map.addSource('kba_2022_10_POL', {
       visibility: "visible"
     },
     paint: {
-      "line-color": "#EE4031",
-      "line-width": 1.5,
-      "line-opacity": 0.4
+      "line-color": "yellow",
+      "line-width": 0.01,
+      "line-opacity": 0.3
+    }
+  });
+
+  // Add popup functionality
+  mapRef.on('click', 'kba_2022_10_POL_fill', function (e) {
+    const feature = e.features[0];
+    const properties = feature.properties;
+
+    // Create the popup content
+    const popupContent = `
+      <p>
+        <strong>${properties['IntName']}</strong><br />
+        <strong>Site ID:</strong> ${properties['SitRecID']}<br />
+        <strong>Triggers:</strong> ${properties['triggers']}<br />
+        <strong>Country:</strong> ${properties['Country']}<br />
+        <strong>Region:</strong> ${properties['Region']}
+      </p>
+    `;
+
+    // Create a new popup and set its coordinates and content
+    new maplibregl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(popupContent)
+      .addTo(mapRef);
+  });
+
+  // Change the cursor to a pointer when the mouse is over the polygon layer
+  mapRef.on('mouseenter', 'kba_2022_10_POL_fill', function () {
+    mapRef.getCanvas().style.cursor = 'pointer';
+  });
+
+  // Change the cursor back to default when the mouse leaves the polygon layer
+  mapRef.on('mouseleave', 'kba_2022_10_POL_fill', function () {
+    mapRef.getCanvas().style.cursor = '';
+  });
+};
+```
+
+---
+
+### Basemap Style Definitions
+
+```js
+const nat_geo = (mapRef) => {
+  mapRef.addSource("nat_geo", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "nat_geo",
+    type: "raster",
+    source: "nat_geo",
+    layout: {
+      visibility: "none"
     }
   });
 }
 ```
 
-
-
-
 ```js
-const image_selection = view(Inputs.radio(["clear", "wms-layer"], {
-  label: "Select Image",
-  value: "clear"
-}))
+const nat_geo_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "nat_geo",
+      "visibility",
+      (image_selection.includes("NatGeo World Map")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "nat_geo",
+        "visibility",
+        (image_selection.includes("NatGeo World Map")) ? "visible" : "none"
+      );
+    });
+  }
+  return `nat_geo_visibility`;
+})();
 ```
 
 ```js
-const tableOfContents = view(Inputs.checkbox(toc, {
-  label: "Select Layers",
-  value: toc.values()
-}))
+const usgs_topo = (mapRef) => {
+  mapRef.addSource("usgs_topo", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "usgs_topo",
+    type: "raster",
+    source: "usgs_topo",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
 ```
 
+```js
+const usgs_topo_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "usgs_topo",
+      "visibility",
+      (image_selection.includes("USGS Topographic")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "usgs_topo",
+        "visibility",
+        (image_selection.includes("USGS Topographic")) ? "visible" : "none"
+      );
+    });
+  }
+  return `usgs_topo_visibility`;
+})();
+```
+
+```js
+const world_imagery = (mapRef) => {
+  mapRef.addSource("world_imagery", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "world_imagery",
+    type: "raster",
+    source: "world_imagery",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+```
+
+```js
+const world_imagery_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "world_imagery",
+      "visibility",
+      (image_selection.includes("World Imagery")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "world_imagery",
+        "visibility",
+        (image_selection.includes("World Imagery")) ? "visible" : "none"
+      );
+    });
+  }
+  return `world_imagery_visibility`;
+})();
+```
+
+```js
+const terrain = (mapRef) => {
+  mapRef.addSource("terrain", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "terrain",
+    type: "raster",
+    source: "terrain",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+```
+
+```js
+const terrain_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "terrain",
+      "visibility",
+      (image_selection.includes("World Terrain Base")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "terrain",
+        "visibility",
+        (image_selection.includes("World Terrain Base")) ? "visible" : "none"
+      );
+    });
+  }
+  return `terrain_visibility`;
+})();
+```
+
+```js
+const topo = (mapRef) => {
+  mapRef.addSource("topo", {
+    type: "raster",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+    ],
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "topo",
+    type: "raster",
+    source: "topo",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+```
+
+```js
+const topo_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "topo",
+      "visibility",
+      (image_selection.includes("ESRI Topographic")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "topo",
+        "visibility",
+        (image_selection.includes("ESRI Topographic")) ? "visible" : "none"
+      );
+    });
+  }
+   return `topo_visibility`;
+})();
+```
+
+```js
+const blue_marble = (mapRef) => {
+  mapRef.addSource("blue_marble", {
+    type: "raster",
+    tiles: [
+        "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg"
+      ],
+    tileSize: 256,
+    minzoom: 0,
+    maxzoom: 16
+  });
+  mapRef.addLayer({
+    id: "blue_marble",
+    type: "raster",
+    source: "blue_marble",
+    layout: {
+      visibility: "none"
+    }
+  });
+}
+```
+
+```js
+const blue_marble_visibility = (() => {
+  // Check if the map style is loaded
+  if (map.isStyleLoaded()) {
+    // If loaded, set the visibility
+    map.setLayoutProperty(
+      "blue_marble",
+      "visibility",
+      (image_selection.includes("NASA Blue Marble")) ? "visible" : "none"
+    );
+  } else {
+    // If not loaded, wait for the 'load' event
+    map.on('load', () => {
+      map.setLayoutProperty(
+        "blue_marble",
+        "visibility",
+        (image_selection.includes("NASA Blue Marble")) ? "visible" : "none"
+      );
+    });
+  }
+  return `blue_marble_visibility`;
+})();
+```
+
+
+### Controls
 
 ```js
 const toc = new Map([
-  ["Town Boundaries", { label: "wms-layer", layers: ["wms-layer"] }],
   [
-    "Areas of Environmental Concern",
+    "Show / Hide KBA Layer",
     {
       label: "kba_2022_10_POL",
-      layers: ["kba_2022_10_POL_fill", "kba_2022_10_POL_line"]
+      layers: ["kba_2022_10_POL_fill", "kba_2022_10_POL_line", "kba-wms"]
     }
   ],
 ])
 ```
 
+```js
+const layer_visibility = (() => {
+  for (const entry of toc.values()) {
+    for (const layer of entry.layers) {
+      if (map.getLayer(layer)) {
+        map.setLayoutProperty(
+          layer,
+          "visibility",
+          tableOfContents.map((d) => d.label).includes(entry.label)
+            ? "visible"
+            : "none"
+        );
+      }
+    }
+  }
+  return tableOfContents;
+})()
+```
 
 
 
 
 ```js
-const map = new maplibregl.Map({
-    //interactive: false,
-    boxZoom: true,
+const bounding_box_view = Mutable({});
+const updateBoundingBox = () => {
+  const bounds = map.getBounds();
+  bounding_box_view.value = {
+    north: bounds.getNorth(),
+    south: bounds.getSouth(),
+    east: bounds.getEast(),
+    west: bounds.getWest()
+  };
+  return 'bounding box calculated';
+};
+
+```
+
+```js
+updateBoundingBox()
+```
+
+
+
+```js
+map.on('moveend', updateBoundingBox);
+```
+
+```js
+function getVisibleFeatures(geojson, boundingBox) {
+  if (!geojson || !geojson.features || !boundingBox) {
+    throw new Error('Invalid arguments');
+  }
+
+  // Create a turf bounding box polygon
+  const bboxPolygon = turf.bboxPolygon([
+    boundingBox.west,
+    boundingBox.south,
+    boundingBox.east,
+    boundingBox.north
+  ]);
+
+  // Filter features based on whether they intersect with the bounding box polygon
+  const visibleFeatures = geojson.features.filter(feature => {
+    // Check if the feature intersects with the bounding box polygon
+    return turf.booleanIntersects(bboxPolygon, feature);
+  });
+
+  // Return the filtered GeoJSON object
+  return {
+    type: 'FeatureCollection',
+    features: visibleFeatures
+  };
+}
+```
+
+```js
+const visibleFeatures = getVisibleFeatures(kba_2022_10_POL, bounding_box_view);
+```
+
+
+```js
+const map = (() => {
+  // Create the "map" object with the maplibregl.Map constructor, referencing the container div
+
+  const mapRef = (container.value = new maplibregl.Map({
+    container: container,
+    center: [172.5,-43],
+    zoom: 4,
     pitch: 0,
     bearing: 0,
-    maplibreLogo: true,
-    container,
-    center: [133.4,37.4],
-    zoom: 5,
+    maplibreglLogo: false,
     style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-    scrollZoom: true
+    attributionControl: false
+  }));
+
+  // Add some navigation controls.
+  mapRef.addControl(new maplibregl.NavigationControl(), "top-right");
+
+  // If this cell is invalidated, dispose of the map.
+  invalidation.then(() => mapRef.remove());
+
+  // The map must be loaded before we can add sources.
+  new Promise((resolve, reject) => {
+    mapRef.on("load", async () => {
+
+      nat_geo(mapRef);
+      world_imagery(mapRef);
+      terrain(mapRef);
+      blue_marble(mapRef);
+      topo(mapRef);
+      usgs_topo(mapRef);
+
+      kba_wms_view(mapRef);
+      kba_2022_10_POL_view(mapRef, kba_2022_10_POL);
+
+    });
   });
 
-  map.addControl(new maplibregl.NavigationControl());
+  return mapRef;
 
-  map.on('load', () => {
+})();
 
+```
 
-
-
-            // Add WMS layer using CORS proxy
+```js
 const proxyUrl = 'https://corsproxy.io/?';
-    
-    map.addSource('wms-layer', {
-                'type': 'raster',
-                'tiles': [
-                    proxyUrl + 'https://birdlaa8.birdlife.org/geoserver/gwc/service/wms?service=WMS&request=GetMap&layers=birdlife_dz:ibas_global_2024_wm&styles=&format=image/png&transparent=true&version=1.1.1&height=256&width=256&srs=EPSG:3857&bbox={bbox-epsg-3857}'
-                ],
-                'tileSize': 256
-            });
-
-    map.addLayer({
-                'id': 'wms-layer',
-                'type': 'raster',
-                'source': 'wms-layer',
-                'paint': { 'raster-opacity': 0.5 }
-            });
-
-
-// Adding source for the polygon feature collection
-map.addSource('kba_2022_10_POL', {
-  type: 'geojson',
-  data: kba_2022_10_POL,
-});
-
-// Adding layer for the polygon feature collection
-map.addLayer({
-  'id': 'kba-polygons-layer',
-  'type': 'fill',
-  'source': 'kba_2022_10_POL',
-  'paint': {
-    'fill-color': '#008000',
-    'fill-opacity': 0.2,
-  },
-});
-
-
-// Add popup functionality
-map.on('click', 'kba-polygons-layer', function (e) {
-  const feature = e.features[0];
-  const properties = feature.properties;
-
-  // Create the popup content
-  const popupContent = `
-    <p>
-      <strong>${properties['IntName']}</strong><br />
-      <strong>Site ID:</strong> ${properties['SitRecID']}<br />
-      <strong>Triggers:</strong> ${properties['triggers']}<br />
-      <strong>Country:</strong> ${properties['Country']}<br />
-      <strong>Region:</strong> ${properties['Region']}
-
-    </p>
-  `;
-
-  // Create a new popup and set its coordinates and content
-  new maplibregl.Popup()
-    .setLngLat(e.lngLat)
-    .setHTML(popupContent)
-    .addTo(map);
-});
-
-// Change the cursor to a pointer when the mouse is over the redlist-polygons-layer
-map.on('mouseenter', 'kba-polygons-layer', function () {
-  map.getCanvas().style.cursor = 'pointer';
-});
-
-// Change the cursor back to default when the mouse leaves the redlist-polygons-layer
-map.on('mouseleave', 'kba-polygons-layer', function () {
-  map.getCanvas().style.cursor = '';
-});
-
-  });
 ```
 
-```js echo
-import * as shapefile from "npm:shapefile";
-```
-
-```js echo
-//import {rewind} from "@fil/rewind";
-import {rewind} from "./components/rewind.js";
-```
-
-Then, to read a `.shp` and `.dbf` file:
-
-
-```js echo
-//const kba_2022_10_PNT = shapefile.read(
-//  ...(await Promise.all([
- //   FileAttachment("KBA_IBAT_Triggers_PNT.shp").stream(),
- //   FileAttachment("KBA_IBAT_Triggers_PNT.dbf").stream()
- // ]))
-//);
-```
-
-```js echo
-//const kba_2022_10_POL = shapefile.read(
- // ...(await Promise.all([
- //   FileAttachment("KBA_IBAT_Triggers_POL.shp").stream(),
- //   FileAttachment("KBA_IBAT_Triggers_POL.dbf").stream()
- // ]))
-//);
-```
-
-```js echo
-const kba_2022_10_POL = await FileAttachment("kba-2022-10-poly-simp.geojson").json()
-```
-
-```js echo
-//const rw = rewind(kba_2022_10_POL)
-```
-
-```js echo
-//kba_2022_10_PNT
+```js
+import * as turf from "npm:@turf/turf";
 ```
 
 
-```js echo
-kba_2022_10_POL
+```js
+import maplibregl from 'npm:maplibre-gl';
+import FeatureService from 'npm:mapbox-gl-arcgis-featureserver';
 ```
-
-
-To produce a map using [Plot’s geo mark](https://observablehq.com/plot/marks/geo):
-
-```js echo
-Plot.plot({ projection: "equal-earth", marks: [Plot.geo(kba_2022_10_POL)] })
-```
-
-
-```js echo
-Plot.plot({
-  projection: {
-    type: "orthographic",
-    rotate: [110, -30],
-  },
-  marks: [
-    Plot.sphere(),
-    //Plot.graticule(),
-    //Plot.geo(collection, {fill: "currentColor"}),
-    Plot.geo(kba_2022_10_POL),
-  ]
-})
-```
-
