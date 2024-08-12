@@ -460,10 +460,11 @@ const update_bounding_box = (bounds) => {
     east: bounds.getEast(),
     west: bounds.getWest()
   };
+  return 'calculate bounding box'
 };
 ```
 
-```js echo
+```js
 update_bounding_box(bounds)
 ```
 
