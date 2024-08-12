@@ -36,8 +36,8 @@ const tableOfContents = view(Inputs.checkbox(toc, {
 
 _The table below automatically adjusts to the map's viewing area._
 
+
 ```js
-display(bounding_box_view);
 display(visibleFeatures)
 ```
 
@@ -45,6 +45,7 @@ display(visibleFeatures)
 ```js
 Inputs.table(visibleFeatures.features.map(d => d.properties))
 ```
+
 
 ---
 
@@ -447,31 +448,100 @@ const layer_visibility = (() => {
 })()
 ```
 
+---
+
+## Map
+
+
+```js
+const map = (() => {
+  // Create the "map" object with the maplibregl.Map constructor, referencing the container div
+
+  const mapRef = (container.value = new maplibregl.Map({
+    container: container,
+    center: [172.5,-43],
+    zoom: 4,
+    pitch: 0,
+    bearing: 0,
+    maplibreglLogo: false,
+    style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+    attributionControl: false
+  }));
+
+  // Add some navigation controls.
+  mapRef.addControl(new maplibregl.NavigationControl(), "top-right");
+
+  // If this cell is invalidated, dispose of the map.
+  invalidation.then(() => mapRef.remove());
+
+
+  // The map must be loaded before we can add sources.
+  new Promise((resolve, reject) => {
+    mapRef.on("load", async () => {
+
+      nat_geo(mapRef);
+      world_imagery(mapRef);
+      terrain(mapRef);
+      blue_marble(mapRef);
+      topo(mapRef);
+      usgs_topo(mapRef);
+
+      kba_wms_view(mapRef);
+      kba_2022_10_POL_view(mapRef, kba_2022_10_POL);
+
+    });
+  });
+
+  return mapRef;
+
+})();
+
+```
+
+
 ```js
 const bounds = map.getBounds();
 ```
 
+
 ```js
-const bounding_box_view = Mutable({});
-const update_bounding_box = (bounds) => {
-  bounding_box_view.value = {
-    north: bounds.getNorth(),
-    south: bounds.getSouth(),
-    east: bounds.getEast(),
-    west: bounds.getWest()
+const updateBoundingBoxObject = (mapRef) => {
+  // Create an initial bounding box object
+  const bbox = {
+    north: mapRef.getBounds().getNorth(),
+    south: mapRef.getBounds().getSouth(),
+    east: mapRef.getBounds().getEast(),
+    west: mapRef.getBounds().getWest(),
   };
-  return 'calculate bounding box'
+
+  // Create a generator function to handle reactivity
+  return Generators.observe((push, end) => {
+    const update = () => {
+      bbox.north = mapRef.getBounds().getNorth();
+      bbox.south = mapRef.getBounds().getSouth();
+      bbox.east = mapRef.getBounds().getEast();
+      bbox.west = mapRef.getBounds().getWest();
+      push({...bbox}); // Push updated bbox
+    };
+
+    update(); // Initial update
+
+    // Update when the map's view changes
+    mapRef.on("moveend", update);
+
+    return () => mapRef.off("moveend", update); // Cleanup function
+  });
 };
 ```
 
 ```js
-update_bounding_box(bounds)
+const boundingBox = updateBoundingBoxObject(map);
 ```
-
 
 ```js
-map.on('moveend', () => update_bounding_box(map.getBounds()));
+display(boundingBox);
 ```
+
 
 ```js
 function getVisibleFeatures(geojson, boundingBox) {
@@ -502,53 +572,10 @@ function getVisibleFeatures(geojson, boundingBox) {
 ```
 
 ```js
-const visibleFeatures = getVisibleFeatures(kba_2022_10_POL, bounding_box_view);
+const visibleFeatures = getVisibleFeatures(kba_2022_10_POL, boundingBox);
 ```
 
 
-```js
-const map = (() => {
-  // Create the "map" object with the maplibregl.Map constructor, referencing the container div
-
-  const mapRef = (container.value = new maplibregl.Map({
-    container: container,
-    center: [172.5,-43],
-    zoom: 4,
-    pitch: 0,
-    bearing: 0,
-    maplibreglLogo: false,
-    style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-    attributionControl: false
-  }));
-
-  // Add some navigation controls.
-  mapRef.addControl(new maplibregl.NavigationControl(), "top-right");
-
-  // If this cell is invalidated, dispose of the map.
-  invalidation.then(() => mapRef.remove());
-
-  // The map must be loaded before we can add sources.
-  new Promise((resolve, reject) => {
-    mapRef.on("load", async () => {
-
-      nat_geo(mapRef);
-      world_imagery(mapRef);
-      terrain(mapRef);
-      blue_marble(mapRef);
-      topo(mapRef);
-      usgs_topo(mapRef);
-
-      kba_wms_view(mapRef);
-      kba_2022_10_POL_view(mapRef, kba_2022_10_POL);
-
-    });
-  });
-
-  return mapRef;
-
-})();
-
-```
 
 ```js
 const proxyUrl = 'https://corsproxy.io/?';
