@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Your Map Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+  <style>
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    #map-container { position: absolute; top: 80px; bottom: 0; width: 80%; height: 660px; left: 10%; }
+    #image-input-container { position: absolute; top: 0; left: 0; width: 100%; padding: 10px; background-color: #fff; z-index: 1; }
+    #layer-input-container { position: absolute; top: 40px; left: 0; width: 100%; padding: 10px; background-color: #fff; z-index: 1; }
+  </style>  
+</head>
+<body>
+
+<div id="layer-input-container">
+  <label for="layerSelection">KBA Layer Visibility:</label>
+  <label for="berkshire_towns">Toggle</label>
+  <input type="checkbox" id="berkshire_towns" name="layerSelection" value="berkshire_towns" checked>
+</div>
+
+<div id="map-container"></div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoidmluY2VudHNhcmFnbyIsImEiOiJjamxwa3JkaWkwZ3BjM3dudmZmazQwYjI2In0.eUzks_hqH-QVIlnXUKmKsA';
+
+  var map = new mapboxgl.Map({
+    container: 'map-container',
+    center: [-71.75, 42.1],
+    zoom: 2,
+    style: 'mapbox://styles/mapbox-map-design/ckhqrf2tz0dt119ny6azh975y'
+  });
+
+  var berkshire_towns_data;
+
+  var addOrUpdateLayer = (mapRef, layerId, sourceId, type, paint) => {
+    if (!mapRef.getSource(sourceId)) {
+      mapRef.addSource(sourceId, {
+        type: 'geojson',
+        data: sourceId === 'berkshire_towns' ? berkshire_towns_data : berkshires_acecs_poly_data
+      });
+    }
+
+    if (!mapRef.getLayer(layerId)) {
+      mapRef.addLayer({
+        id: layerId,
+        type: type,
+        source: sourceId,
+        layout: {
+          visibility: 'visible'
+        },
+        paint: paint
+      });
+    }
+  };
+
+  (async () => {
+    berkshire_towns_data = await fetch('https://s3.amazonaws.com/geospatial.data/global/KBA_2022-10/kba-2022-10-point.geojson').then(res => res.json());
+
+    addOrUpdateLayer(map, 'berkshire_towns', 'berkshire_towns', 'circle', {
+      'circle-color': 'orange',
+      'circle-radius': 5,
+      'circle-opacity': 0.8
+    });
+
+  })();
+
+  function setLayerVisibility(mapRef, layerId, visibility) {
+    if (mapRef.getLayer(layerId)) {
+      mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[name="layerSelection"]').forEach(input => {
+      input.addEventListener('change', () => {
+        var isChecked = input.checked;
+        var layerSelection = input.value;
+
+        if (layerSelection === 'berkshire_towns') {
+          setLayerVisibility(map, 'berkshire_towns', isChecked);
+        } 
+      });
+    });
+  });
+
+  map.on('load', () => {
+    // Optional: You can initialize layers here as well
+  });
+
+</script>
+</body>
+</html>
