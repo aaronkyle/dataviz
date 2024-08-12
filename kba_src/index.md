@@ -30,8 +30,6 @@ const tableOfContents = view(Inputs.checkbox(toc, {
 }))
 ```
 
-
-
 ---
 
 ### Explore Visible Features
@@ -144,10 +142,6 @@ const kba_2022_10_POL_view = (mapRef, kba_2022_10_POL) => {
   });
 };
 ```
-
----
-
-### Basemap Style Definitions
 
 ```js
 const nat_geo = (mapRef) => {
@@ -420,8 +414,7 @@ const blue_marble_visibility = (() => {
 })();
 ```
 
-
-### Controls
+---
 
 ```js
 const toc = new Map([
@@ -454,30 +447,29 @@ const layer_visibility = (() => {
 })()
 ```
 
+```js
+const bounds = map.getBounds();
+```
 
 ```js
 const bounding_box_view = Mutable({});
-const updateBoundingBox = () => {
-const bounds = map.getBounds();
+const update_bounding_box = (bounds) => {
   bounding_box_view.value = {
     north: bounds.getNorth(),
     south: bounds.getSouth(),
     east: bounds.getEast(),
     west: bounds.getWest()
   };
-  return 'bounding box calculated';
 };
-
 ```
 
-```js
-updateBoundingBox()
+```js echo
+update_bounding_box(bounds)
 ```
-
 
 
 ```js
-map.on('moveend', updateBoundingBox);
+map.on('moveend', () => update_bounding_box(map.getBounds()));
 ```
 
 ```js
