@@ -1,7 +1,6 @@
 ## Highlights
 
 * [massgis-aerial-photography](https://aaronkyle.github.io/dataviz/massgis-aerial-photography_dist/index.html)
-
 * [noaa-sea-level-rise](https://aaronkyle.github.io/dataviz/noaa-sea-level-rise_dist/index.html)
 * [3Band_CIR_8Bit_Imagery](https://aaronkyle.github.io/dataviz/3Band_CIR_8Bit_Imagery_dist/index.html)
 * [noaa-urban-heat-island-mapping](https://aaronkyle.github.io/dataviz/noaa-urban-heat-island-mapping_dist/index.html)
