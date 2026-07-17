@@ -1,7 +1,4 @@
 node_modules/
 **/node_modules/
-**/.observablehq/cache/
-*_src/dist/
-*_src/package-lock.json
 npm-debug.log*
 .DS_Store
