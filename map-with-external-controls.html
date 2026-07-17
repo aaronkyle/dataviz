@@ -5,8 +5,8 @@
   <meta charset="utf-8">
   <title>Your Map Title</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <style>
     body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     #map-container { position: absolute; top: 80px; bottom: 0; width: 80%; height: 660px; left: 10%; }
@@ -39,13 +39,11 @@
 <div id="map-container"></div>
 
 <script>
-  mapboxgl.accessToken = 'pk.eyJ1IjoidmluY2VudHNhcmFnbyIsImEiOiJjamxwa3JkaWkwZ3BjM3dudmZmazQwYjI2In0.eUzks_hqH-QVIlnXUKmKsA';
-
-  var map = new mapboxgl.Map({
+  var map = new maplibregl.Map({
     container: 'map-container',
     center: [-73.23, 42.3],
     zoom: 7.5,
-    style: 'mapbox://styles/mapbox-map-design/ckhqrf2tz0dt119ny6azh975y'
+    style: 'https://demotiles.maplibre.org/style.json'
   });
 
        var massgis_2021_wmts_view = (mapRef) => {

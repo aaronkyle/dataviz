@@ -1,62 +1,86 @@
 <!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>World Database of Protected Areas (WDPA) | WDPA</title>
+<meta name="generator" content="Observable Framework v1.13.4">
+<title>World Database of Protected Areas (WDPA) | World Database of Protected Areas</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
-<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
-<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
-<link rel="modulepreload" href="./_observablehq/client.js">
-<link rel="modulepreload" href="./_observablehq/runtime.js">
-<link rel="modulepreload" href="./_observablehq/stdlib.js">
-<link rel="modulepreload" href="./_npm/maplibre-gl@4.3.2/_esm.js">
-<link rel="modulepreload" href="./_npm/mapbox-gl-arcgis-featureserver@0.0.8/_esm.js">
-<link rel="modulepreload" href="./_npm/htl@0.3.1/_esm.js">
-<link rel="modulepreload" href="./_npm/@mapbox/tilebelt@1.0.2/_esm.js">
-<link rel="modulepreload" href="./_npm/arcgis-pbf-parser@0.0.1/_esm.js">
-<link rel="modulepreload" href="./_npm/pbf@3.2.1/_esm.js">
-<link rel="modulepreload" href="./_npm/ieee754@1.2.1/_esm.js">
-<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.b050d634.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.b050d634.css">
+<link rel="modulepreload" href="./_observablehq/client.c9a8bf39.js">
+<link rel="modulepreload" href="./_observablehq/runtime.607a8173.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.e5a6437b.js">
+<link rel="modulepreload" href="./_npm/maplibre-gl@5.24.0/ad5fb69e.js">
+<link rel="modulepreload" href="./_npm/mapbox-gl-arcgis-featureserver@0.0.8/a61a3305.js">
+<link rel="modulepreload" href="./_npm/htl@1.0.0/11521f02.js">
+<link rel="modulepreload" href="./_npm/@mapbox/tilebelt@1.0.2/4491cc53.js">
+<link rel="modulepreload" href="./_npm/arcgis-pbf-parser@0.0.1/ccbe6cd2.js">
+<link rel="modulepreload" href="./_npm/pbf@3.3.0/f3015eb5.js">
+<link rel="modulepreload" href="./_npm/ieee754@1.2.1/d77290dd.js">
 <script type="module">
 
-import {define} from "./_observablehq/client.js";
+import {define} from "./_observablehq/client.c9a8bf39.js";
 
-define({id: "17b2d2b6", inputs: ["html","width","display"], body: async (html,width,display) => {
+define({id: "ab28cf24", inputs: ["display","html"], outputs: ["container"], body: (display,html) => {
+// @fil's suggestion, which solves the disappearing map issue by forcing the map to be re-drawn 
+// const container = display(html`<div style="width:${width}px; height:600px"></div>`)
+const container = display(html`<div style="width:720px; height:600px"></div>`)
+return {container};
+}});
+
+define({id: "8fcc693a", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
 display(await(
-html.fragment`<link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css' />
-    <style>
-        body { margin: 0; padding: 0; }
-         html, body, #map { /*width: 720px;*/ }
-    </style>
-
-    <style>
-    .maplibregl-popup-content{
-        color: black;
-    }
-    </style>
-<div id="map" style="width:720px; height:600px"></div>
-<!-- <div id="map" style="width: ${width}px;height:${width/1.4}px;"> -->`
+swatch("#B42222")
 ))
 }});
 
-define({id: "3c226d1f", inputs: ["html","swatch","display"], body: async (html,swatch,display) => {
+define({id: "09b1c479", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
 display(await(
-html.fragment`<strong>Legend:</strong></p>
-
-${swatch("#B42222")} Category Ia – strict nature reserve<br>
-${swatch("#68e94e")} Category Ib – wilderness area<br>
-${swatch("#1ea503")} Category II – national park<br>
-${swatch("#d388dd")} Category III – natural monument or feature<br>
-${swatch("#FC4E2A")} Category IV – habitat or species management area<br>
-${swatch("#FEB24C")} Category V – protected landscape or seascape<br>
-${swatch("#FED976")} Category VI – protected area with sustainable use of natural resources<br>
-${swatch("#898a90")} IUCN Category Not Assigned<br>`
+swatch("#68e94e")
 ))
 }});
 
-define({id: "3639fb23", outputs: ["maplibregl","FeatureService","map"], body: async () => {
-const [{default: maplibregl}, {default: FeatureService}] = await Promise.all([import("./_npm/maplibre-gl@4.3.2/_esm.js"), import("./_npm/mapbox-gl-arcgis-featureserver@0.0.8/_esm.js")]);
+define({id: "536ac36d", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
+display(await(
+swatch("#1ea503")
+))
+}});
+
+define({id: "ef17d61f", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
+display(await(
+swatch("#d388dd")
+))
+}});
+
+define({id: "a5b64314", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
+display(await(
+swatch("#FC4E2A")
+))
+}});
+
+define({id: "1e2c75e3", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
+display(await(
+swatch("#FEB24C")
+))
+}});
+
+define({id: "4e96536e", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
+display(await(
+swatch("#FED976")
+))
+}});
+
+define({id: "c1b2446e", mode: "inline", inputs: ["swatch","display"], body: async (swatch,display) => {
+display(await(
+swatch("#898a90")
+))
+}});
+
+define({id: "caa8f483", inputs: ["container"], outputs: ["maplibregl","FeatureService","map"], body: async (container) => {
+const [{default: maplibregl}, {default: FeatureService}] = await Promise.all([import("./_npm/maplibre-gl@5.24.0/ad5fb69e.js"), import("./_npm/mapbox-gl-arcgis-featureserver@0.0.8/a61a3305.js")]);
 
 const map = new maplibregl.Map({
     //interactive: false,
@@ -64,7 +88,7 @@ const map = new maplibregl.Map({
     pitch: 0,
     bearing: 0,
     maplibreLogo: true,
-    container: 'map',
+    container,
     center: [133.4,37.4],
     zoom: 5,
     style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
@@ -92,12 +116,12 @@ const map = new maplibregl.Map({
       'fill-opacity': 0.4,
     },
   });
-    
+
     const srcId = 'fs-src'
     const service = new FeatureService(srcId, map, {
       url: 'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/1'
     });
-    
+
     const fsLyrId = 'fs-fill-lyr'
     map.addLayer({
       'id': fsLyrId,
@@ -120,7 +144,7 @@ const map = new maplibregl.Map({
         ]
       }
     });
-    
+
     function hideFsLayer () {
        map.setLayoutProperty(fsLyrId, 'visibility', 'none')
        service.disableRequests()
@@ -139,7 +163,7 @@ const map = new maplibregl.Map({
     // Add a click event listener for the layer
     map.on('click', fsLyrId, (e) => {
       const feature = e.features[0];
-      
+
     // Create a popup and set its coordinates and content
       new maplibregl.Popup()
         .setLngLat(e.lngLat)
@@ -183,26 +207,44 @@ return {swatch};
 }});
 
 </script>
+</head>
+<body>
+<div id="observablehq-center">
 <aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
 <nav>
 </nav>
 </aside>
-<div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<h1 id="world-database-of-protected-areas-(wdpa)" tabindex="-1"><a class="observablehq-header-anchor" href="#world-database-of-protected-areas-(wdpa)">World Database of Protected Areas (WDPA)</a></h1>
-<p>The map below renders <a href="https://www.protectedplanet.net/en/thematic-areas/wdpa" target="_blank" rel="noopener noreferrer">WDPA dataset</a> (polygon layers),  served by the <a href="https://www.unep-wcmc.org/" target="_blank" rel="noopener noreferrer">UN Environment Programme World Conservation Monitoring Centre</a> (UNEP-WCMC)— a global centre of excellence on biodiversity and nature’s contribution to society and the economy.</p>
-<p>The map first loads UNEP-WCMC's <a href="https://data-gis.unep-wcmc.org/server/rest/services/Hosted/wdpa_latest_vts/VectorTileServer" target="_blank" rel="noopener noreferrer">vector tiles</a> showing the locations of marine and terrestrial protected areas.  <em>With a little patience and time</em>, an overlay will appear using their <a href="https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/" target="_blank" rel="noopener noreferrer">feature server</a> that colors the data according to their IUCN Category. It also enables a tooltip showing a selection of data attributes associated with each area.</p>
-<div id="cell-17b2d2b6" class="observablehq observablehq--block"><span class="observablehq-loading"></span></div>
-<div id="cell-3c226d1f" class="observablehq observablehq--block"><span class="observablehq-loading"></span></div>
+<h1 id="world-database-of-protected-areas-wdpa" tabindex="-1"><a class="observablehq-header-anchor" href="#world-database-of-protected-areas-wdpa">World Database of Protected Areas (WDPA)</a></h1>
+<p>The map below renders <a href="https://www.protectedplanet.net/en/thematic-areas/wdpa" target="_blank" rel="noopener noreferrer">WDPA dataset</a> (polygon layers), served by the <a href="https://www.unep-wcmc.org/" target="_blank" rel="noopener noreferrer">UN Environment Programme World Conservation Monitoring Centre</a> (UNEP-WCMC)— a global centre of excellence on biodiversity and nature’s contribution to society and the economy.</p>
+<div class="observablehq observablehq--block"><!--:ab28cf24:--></div>
+<p>The map first loads UNEP-WCMC's <a href="https://data-gis.unep-wcmc.org/server/rest/services/Hosted/wdpa_latest_vts/VectorTileServer" target="_blank" rel="noopener noreferrer">vector tiles</a> showing the locations of marine and terrestrial protected areas. <em>With a little patience and time</em>, an overlay will appear using their <a href="https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/FeatureServer/" target="_blank" rel="noopener noreferrer">feature server</a> that colors the data according to their IUCN Category. It also enables a tooltip showing a selection of data attributes associated with each area.</p>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css">
+<style>
+  .maplibregl-popup-content{
+    color: black;
+}
+</style>
+<p><strong>Legend:</strong></p><p></p>
+<p><observablehq-loading></observablehq-loading><!--:8fcc693a:--> Category Ia – strict nature reserve<br>
+<observablehq-loading></observablehq-loading><!--:09b1c479:--> Category Ib – wilderness area<br>
+<observablehq-loading></observablehq-loading><!--:536ac36d:--> Category II – national park<br>
+<observablehq-loading></observablehq-loading><!--:ef17d61f:--> Category III – natural monument or feature<br>
+<observablehq-loading></observablehq-loading><!--:a5b64314:--> Category IV – habitat or species management area<br>
+<observablehq-loading></observablehq-loading><!--:1e2c75e3:--> Category V – protected landscape or seascape<br>
+<observablehq-loading></observablehq-loading><!--:4e96536e:--> Category VI – protected area with sustainable use of natural resources<br>
+<observablehq-loading></observablehq-loading><!--:c1b2446e:--> IUCN Category Not Assigned<br></p>
 <hr>
 <p><strong>About the Data:</strong></p>
 <p>The World Database of Protected Areas (WDPA) is a comprehensive global database of marine and terrestrial protected areas and is one of the key global biodiversity datasets used by scientists, businesses, governments, international organizations and others to inform planning, policy decisions and management.</p>
 <p>The WDPA is a joint project between UN Environment Programme and the International Union for Conservation of Nature (IUCN). The compilation and management of the WDPA is carried out by UN Environment Programme World Conservation Monitoring Centre (UNEP-WCMC), in collaboration with governments, non-governmental organisations, academia and industry. Data and information on the world's protected areas compiled in the WDPA are used for reporting to the Convention on Biological Diversity on progress towards reaching the Aichi Biodiversity Targets (particularly Target 11), to the UN to track progress towards the 2030 Sustainable Development Goals, to some of the Intergovernmental Science-Policy Platform on Biodiversity and Ecosystem Services (IPBES) core indicators, and other international assessments and reports including the Global Biodiversity Outlook, as well as for the publication of the United Nations List of Protected Areas.</p>
 <p><em>Text adapted from:</em> UNEP-WCMC and IUCN (2024), Protected Planet: The World Database on Protected Areas (WDPA)[On-line], [June 2024], Cambridge, UK: UNEP-WCMC and IUCN. Available at: <a href="https://doi.org/10.34892/6fwd-af11" target="_blank" rel="noopener noreferrer">https://doi.org/10.34892/6fwd-af11</a></p>
-<div id="cell-3639fb23" class="observablehq observablehq--block"></div>
-<div id="cell-1575893b" class="observablehq observablehq--block"></div>
+<div class="observablehq observablehq--block"><!--:caa8f483:--></div>
+<div class="observablehq observablehq--block"><!--:1575893b:--></div>
 </main>
 <footer id="observablehq-footer">
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-10T07:42:12">Jun 10, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2026-07-17T11:06:21">Jul 17, 2026</a>.</div>
 </footer>
 </div>
+</body>
+</html>

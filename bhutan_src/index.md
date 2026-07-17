@@ -132,7 +132,7 @@ Before concluding this notebook, I'd like to note a few additional sources of ge
 
 
 * [Bhutan National Land Commission Secretariat](https://web.archive.org/web/20180715191814/http://www.nlcs.gov.bt/?page_id=203)
-    * The National Land Commission Secretariat is a national mapping organization, mandated to produce topographic base maps, thematic maps, cadastral maps and large scale maps for projects. Their [topographic base map](# 'Previously at: https://www.nlcs.gov.bt/topo_map/gsimaps/#9/27.390000/90.400000') sub-divides the country into 56 map tiles for referential convenience. The following offerings can be accessed on request:
+    * The National Land Commission Secretariat is a national mapping organization, mandated to produce topographic base maps, thematic maps, cadastral maps and large scale maps for projects. Their topographic base map sub-divides the country into 56 map tiles for referential convenience. The following offerings can be accessed on request:
         * Topographic maps on 1:50000 scale
         * Topographic maps on 1:25,000 scale
         * Cadastral maps
@@ -177,4 +177,3 @@ const height = Math.ceil(path.bounds(await gadm_BTN_admin0)[1][1])
 ```js
 const path = d3.geoPath(projection)
 ```
-

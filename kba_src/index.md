@@ -71,9 +71,10 @@ const kba_wms_view = (mapRef) => {
 ```
 
 ```js
-// archival and unofficial copy of "https://birdlaa8.birdlife.org/geoserver/wfs?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME=birdlife_dz:ibas_pol_20240515_wm_selected&OUTPUTFORMAT=application/json"
-
-const kba_2022_10_POL = display(await FileAttachment("kba-2022-10-poly-simp.geojson").json())
+// The original notebook used a large, unofficial archival GeoJSON snapshot here.
+// It is intentionally omitted from this minimal source project; the live WMS layer
+// above remains available, and this empty collection keeps the optional overlay safe.
+const kba_2022_10_POL = ({type: "FeatureCollection", features: []})
 ```
 
 ```js
@@ -550,7 +551,7 @@ function getVisibleFeatures(geojson, boundingBox) {
   }
 
   // Create a turf bounding box polygon
-  const bboxPolygon = turf.bboxPolygon([
+  const visibleBounds = bboxPolygon([
     boundingBox.west,
     boundingBox.south,
     boundingBox.east,
@@ -560,7 +561,7 @@ function getVisibleFeatures(geojson, boundingBox) {
   // Filter features based on whether they intersect with the bounding box polygon
   const visibleFeatures = geojson.features.filter(feature => {
     // Check if the feature intersects with the bounding box polygon
-    return turf.booleanIntersects(bboxPolygon, feature);
+    return booleanIntersects(visibleBounds, feature);
   });
 
   // Return the filtered GeoJSON object
@@ -582,7 +583,8 @@ const proxyUrl = 'https://corsproxy.io/?';
 ```
 
 ```js
-import * as turf from "npm:@turf/turf";
+import {bboxPolygon} from "npm:@turf/bbox-polygon";
+import {booleanIntersects} from "npm:@turf/boolean-intersects";
 ```
 
 

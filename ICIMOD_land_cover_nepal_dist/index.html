@@ -1,33 +1,36 @@
 <!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>ICIMOD | Land Cover of Nepal 2000-2019</title>
+<meta name="generator" content="Observable Framework v1.13.4">
+<title>ICIMOD | Land Cover of Nepal 2000-2019 | ICIMOD Land Cover Nepal</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
-<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
-<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.css">
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
-<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
-<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.css">
-<link rel="modulepreload" href="./_observablehq/client.js">
-<link rel="modulepreload" href="./_observablehq/runtime.js">
-<link rel="modulepreload" href="./_observablehq/stdlib.js">
-<link rel="modulepreload" href="./_npm/jszip@3.10.1/_esm.js">
-<link rel="modulepreload" href="./_npm/geotiff@2.1.3/_esm.js">
-<link rel="modulepreload" href="./_npm/htl@0.3.1/_esm.js">
-<link rel="modulepreload" href="./_observablehq/stdlib/inputs.js">
-<link rel="modulepreload" href="./_npm/isoformat@0.2.1/_esm.js">
-<link rel="modulepreload" href="./_npm/@petamoriken/float16@3.8.7/_esm.js">
-<link rel="modulepreload" href="./_npm/xml-utils@1.10.1/get-attribute.js._esm.js">
-<link rel="modulepreload" href="./_npm/xml-utils@1.10.1/find-tags-by-name.js._esm.js">
-<link rel="modulepreload" href="./_npm/quick-lru@6.1.2/_esm.js">
-<link rel="icon" href="./_file/observable.1af93621.png" type="image/png" sizes="32x32">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.b050d634.css">
+<link rel="preload" as="style" href="./_observablehq/stdlib/inputs.f7bf0e12.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.b050d634.css">
+<link rel="stylesheet" type="text/css" href="./_observablehq/stdlib/inputs.f7bf0e12.css">
+<link rel="modulepreload" href="./_observablehq/client.5c224ca9.js">
+<link rel="modulepreload" href="./_observablehq/runtime.607a8173.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.e5a6437b.js">
+<link rel="modulepreload" href="./_npm/jszip@3.10.1/1103f175.js">
+<link rel="modulepreload" href="./_npm/geotiff@3.0.5/ddb97b26.js">
+<link rel="modulepreload" href="./_npm/htl@1.0.0/11521f02.js">
+<link rel="modulepreload" href="./_observablehq/stdlib/inputs.4b70dfe2.js">
+<link rel="modulepreload" href="./_npm/isoformat@0.2.1/604cb63b.js">
+<link rel="modulepreload" href="./_npm/@petamoriken/float16@3.9.3/b0684ad0.js">
+<link rel="modulepreload" href="./_npm/xml-utils@1.10.2/get-attribute.533efd30.js">
+<link rel="modulepreload" href="./_npm/xml-utils@1.10.2/find-tags-by-name.075a9366.js">
+<link rel="modulepreload" href="./_npm/web-worker@1.5.0/ee1aa670.js">
+<link rel="modulepreload" href="./_npm/quick-lru@6.1.2/1dacb6c2.js">
 <script type="module">
 
-import {define} from "./_observablehq/client.js";
-import {registerFile} from "./_observablehq/stdlib.js";
+import {define} from "./_observablehq/client.5c224ca9.js";
+import {registerFile} from "./_observablehq/stdlib.e5a6437b.js";
 
-registerFile("./image.png", {"name":"./image.png","mimeType":"image/png","path":"./_file/image.a194dd55.png","lastModified":1685616784982});
+registerFile("./image.png", {"name":"./image.png","mimeType":"image/png","path":"./_file/image.a194dd55.png","lastModified":1784291549225,"size":259952});
 
 define({id: "3f5230aa", inputs: ["view","Inputs","archives"], outputs: ["archive_select"], body: (view,Inputs,archives) => {
 const archive_select = view(Inputs.select(archives, {
@@ -148,7 +151,7 @@ return {archives};
 }});
 
 define({id: "5db8f139", outputs: ["JSZip"], body: async () => {
-const {default: JSZip} = await import("./_npm/jszip@3.10.1/_esm.js");
+const {default: JSZip} = await import("./_npm/jszip@3.10.1/1103f175.js");
 
 return {JSZip};
 }});
@@ -221,7 +224,7 @@ return {height};
 }});
 
 define({id: "25a65315", outputs: ["GeoTIFF"], body: async () => {
-const GeoTIFF = await import("./_npm/geotiff@2.1.3/_esm.js");
+const GeoTIFF = await import("./_npm/geotiff@3.0.5/ddb97b26.js");
 
 return {GeoTIFF};
 }});
@@ -633,13 +636,15 @@ html.fragment`<div class="metadata-table">
 }});
 
 </script>
+</head>
+<body>
+<div id="observablehq-center">
 <aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
 <nav>
 </nav>
 </aside>
-<div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<h1 id="icimod-%7C-land-cover-of-nepal-2000-2019" tabindex="-1"><a class="observablehq-header-anchor" href="#icimod-%7C-land-cover-of-nepal-2000-2019">ICIMOD | Land Cover of Nepal 2000-2019</a></h1>
+<h1 id="icimod-land-cover-of-nepal-2000-2019" tabindex="-1"><a class="observablehq-header-anchor" href="#icimod-land-cover-of-nepal-2000-2019">ICIMOD | Land Cover of Nepal 2000-2019</a></h1>
 <p><strong>Data Source</strong> <a href="http://rds.icimod.org/Home/DataDetail?metadataId=1972729" target="_blank" rel="noopener noreferrer">ICIMOD Regional Database System</a>.
 <br><strong>Archive Version Date:</strong> 4/21/2022 3:48:22 PM.</p>
 <p>The annual land cover data of Nepal (2000-2019) have been created through the National Land Cover Monitoring System (NLCMS) for Nepal. The system uses freely available remote-sensing data (Landsat) and a cloud-based machine learning architecture in the Google Earth Engine (GEE) platform to generate land cover maps on an annual basis using a harmonized and consistent classification system. The NLCMS is developed by the Forest Research and Training Centre (FRTC), Ministry of Forests and Environment, Government of Nepal with support from the International Centre for Integrated Mountain Development (ICIMOD) through SERVIR Hindu Kush Himalaya (SERVIR-HKH), a joint initiative in partnership with the National Aeronautics and Space Administration (NASA) and the United States Agency for International Development (USAID). Collaborators include SERVIR–Mekong at the Asian Disaster Preparedness Center (ADPC), SilvaCarbon, Global Land Analysis and Discovery (GLAD) group at the University of Maryland, and the US Forest Service.</p>
@@ -667,13 +672,15 @@ html.fragment`<div class="metadata-table">
 <div class="observablehq observablehq--block"><!--:eb82f469:--></div>
 <div class="observablehq observablehq--block"><!--:6660dbb9:--></div>
 <hr>
-<h3 id="source%3A-icimod-%7C-land-cover-of-nepal" tabindex="-1"><a class="observablehq-header-anchor" href="#source%3A-icimod-%7C-land-cover-of-nepal">Source: ICIMOD | <a href="http://rds.icimod.org/Home/DataDetail?metadataId=1972729" target="_blank" rel="noopener noreferrer">Land cover of Nepal</a></a></h3>
+<h3 id="source-icimod-land-cover-of-nepal" tabindex="-1"><a class="observablehq-header-anchor" href="#source-icimod-land-cover-of-nepal">Source: ICIMOD | <a href="http://rds.icimod.org/Home/DataDetail?metadataId=1972729" target="_blank" rel="noopener noreferrer">Land cover of Nepal</a></a></h3>
 <div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:1a036658:--></div>
 <div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:4791f072:--></div>
 <hr>
 <!-- ## Imports & Helpers -->
 </main>
 <footer id="observablehq-footer">
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-22T10:35:12">Jun 22, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2026-07-17T11:06:02">Jul 17, 2026</a>.</div>
 </footer>
 </div>
+</body>
+</html>

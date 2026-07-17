@@ -91,7 +91,7 @@ formatTable(sampleArray, [
 
 #### Using additional options
 
-View all supported options [in function definition](#formatTable).
+View all supported options [in the implementation](#implementation).
 
 ```js echo
 Inputs.table(sampleArray)

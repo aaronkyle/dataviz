@@ -1,0 +1,16 @@
+{
+  "name": "@aaronkyle/dataviz-pretty-tables",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "observable preview",
+    "build": "observable build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@observablehq/framework": "^1.13.4"
+  }
+}

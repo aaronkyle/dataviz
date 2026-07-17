@@ -1,25 +1,23 @@
 # Protected Areas Database of the United States (PAD-US) | Web Services
 
-<link href='https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.css' rel='stylesheet' />
+<link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" />
 
 
 ```js
-import mapboxgl from 'npm:mapbox-gl';
+import maplibregl from "npm:maplibre-gl@5.24.0";
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWFyb25reWxlIiwiYSI6ImNsYmFvYXh4ODBibmozb244c3NuYXZ1bWQifQ.9Q2VAoy5gQuPmkhTuAY3Gg';
 const container = display(html`<div style='height: 400px;'>`);
 // Initialize the map object.
-  const map = (container.value = new mapboxgl.Map({
+  const map = (container.value = new maplibregl.Map({
     container,
     center: [-71.8, 42.2],
     zoom: 7, //viewof zoom.value, // TODO update dynamically
-    style:
-      "mapbox://styles/mapbox/" + basemap_style,
+    style: basemap_styles[basemap_style],
     scrollZoom: false
   }));
 
   // Add some navigation controls.
-  map.addControl(new mapboxgl.NavigationControl(), "top-right");
+  map.addControl(new maplibregl.NavigationControl(), "top-right");
 
   // When the user interacts with the map, propagate the values to inputs.
   //map.on("zoom", () => (viewof zoom.value = map.getZoom()));;
@@ -230,17 +228,17 @@ var image_selection = view(Inputs.checkbox(["PADUS3_0ProtectionStatusbyGAPStatus
 ```
 
 ```js
-var basemap_style = view(Inputs.select(
-  [
-    "streets-v11",
-    "outdoors-v11",
-    "light-v10",
-    "dark-v10",
-    "satellite-v9",
-    "satellite-streets-v11",
-    "navigation-day-v1",
-    "navigation-night-v1"
-  ],
-  {label: "Base Map Style", value: "streets-v11" }
-))
+const basemap_styles = ({
+  "MapLibre Demo": "https://demotiles.maplibre.org/style.json",
+  "OpenFreeMap Bright": "https://tiles.openfreemap.org/styles/bright",
+  "OpenFreeMap Liberty": "https://tiles.openfreemap.org/styles/liberty",
+  "OpenFreeMap Positron": "https://tiles.openfreemap.org/styles/positron"
+})
+```
+
+```js
+var basemap_style = view(Inputs.select(Object.keys(basemap_styles), {
+  label: "Base Map Style",
+  value: "MapLibre Demo"
+}))
 ```
