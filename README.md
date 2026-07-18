@@ -31,9 +31,7 @@ Observable Framework source projects and generated Framework sites now live in t
 
 ## Data-driven documents
 
-- [Natural breaks](https://aaronkyle.github.io/dataviz/natural-breaks/) ([source](natural-breaks/))
-- [Interactive line-chart tip](https://aaronkyle.github.io/dataviz/plot-line-chart-interactive-tip/) ([source](plot-line-chart-interactive-tip/))
-- [World Bank PIP shared prosperity](https://aaronkyle.github.io/dataviz/wbg-pip-shared-prosperity/) ([source](wbg-pip-shared-prosperity/))
+- [World Bank PIP shared prosperity](https://aaronkyle.github.io/dataviz/wbg-pip-shared-prosperity.html) ([source](wbg-pip-shared-prosperity.html))
 
 ## Working locally
 
