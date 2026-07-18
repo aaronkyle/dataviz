@@ -1,287 +1,1015 @@
-<!DOCTYPE html>
-
-<html>
-
+<!doctype html>
+<html lang="en">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Open and inspect common vector spatial files locally in a browser map.">
+  <meta name="theme-color" content="#f4f7f5">
+  <title>Open spatial data</title>
 
-    <meta charset="utf-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.9.0/ol.css">
+  <script src="https://cdn.jsdelivr.net/npm/ol@10.9.0/dist/ol.js"></script>
 
-    <title>GeoJSON/KML/KMZ Upload and Render</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #173632;
+      --muted: #627873;
+      --paper: #fff;
+      --canvas: #f3f7f5;
+      --line: #d6e2df;
+      --accent: #087f76;
+      --accent-dark: #05675f;
+      --accent-soft: #e4f2ef;
+      --danger: #a33a32;
+      --danger-soft: #fff0ee;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+    }
 
-    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    * {
+      box-sizing: border-box;
+    }
 
-    <script src=https://unpkg.com/maplibre-gl/dist/maplibre-gl.js></script>
+    html,
+    body {
+      min-width: 320px;
+      min-height: 100%;
+      margin: 0;
+    }
 
-    <script src=https://cdn.jsdelivr.net/npm/@mapbox/togeojson></script>
+    body {
+      line-height: 1.45;
+    }
 
-    <script src=https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js></script>
+    button,
+    input {
+      font: inherit;
+    }
 
-    <link href=https://unpkg.com/maplibre-gl/dist/maplibre-gl.css rel="stylesheet" />
+    button,
+    label,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    <style>
+    button,
+    a {
+      color: inherit;
+    }
 
-        body { margin: 0; padding: 0; }
+    [hidden] {
+      display: none !important;
+    }
 
-        #map { position: absolute; top: 0; bottom: 0; width: 75%; }
+    .shell {
+      display: grid;
+      min-height: 100vh;
+      grid-template-columns: minmax(310px, 360px) 1fr;
+    }
 
-        #file-input { position: absolute; top: 10px; left: 10px; z-index: 100; }
+    /* ---------- Compact control rail ---------- */
+    .sidebar {
+      position: relative;
+      z-index: 2;
+      overflow-y: auto;
+      padding: clamp(24px, 4vw, 38px) clamp(20px, 3vw, 30px) 24px;
+      border-right: 1px solid var(--line);
+      background: var(--paper);
+      box-shadow: 8px 0 30px rgb(23 54 50 / 5%);
+    }
 
-        #side-panel {
+    .eyebrow {
+      margin: 0 0 9px;
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
 
-            position: absolute;
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
 
-            top: 0;
+    h1 {
+      margin-bottom: 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.2rem, 4vw, 3.35rem);
+      font-weight: 400;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+    }
 
-            right: 0;
+    .lede {
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
 
-            width: 25%;
+    .local-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 22px;
+      color: var(--accent-dark);
+      font-size: 0.72rem;
+      font-weight: 750;
+    }
 
-            bottom: 0;
+    .local-note::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      content: "";
+    }
 
-            overflow-y: auto;
+    .drop-zone {
+      display: grid;
+      min-height: 116px;
+      place-items: center;
+      padding: 18px;
+      border: 1.5px dashed #a8c2bd;
+      border-radius: 12px;
+      outline: none;
+      background: #f9fcfb;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+    }
 
-            background-color: #fff;
+    .drop-zone:hover,
+    .drop-zone:focus-within,
+    .drop-zone[data-dragging="true"] {
+      border-color: var(--accent);
+      background: #eff8f6;
+    }
 
-            border-left: 1px solid #ccc;
+    .drop-zone[data-dragging="true"] {
+      transform: translateY(-1px);
+    }
 
-            padding: 10px;
+    .drop-zone strong,
+    .drop-zone span {
+      display: block;
+    }
 
-            box-sizing: border-box;
+    .drop-zone strong {
+      margin-bottom: 3px;
+      font-size: 0.9rem;
+    }
 
-        }
+    .drop-zone span {
+      overflow: hidden;
+      max-width: 260px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
-        pre {
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
 
-            white-space: pre-wrap;
+    .formats {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.71rem;
+    }
 
-            word-wrap: break-word;
+    .formats summary {
+      color: var(--accent-dark);
+      font-weight: 750;
+      cursor: pointer;
+    }
 
-        }
+    .formats p {
+      margin: 7px 0 0;
+    }
 
-    </style>
+    /* A visible status replaces alerts and reports parsing failures in context. */
+    .status {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin: 17px 0 0;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--muted);
+      background: #fafcfb;
+      font-size: 0.75rem;
+    }
 
+    .status::before {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      margin-top: 0.25em;
+      border-radius: 50%;
+      background: #92aaa5;
+      content: "";
+    }
+
+    .status[data-state="working"]::before {
+      background: #d9783b;
+      animation: pulse 1s ease-in-out infinite alternate;
+    }
+
+    .status[data-state="success"] {
+      color: var(--accent-dark);
+      border-color: #c5ddd8;
+      background: var(--accent-soft);
+    }
+
+    .status[data-state="success"]::before {
+      background: var(--accent);
+    }
+
+    .status[data-state="error"] {
+      color: var(--danger);
+      border-color: #efd0cc;
+      background: var(--danger-soft);
+    }
+
+    .status[data-state="error"]::before {
+      background: var(--danger);
+    }
+
+    @keyframes pulse {
+      to {
+        opacity: 0.3;
+      }
+    }
+
+    /* ---------- Loaded-file summary ---------- */
+    .summary {
+      margin-top: 22px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+    }
+
+    .filename {
+      overflow: hidden;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dataset-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      overflow: hidden;
+      margin: 0 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--line);
+    }
+
+    .dataset-stats div {
+      min-width: 0;
+      padding: 10px;
+      background: #fbfdfc;
+    }
+
+    .dataset-stats div:last-child {
+      grid-column: 1 / -1;
+    }
+
+    dt {
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 0.61rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      overflow: hidden;
+      margin: 0;
+      font-size: 0.79rem;
+      font-weight: 750;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    button {
+      min-height: 38px;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--accent-dark);
+      background: var(--paper);
+      font-size: 0.7rem;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #adc8c3;
+      background: var(--accent-soft);
+    }
+
+    .primary {
+      color: #fff;
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .primary:hover {
+      border-color: var(--accent-dark);
+      background: var(--accent-dark);
+    }
+
+    .inspector {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .inspector-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.73rem;
+    }
+
+    .properties {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+    }
+
+    .properties div {
+      display: grid;
+      grid-template-columns: minmax(72px, 0.7fr) minmax(0, 1fr);
+      gap: 8px;
+      font-size: 0.7rem;
+    }
+
+    .properties dt {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .properties dd {
+      overflow-wrap: anywhere;
+      font-size: 0.7rem;
+      font-weight: 500;
+      white-space: normal;
+    }
+
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 0.64rem;
+    }
+
+    footer a {
+      color: var(--accent-dark);
+      text-underline-offset: 0.15em;
+    }
+
+    /* ---------- Map ---------- */
+    .map-panel {
+      position: relative;
+      min-height: 100vh;
+      background: #dce8e4;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    .map-empty {
+      position: absolute;
+      z-index: 1;
+      top: 20px;
+      left: 50%;
+      padding: 8px 11px;
+      border: 1px solid rgb(255 255 255 / 70%);
+      border-radius: 999px;
+      color: #34554f;
+      background: rgb(255 255 255 / 88%);
+      box-shadow: 0 5px 18px rgb(23 54 50 / 10%);
+      font-size: 0.72rem;
+      font-weight: 700;
+      transform: translateX(-50%);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .ol-control button {
+      min-height: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 2px;
+      color: #fff;
+      background: rgb(8 127 118 / 88%);
+      font-size: 1.14em;
+    }
+
+    .ol-control button:hover,
+    .ol-control button:focus {
+      background: var(--accent-dark);
+    }
+
+    .ol-attribution {
+      font-size: 0.65rem;
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        overflow: visible;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .map-panel {
+        min-height: 62vh;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
-
-    <div id='map'></div>
-
-    <input id="file-input" type="file" accept=".geojson,.kml,.kmz" />
-
-    <div id="side-panel"><pre id="geojson-display"></pre></div>
-
-    <script>
-
-        const map = new maplibregl.Map({
-
-            container: 'map',
-
-            style: 'https://geoserveis.icgc.cat/contextmaps/icgc_orto_hibrida.json', // Use a default style; replace with your own if needed
-
-            center: [0, 0],
-
-            zoom: 2
-
-        });
-
- 
-
-        const handleFileUpload = (event) => {
-
-            const file = event.target.files[0];
-
-            if (file) {
-
-                const reader = new FileReader();
-
-                reader.onload = async (e) => {
-
-                    let data;
-
-                    if (file.name.endsWith('.geojson')) {
-
-                        data = JSON.parse(e.target.result);
-
-                    } else if (file.name.endsWith('.kml')) {
-
-                        const kml = (new DOMParser()).parseFromString(e.target.result, 'text/xml');
-
-                        data = toGeoJSON.kml(kml);
-
-                    } else if (file.name.endsWith('.kmz')) {
-
-                        try {
-
-                            const zip = new JSZip();
-
-                            const zipContents = await zip.loadAsync(e.target.result);
-
-                            const kmlFileName = Object.keys(zipContents.files).find(fileName => fileName.endsWith('.kml'));
-
-                            const kmlFile = await zipContents.file(kmlFileName).async('string');
-
-                            const kml = (new DOMParser()).parseFromString(kmlFile, 'text/xml');
-
-                            data = toGeoJSON.kml(kml);
-
-                        } catch (err) {
-
-                            alert('Error reading KMZ file: ' + err.message);
-
-                            return;
-
-                        }
-
-                    }
-
- 
-
-                    if (data && data.type === 'FeatureCollection') {
-
-                        displayGeoJSONText(data);
-
-                        renderGeoJSON(data);
-
-                        flyToGeoJSONBounds(data);
-
-                    } else {
-
-                        alert('The file is not a valid GeoJSON, KML, or KMZ FeatureCollection.');
-
-                    }
-
-                };
-
-                if (file.name.endsWith('.geojson') || file.name.endsWith('.kml')) {
-
-                    reader.readAsText(file);
-
-                } else if (file.name.endsWith('.kmz')) {
-
-                    reader.readAsArrayBuffer(file);
-
-                }
-
-            }
-
-        };
-
- 
-
-        const displayGeoJSONText = (geojsonData) => {
-
-            const formattedText = JSON.stringify(geojsonData, null, 2);
-
-            document.getElementById('geojson-display').textContent = formattedText;
-
-        };
-
- 
-
-        const renderGeoJSON = (geojsonData) => {
-
-            if (map.getSource('geojson-source')) {
-
-                map.getSource('geojson-source').setData(geojsonData);
-
-            } else {
-
-                map.addSource('geojson-source', {
-
-                    type: 'geojson',
-
-                    data: geojsonData
-
-                });
-
-                map.addLayer({
-
-                    id: 'geojson-layer',
-
-                    type: 'fill', // Change this depending on your data
-
-                    source: 'geojson-source',
-
-                    layout: {},
-
-                    paint: {
-
-                        'fill-color': '#888', // Customize this as needed
-
-                        'fill-opacity': 0.4 // Customize this as needed
-
-                    }
-
-                });
-
-            }
-
-        };
-
- 
-
-        const flyToGeoJSONBounds = (geojsonData) => {
-
-            const bounds = new maplibregl.LngLatBounds();
-
-            geojsonData.features.forEach((feature) => {
-
-                processFeatureForBounds(feature, bounds);
-
-            });
-
- 
-
-            if (!bounds.isEmpty()) {
-
-                map.fitBounds(bounds, {
-
-                    padding: 20,
-
-                    duration: 2000
-
-                });
-
-            }
-
-        };
-
- 
-
-        const processFeatureForBounds = (feature, bounds) => {
-
-            const geometry = feature.geometry;
-
-            if (geometry) {
-
-                if (geometry.type === 'Point') {
-
-                    bounds.extend(geometry.coordinates);
-
-                } else if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
-
-                    geometry.coordinates.forEach((coord) => bounds.extend(coord));
-
-                } else if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
-
-                    geometry.coordinates.flat().forEach((coord) => bounds.extend(coord));
-
-                } else if (geometry.type === 'MultiPolygon') {
-
-                    geometry.coordinates.flat(2).forEach((coord) => bounds.extend(coord));
-
-                }
-
-            }
-
-        };
-
- 
-
-        document.getElementById('file-input').addEventListener('change', handleFileUpload);
-
-    </script>
-
+  <main class="shell">
+    <aside class="sidebar">
+      <header>
+        <p class="eyebrow">Browser vector viewer</p>
+        <h1>Open spatial data.</h1>
+        <p class="lede">Drop a common vector file to inspect it on a map.</p>
+        <p class="local-note">Files stay on this device</p>
+      </header>
+
+      <label id="drop-zone" class="drop-zone" for="file-input">
+        <input id="file-input" class="visually-hidden" type="file" accept=".geojson,.json,.topojson,.esrijson,.kml,.kmz,.gpx,.tcx,.igc,.zip,.fgb,.csv,.tsv,.wkt,.wkb,.gml,.xml">
+        <span>
+          <strong id="drop-title">Choose or drop a file</strong>
+          <span id="drop-meta">Points, lines, and polygons</span>
+        </span>
+      </label>
+
+      <details class="formats">
+        <summary>Supported formats</summary>
+        <p>GeoJSON, TopoJSON, Esri JSON, KML/KMZ, GPX, TCX, IGC, Shapefile ZIP, FlatGeobuf, CSV/TSV, WKT, WKB, and GML.</p>
+        <p>CSV needs latitude and longitude columns. Shapefile components belong together in one ZIP. Missing CRS metadata defaults to WGS84.</p>
+      </details>
+
+      <p id="status" class="status" data-state="idle" role="status" aria-live="polite">Ready for a local vector file.</p>
+
+      <section id="summary" class="summary" aria-labelledby="summary-heading" hidden>
+        <h2 id="summary-heading">Loaded dataset</h2>
+        <p id="filename" class="filename"></p>
+
+        <dl class="dataset-stats" aria-label="Dataset summary">
+          <div>
+            <dt>Format</dt>
+            <dd id="format-value">—</dd>
+          </div>
+          <div>
+            <dt>Features</dt>
+            <dd id="feature-value">0</dd>
+          </div>
+          <div>
+            <dt>Geometry</dt>
+            <dd id="geometry-value">—</dd>
+          </div>
+        </dl>
+
+        <div class="actions">
+          <button id="fit-button" type="button">Fit map</button>
+          <button id="download-button" class="primary" type="button">GeoJSON</button>
+          <button id="clear-button" type="button">Clear</button>
+        </div>
+      </section>
+
+      <section id="inspector" class="inspector" aria-labelledby="inspector-heading" hidden>
+        <h2 id="inspector-heading">Feature properties</h2>
+        <p id="inspector-empty" class="inspector-empty">Click a feature on the map.</p>
+        <dl id="properties" class="properties" hidden></dl>
+      </section>
+
+      <footer>
+        Rendering by <a href="https://openlayers.org/">OpenLayers</a>. Specialized parsing by open-source format libraries loaded only when needed.
+      </footer>
+    </aside>
+
+    <section class="map-panel" aria-label="Spatial data map">
+      <div id="map"></div>
+      <p id="map-empty" class="map-empty">Drop a supported file to begin</p>
+    </section>
+  </main>
+
+  <noscript>This viewer requires JavaScript to read and render local spatial files.</noscript>
+
+  <script>
+    "use strict";
+
+    // All parsers are pinned. Less common format modules are imported on demand so the
+    // initial app stays light and a GeoJSON file does not download a Shapefile parser.
+    const MODULE_URLS = {
+      fflate: "https://cdn.jsdelivr.net/npm/fflate@0.8.3/+esm",
+      flatgeobuf: "https://cdn.jsdelivr.net/npm/flatgeobuf@4.4.0/+esm",
+      papaparse: "https://cdn.jsdelivr.net/npm/papaparse@5.5.3/+esm",
+      shpjs: "https://cdn.jsdelivr.net/npm/shpjs@6.2.0/+esm",
+      togeojson: "https://cdn.jsdelivr.net/npm/@tmcw/togeojson@7.1.2/+esm"
+    };
+
+    const MAP_PROJECTION = "EPSG:3857";
+    const WGS84 = "EPSG:4326";
+    const GEOJSON_GEOMETRIES = new Set([
+      "Point", "MultiPoint", "LineString", "MultiLineString",
+      "Polygon", "MultiPolygon", "GeometryCollection"
+    ]);
+    const SUPPORTED_EXTENSIONS = new Set([
+      "geojson", "json", "topojson", "esrijson", "kml", "kmz", "gpx",
+      "tcx", "igc", "zip", "fgb", "csv", "tsv", "wkt", "wkb", "gml", "xml"
+    ]);
+
+    // Cache both successful and pending dynamic imports to prevent duplicate downloads.
+    const moduleCache = new Map();
+    function loadModule(name) {
+      if (!moduleCache.has(name)) moduleCache.set(name, import(MODULE_URLS[name]));
+      return moduleCache.get(name);
+    }
+
+    // Interface references.
+    const fileInput = document.querySelector("#file-input");
+    const dropZone = document.querySelector("#drop-zone");
+    const dropTitle = document.querySelector("#drop-title");
+    const dropMeta = document.querySelector("#drop-meta");
+    const status = document.querySelector("#status");
+    const summaryPanel = document.querySelector("#summary");
+    const filename = document.querySelector("#filename");
+    const formatValue = document.querySelector("#format-value");
+    const featureValue = document.querySelector("#feature-value");
+    const geometryValue = document.querySelector("#geometry-value");
+    const fitButton = document.querySelector("#fit-button");
+    const downloadButton = document.querySelector("#download-button");
+    const clearButton = document.querySelector("#clear-button");
+    const inspector = document.querySelector("#inspector");
+    const inspectorEmpty = document.querySelector("#inspector-empty");
+    const properties = document.querySelector("#properties");
+    const mapEmpty = document.querySelector("#map-empty");
+
+    let currentFile = null;
+    let loadSequence = 0;
+
+    /** Update the persistent, accessible application status. */
+    function setStatus(state, message) {
+      status.dataset.state = state;
+      status.textContent = message;
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+    }
+
+    /** Decode XML once and surface DOMParser's otherwise silent parser errors. */
+    function parseXml(text) {
+      const xml = new DOMParser().parseFromString(text, "application/xml");
+      if (xml.querySelector("parsererror")) throw new Error("The file is not valid XML.");
+      return xml;
+    }
+
+    /** Read OpenLayers features while honoring embedded CRS metadata when available. */
+    function readWithFormat(format, source, fallbackProjection = WGS84) {
+      let dataProjection = null;
+      try {
+        dataProjection = format.readProjection(source);
+      } catch (_) {
+        // Some formats do not expose projection metadata; their documented fallback follows.
+      }
+
+      return format.readFeatures(source, {
+        dataProjection: dataProjection || fallbackProjection,
+        featureProjection: MAP_PROJECTION
+      });
+    }
+
+    function readGeoJson(input) {
+      // Geometry objects are valid GeoJSON even though some feature readers expect a feature.
+      const normalized = GEOJSON_GEOMETRIES.has(input?.type)
+        ? {type: "FeatureCollection", features: [{type: "Feature", properties: {}, geometry: input}]}
+        : input;
+      return readWithFormat(new ol.format.GeoJSON(), normalized, WGS84);
+    }
+
+    /** Distinguish the JSON-based formats by their object structure, not just extension. */
+    function parseJson(text, extension) {
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (_) {
+        throw new Error("The file is not valid JSON.");
+      }
+
+      if (extension === "topojson" || data?.type === "Topology") {
+        return {features: readWithFormat(new ol.format.TopoJSON(), data, WGS84), format: "TopoJSON"};
+      }
+
+      const looksLikeEsri = extension === "esrijson"
+        || Boolean(data?.geometryType || data?.spatialReference)
+        || Boolean(data?.features?.some((feature) => feature?.attributes));
+
+      if (looksLikeEsri) {
+        return {features: readWithFormat(new ol.format.EsriJSON(), data, WGS84), format: "Esri JSON"};
+      }
+
+      if (data?.type === "FeatureCollection" || data?.type === "Feature" || GEOJSON_GEOMETRIES.has(data?.type)) {
+        return {features: readGeoJson(data), format: "GeoJSON"};
+      }
+
+      throw new Error("The JSON is not recognized as GeoJSON, TopoJSON, or Esri JSON.");
+    }
+
+    function parseKml(text, label = "KML") {
+      parseXml(text);
+      const format = new ol.format.KML({extractStyles: false, showPointNames: false});
+      return {features: readWithFormat(format, text, WGS84), format: label};
+    }
+
+    function parseGpx(text) {
+      parseXml(text);
+      return {features: readWithFormat(new ol.format.GPX(), text, WGS84), format: "GPX"};
+    }
+
+    /** TCX is converted to GeoJSON by the maintained toGeoJSON browser module. */
+    async function parseTcx(text) {
+      const xml = parseXml(text);
+      const {tcx} = await loadModule("togeojson");
+      return {features: readGeoJson(tcx(xml)), format: "TCX"};
+    }
+
+    function parseGml(text) {
+      parseXml(text);
+      const formats = [new ol.format.GML32(), new ol.format.GML3(), new ol.format.GML2()];
+
+      for (const format of formats) {
+        try {
+          const features = readWithFormat(format, text, WGS84);
+          if (features.length) return {features, format: "GML"};
+        } catch (_) {
+          // GML dialects differ; try the next standards-compatible OpenLayers reader.
+        }
+      }
+
+      throw new Error("No GML features could be read from the XML document.");
+    }
+
+    /** Identify a generic .xml document from its root element and namespace content. */
+    async function parseXmlByRoot(text) {
+      const xml = parseXml(text);
+      const root = xml.documentElement?.localName.toLowerCase();
+
+      if (root === "kml") return parseKml(text);
+      if (root === "gpx") return parseGpx(text);
+      if (root === "trainingcenterdatabase") return parseTcx(text);
+      if (root === "featurecollection" || text.includes("opengis.net/gml")) return parseGml(text);
+
+      throw new Error(`Unsupported XML root element: ${root || "unknown"}.`);
+    }
+
+    /** Extract the primary KML document from KMZ without blocking the UI thread. */
+    async function parseKmz(file) {
+      const {unzip, strFromU8} = await loadModule("fflate");
+      const archive = new Uint8Array(await file.arrayBuffer());
+      const files = await new Promise((resolve, reject) => {
+        unzip(archive, (error, contents) => error ? reject(error) : resolve(contents));
+      });
+      const names = Object.keys(files).filter((name) => name.toLowerCase().endsWith(".kml"));
+
+      if (!names.length) throw new Error("The KMZ archive does not contain a KML document.");
+      names.sort((a, b) => Number(!a.toLowerCase().endsWith("doc.kml")) - Number(!b.toLowerCase().endsWith("doc.kml")));
+      return parseKml(strFromU8(files[names[0]]), "KMZ");
+    }
+
+    /** shpjs reads all companion files in a ZIP and reprojects geometry using its .prj. */
+    async function parseShapefile(file) {
+      const {default: shp} = await loadModule("shpjs");
+      const parsed = await shp(await file.arrayBuffer());
+      const layers = Array.isArray(parsed) ? parsed : [parsed];
+      const features = layers.flatMap((layer) => readGeoJson(layer));
+      const suffix = layers.length > 1 ? ` · ${layers.length} layers` : "";
+      return {features, format: `Shapefile ZIP${suffix}`};
+    }
+
+    async function parseFlatGeobuf(file) {
+      const {geojson} = await loadModule("flatgeobuf");
+      let collection = await geojson.deserialize(new Uint8Array(await file.arrayBuffer()));
+
+      // URL/stream inputs return an async iterator; local byte arrays normally return a collection.
+      if (collection?.[Symbol.asyncIterator]) {
+        const features = [];
+        for await (const feature of collection) features.push(feature);
+        collection = {type: "FeatureCollection", features};
+      }
+
+      return {features: readGeoJson(collection), format: "FlatGeobuf"};
+    }
+
+    /** Parse delimited text and auto-detect common WGS84 latitude/longitude headers. */
+    async function parseDelimited(file, extension) {
+      const {default: Papa} = await loadModule("papaparse");
+      const result = Papa.parse(await file.text(), {
+        delimiter: extension === "tsv" ? "\t" : "",
+        header: true,
+        skipEmptyLines: "greedy",
+        dynamicTyping: true,
+        transformHeader: (header) => header.trim()
+      });
+      const fields = result.meta.fields || [];
+      const normalized = new Map(fields.map((field) => [field.toLowerCase().replace(/[^a-z0-9]/g, ""), field]));
+      const latitude = ["latitude", "lat", "decimallatitude"].map((key) => normalized.get(key)).find(Boolean);
+      const longitude = ["longitude", "lon", "lng", "long", "decimallongitude"].map((key) => normalized.get(key)).find(Boolean);
+
+      if (!latitude || !longitude) {
+        throw new Error("CSV/TSV files need latitude and longitude columns.");
+      }
+
+      const features = result.data.flatMap((row) => {
+        const lat = Number(row[latitude]);
+        const lon = Number(row[longitude]);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return [];
+        return [{type: "Feature", properties: row, geometry: {type: "Point", coordinates: [lon, lat]}}];
+      });
+
+      if (!features.length) throw new Error("No valid longitude/latitude rows were found.");
+      return {
+        features: readGeoJson({type: "FeatureCollection", features}),
+        format: extension === "tsv" ? "TSV" : "CSV"
+      };
+    }
+
+    /** Route a local file to the smallest appropriate parser. */
+    async function parseSpatialFile(file) {
+      const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
+      if (!SUPPORTED_EXTENSIONS.has(extension)) throw new Error("That file format is not supported.");
+
+      switch (extension) {
+        case "geojson":
+        case "json":
+        case "topojson":
+        case "esrijson":
+          return parseJson(await file.text(), extension);
+        case "kml":
+          return parseKml(await file.text());
+        case "kmz":
+          return parseKmz(file);
+        case "gpx":
+          return parseGpx(await file.text());
+        case "tcx":
+          return parseTcx(await file.text());
+        case "igc":
+          return {features: readWithFormat(new ol.format.IGC(), await file.text(), WGS84), format: "IGC"};
+        case "zip":
+          return parseShapefile(file);
+        case "fgb":
+          return parseFlatGeobuf(file);
+        case "csv":
+        case "tsv":
+          return parseDelimited(file, extension);
+        case "wkt":
+          return {features: readWithFormat(new ol.format.WKT(), await file.text(), WGS84), format: "WKT"};
+        case "wkb":
+          return {features: readWithFormat(new ol.format.WKB(), await file.arrayBuffer(), WGS84), format: "WKB"};
+        case "gml":
+          return parseGml(await file.text());
+        case "xml":
+          return parseXmlByRoot(await file.text());
+        default:
+          throw new Error("That file format is not supported.");
+      }
+    }
+
+    // One vector source and style correctly handle point, line, polygon, and collection data.
+    const vectorSource = new ol.source.Vector({wrapX: false});
+    const vectorLayer = new ol.layer.Vector({
+      source: vectorSource,
+      declutter: true,
+      style: new ol.style.Style({
+        fill: new ol.style.Fill({color: "rgba(8, 127, 118, 0.24)"}),
+        stroke: new ol.style.Stroke({color: "#087f76", width: 2}),
+        image: new ol.style.Circle({
+          radius: 6,
+          fill: new ol.style.Fill({color: "#087f76"}),
+          stroke: new ol.style.Stroke({color: "#ffffff", width: 2})
+        })
+      })
+    });
+
+    const map = new ol.Map({
+      target: "map",
+      layers: [
+        new ol.layer.Tile({source: new ol.source.OSM()}),
+        vectorLayer
+      ],
+      view: new ol.View({center: [0, 0], zoom: 2, maxZoom: 21})
+    });
+
+    function summarizeGeometries(features) {
+      const counts = new Map();
+      for (const feature of features) {
+        const type = feature.getGeometry()?.getType() || "No geometry";
+        counts.set(type, (counts.get(type) || 0) + 1);
+      }
+      return Array.from(counts, ([type, count]) => `${type} (${count})`).join(", ") || "None";
+    }
+
+    function fitData() {
+      const extent = vectorSource.getExtent();
+      if (!ol.extent.isEmpty(extent)) {
+        map.getView().fit(extent, {padding: [42, 42, 42, 42], maxZoom: 16, duration: 350});
+      }
+    }
+
+    function resetInspector() {
+      properties.replaceChildren();
+      properties.hidden = true;
+      inspectorEmpty.textContent = "Click a feature on the map.";
+      inspectorEmpty.hidden = false;
+    }
+
+    function clearData() {
+      loadSequence += 1;
+      currentFile = null;
+      vectorSource.clear();
+      fileInput.value = "";
+      dropTitle.textContent = "Choose or drop a file";
+      dropMeta.textContent = "Points, lines, and polygons";
+      summaryPanel.hidden = true;
+      inspector.hidden = true;
+      mapEmpty.hidden = false;
+      resetInspector();
+      setStatus("idle", "Ready for a local vector file.");
+    }
+
+    /** Parse first, then atomically replace the visible dataset if the request is still current. */
+    async function openFile(file) {
+      if (!file) return;
+      const sequence = ++loadSequence;
+      dropTitle.textContent = file.name;
+      dropMeta.textContent = `${formatBytes(file.size)} · processing locally`;
+      dropZone.setAttribute("aria-busy", "true");
+      setStatus("working", `Reading ${file.name}…`);
+
+      try {
+        const parsed = await parseSpatialFile(file);
+        if (sequence !== loadSequence) return;
+        if (!parsed.features.length) throw new Error("The file contains no renderable vector features.");
+
+        vectorSource.clear();
+        vectorSource.addFeatures(parsed.features);
+        currentFile = file;
+        filename.textContent = `${file.name} · ${formatBytes(file.size)}`;
+        formatValue.textContent = parsed.format;
+        featureValue.textContent = parsed.features.length.toLocaleString();
+        geometryValue.textContent = summarizeGeometries(parsed.features);
+        summaryPanel.hidden = false;
+        inspector.hidden = false;
+        mapEmpty.hidden = true;
+        resetInspector();
+        fitData();
+        dropMeta.textContent = `${formatBytes(file.size)} · loaded`;
+        setStatus("success", `Rendered ${parsed.features.length.toLocaleString()} features from ${parsed.format}.`);
+      } catch (error) {
+        if (sequence !== loadSequence) return;
+        console.error("Spatial file failed to open:", error);
+        dropMeta.textContent = `${formatBytes(file.size)} · could not open`;
+        setStatus("error", error.message || "The spatial file could not be opened.");
+      } finally {
+        if (sequence === loadSequence) dropZone.removeAttribute("aria-busy");
+        fileInput.value = "";
+      }
+    }
+
+    /** Export the normalized, currently rendered features in standard WGS84 GeoJSON. */
+    function downloadGeoJson() {
+      if (!currentFile) return;
+      const output = new ol.format.GeoJSON().writeFeatures(vectorSource.getFeatures(), {
+        dataProjection: WGS84,
+        featureProjection: MAP_PROJECTION,
+        decimals: 7
+      });
+      const sourceBase = currentFile.name.replace(/\.[^.]+$/, "").replace(/[^a-z0-9._-]+/gi, "-") || "spatial-data";
+      const url = URL.createObjectURL(new Blob([output], {type: "application/geo+json"}));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${sourceBase}.geojson`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    /** Show a bounded set of properties for the feature clicked on the map. */
+    function inspectFeature(feature) {
+      resetInspector();
+      if (!feature) return;
+      const entries = Object.entries(feature.getProperties()).filter(([key]) => key !== feature.getGeometryName()).slice(0, 12);
+
+      if (!entries.length) {
+        inspectorEmpty.textContent = "This feature has no attributes.";
+        return;
+      }
+
+      for (const [key, rawValue] of entries) {
+        const row = document.createElement("div");
+        const term = document.createElement("dt");
+        const value = document.createElement("dd");
+        term.textContent = key;
+        value.textContent = typeof rawValue === "object" && rawValue !== null
+          ? JSON.stringify(rawValue).slice(0, 300)
+          : String(rawValue ?? "");
+        row.append(term, value);
+        properties.append(row);
+      }
+
+      inspectorEmpty.hidden = true;
+      properties.hidden = false;
+    }
+
+    fileInput.addEventListener("change", () => openFile(fileInput.files[0]));
+    fitButton.addEventListener("click", fitData);
+    clearButton.addEventListener("click", clearData);
+    downloadButton.addEventListener("click", downloadGeoJson);
+
+    for (const eventName of ["dragenter", "dragover"]) {
+      dropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.dataset.dragging = "true";
+      });
+    }
+
+    for (const eventName of ["dragleave", "drop"]) {
+      dropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.dataset.dragging = "false";
+      });
+    }
+
+    dropZone.addEventListener("drop", (event) => openFile(event.dataTransfer.files[0]));
+    window.addEventListener("dragover", (event) => event.preventDefault());
+    window.addEventListener("drop", (event) => event.preventDefault());
+
+    map.on("singleclick", (event) => {
+      const feature = map.forEachFeatureAtPixel(event.pixel, (candidate) => candidate, {
+        hitTolerance: 5,
+        layerFilter: (layer) => layer === vectorLayer
+      });
+      inspectFeature(feature || null);
+    });
+
+    map.on("pointermove", (event) => {
+      if (event.dragging) return;
+      const hit = map.hasFeatureAtPixel(event.pixel, {layerFilter: (layer) => layer === vectorLayer});
+      map.getTargetElement().style.cursor = hit ? "pointer" : "";
+    });
+  </script>
 </body>
-
 </html>

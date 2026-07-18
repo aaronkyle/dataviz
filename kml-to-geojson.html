@@ -1,104 +1,893 @@
-
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
-
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Convert a local KML file to GeoJSON entirely in your browser, then inspect, copy, or download the result.">
+  <meta name="theme-color" content="#f4f7f5">
+  <title>Local KML to GeoJSON converter</title>
 
-    <meta charset="UTF-8">
+  <style>
+    /* ---------- Foundation ---------- */
+    :root {
+      color-scheme: light;
+      --ink: #183a35;
+      --muted: #607873;
+      --paper: #ffffff;
+      --canvas: #f4f7f5;
+      --line: #d5e1de;
+      --accent: #087f76;
+      --accent-dark: #05675f;
+      --accent-soft: #e3f2ef;
+      --warm: #d9783b;
+      --warm-soft: #fff3e9;
+      --danger: #a33a32;
+      --danger-soft: #fff0ee;
+      --shadow: 0 20px 56px rgb(24 58 53 / 9%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+      font-synthesis: none;
+    }
 
-    <title>KML to GeoJSON Converter</title>
+    * {
+      box-sizing: border-box;
+    }
 
-    <!-- Load toGeoJSON library from unpkg CDN -->
+    body {
+      min-width: 300px;
+      margin: 0;
+      line-height: 1.55;
+    }
 
-    <script src=https://unpkg.com/@tmcw/togeojson></script>
+    button,
+    input {
+      font: inherit;
+    }
 
+    button,
+    a,
+    label {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: var(--accent-dark);
+      text-underline-offset: 0.18em;
+    }
+
+    main {
+      width: min(900px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: clamp(38px, 7vw, 72px) 0 60px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
+
+    /* ---------- Introduction ---------- */
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--accent);
+      font-size: 0.73rem;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin-bottom: 18px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.75rem, 7vw, 4.9rem);
+      font-weight: 400;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+    }
+
+    .lede {
+      max-width: 700px;
+      margin-bottom: 22px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.16rem);
+    }
+
+    .local-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 30px;
+      padding: 7px 11px;
+      border: 1px solid #c9dfda;
+      border-radius: 999px;
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .local-note::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      content: "";
+    }
+
+    /* ---------- Conversion application ---------- */
+    .app {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .source-panel,
+    .result {
+      padding: clamp(20px, 4vw, 30px);
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .step {
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-size: 1.08rem;
+      line-height: 1.25;
+    }
+
+    /* The label is both an accessible file control and a drag-and-drop target. */
+    .drop-zone {
+      display: flex;
+      min-height: 116px;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      border: 1.5px dashed #a9c4bf;
+      border-radius: 12px;
+      outline: none;
+      background: #f9fcfb;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+    }
+
+    .drop-zone:hover,
+    .drop-zone:focus-within,
+    .drop-zone[data-dragging="true"] {
+      border-color: var(--accent);
+      background: #f0f8f6;
+    }
+
+    .drop-zone[data-dragging="true"] {
+      transform: translateY(-1px);
+    }
+
+    .file-mark {
+      display: grid;
+      width: 54px;
+      height: 62px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid #bcd4cf;
+      border-radius: 8px 8px 12px;
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+    }
+
+    .drop-zone[data-ready="true"] .file-mark {
+      color: #9b4c1d;
+      border-color: #efd0b8;
+      background: var(--warm-soft);
+    }
+
+    .file-copy {
+      display: grid;
+      min-width: 0;
+      gap: 3px;
+    }
+
+    .file-copy strong {
+      overflow: hidden;
+      font-size: 0.98rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-copy span {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .format-hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .actions,
+    .result-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button,
+    .download {
+      display: inline-flex;
+      min-height: 43px;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 15px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 750;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+    }
+
+    button:hover,
+    .download:hover {
+      background: var(--accent-dark);
+    }
+
+    button:active,
+    .download:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.46;
+    }
+
+    .secondary,
+    .copy-button {
+      color: var(--accent-dark);
+      border-color: var(--line);
+      background: #fff;
+    }
+
+    .secondary:hover,
+    .copy-button:hover {
+      border-color: #aec9c4;
+      background: var(--accent-soft);
+    }
+
+    .secondary[hidden] {
+      display: none;
+    }
+
+    /* The persistent status row replaces alerts and explains every app state. */
+    .status {
+      display: flex;
+      min-height: 52px;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      padding: 13px clamp(20px, 4vw, 30px);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      background: #fafcfb;
+      font-size: 0.84rem;
+    }
+
+    .status::before {
+      width: 9px;
+      height: 9px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: #93aaa6;
+      content: "";
+    }
+
+    .status[data-state="loading"]::before {
+      background: var(--warm);
+      box-shadow: 0 0 0 4px rgb(217 120 59 / 14%);
+      animation: pulse 1.1s ease-in-out infinite alternate;
+    }
+
+    .status[data-state="success"] {
+      color: var(--accent-dark);
+    }
+
+    .status[data-state="success"]::before {
+      background: var(--accent);
+    }
+
+    .status[data-state="error"] {
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .status[data-state="error"]::before {
+      background: var(--danger);
+    }
+
+    @keyframes pulse {
+      to {
+        opacity: 0.35;
+      }
+    }
+
+    /* ---------- Converted output ---------- */
+    .result[hidden] {
+      display: none;
+    }
+
+    .result-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .output-name {
+      max-width: 440px;
+      overflow: hidden;
+      margin: 5px 0 0 34px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy-button,
+    .download {
+      min-height: 39px;
+      padding: 7px 12px;
+      font-size: 0.79rem;
+      white-space: nowrap;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: 0.75fr 1.8fr 0.75fr;
+      gap: 1px;
+      overflow: hidden;
+      margin: 0 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--line);
+    }
+
+    dl div {
+      min-width: 0;
+      padding: 14px;
+      background: #fbfdfc;
+    }
+
+    dt {
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 0.67rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      overflow: hidden;
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fbfa;
+    }
+
+    summary {
+      padding: 11px 14px;
+      color: var(--accent-dark);
+      font-size: 0.82rem;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    pre {
+      max-height: 390px;
+      overflow: auto;
+      margin: 0;
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      color: #23433e;
+      background: #f2f7f5;
+      font: 0.75rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre;
+    }
+
+    .preview-note {
+      margin: 8px 2px 0;
+      color: var(--muted);
+      font-size: 0.73rem;
+    }
+
+    /* ---------- Concise supporting context ---------- */
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px;
+      margin-top: 27px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    .notes h2 {
+      margin-bottom: 7px;
+      font-size: 0.88rem;
+    }
+
+    .notes p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    code {
+      padding: 0.08em 0.28em;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      font: 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-align: center;
+    }
+
+    @media (max-width: 680px) {
+      main {
+        width: min(100% - 20px, 900px);
+        padding-top: 30px;
+      }
+
+      .form-footer,
+      .result-heading {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .actions,
+      .result-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .actions .secondary[hidden] + #convert-button {
+        grid-column: 1 / -1;
+      }
+
+      dl,
+      .notes {
+        grid-template-columns: 1fr;
+      }
+
+      .output-name {
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .drop-zone {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <main>
+    <header>
+      <p class="eyebrow">Local format conversion</p>
+      <h1>Convert KML to GeoJSON.</h1>
+      <p class="lede">Choose a KML file, translate its geographic features into web-friendly GeoJSON, inspect the result, and save a new copy.</p>
+      <p class="local-note">Your source file stays in this browser</p>
+    </header>
 
- 
+    <section class="app" aria-labelledby="source-heading">
+      <form id="converter-form" class="source-panel">
+        <div class="panel-heading">
+          <span class="step" aria-hidden="true">01</span>
+          <h2 id="source-heading">Select a source file</h2>
+        </div>
 
-    <h1>KML to GeoJSON Converter</h1>
+        <label id="drop-zone" class="drop-zone" for="file-input">
+          <input id="file-input" class="visually-hidden" type="file" accept=".kml,application/vnd.google-earth.kml+xml">
+          <span class="file-mark" aria-hidden="true">KML</span>
+          <span class="file-copy">
+            <strong id="file-name">Choose a KML file</strong>
+            <span id="file-meta">or drag and drop it here</span>
+          </span>
+        </label>
 
-    <input type="file" id="fileInput" accept=".kml">
+        <div class="form-footer">
+          <p class="format-hint">One <code>.kml</code> file at a time</p>
+          <div class="actions">
+            <button id="reset-button" class="secondary" type="button" hidden>Clear</button>
+            <button id="convert-button" type="submit" disabled>Convert to GeoJSON</button>
+          </div>
+        </div>
+      </form>
 
-    <button id="convertButton">Convert to GeoJSON</button>
+      <p id="status" class="status" data-state="idle" role="status" aria-live="polite">Select a KML file to begin.</p>
 
-    <button id="downloadButton" style="display: none;">Download GeoJSON</button>
+      <section id="result" class="result" aria-labelledby="result-heading" hidden>
+        <div class="result-heading">
+          <div>
+            <div class="panel-heading">
+              <span class="step" aria-hidden="true">02</span>
+              <h2 id="result-heading">Converted output</h2>
+            </div>
+            <p id="output-name" class="output-name">converted.geojson</p>
+          </div>
+          <div class="result-actions">
+            <button id="copy-button" class="copy-button" type="button">Copy JSON</button>
+            <a id="download" class="download" href="#" download="converted.geojson">Download .geojson</a>
+          </div>
+        </div>
 
-    <pre id="result"></pre>
+        <dl aria-label="Converted dataset summary">
+          <div>
+            <dt>Features</dt>
+            <dd id="feature-count">0</dd>
+          </div>
+          <div>
+            <dt>Geometry</dt>
+            <dd id="geometry-types">—</dd>
+          </div>
+          <div>
+            <dt>Attributes</dt>
+            <dd id="attribute-count">0</dd>
+          </div>
+        </dl>
 
- 
+        <details id="preview-details" open>
+          <summary>Preview formatted GeoJSON</summary>
+          <pre id="preview" tabindex="0" aria-label="Formatted GeoJSON preview"></pre>
+        </details>
+        <p id="preview-note" class="preview-note"></p>
+      </section>
+    </section>
 
-    <script>
+    <aside class="notes" aria-label="Conversion notes">
+      <section>
+        <h2>What changes?</h2>
+        <p>KML’s XML placemarks and geometry become a GeoJSON <code>FeatureCollection</code> that is easier to use in web maps and data tools.</p>
+      </section>
+      <section>
+        <h2>What leaves your device?</h2>
+        <p>Nothing from the selected file. JavaScript reads and converts it in memory; the browser creates the download locally.</p>
+      </section>
+    </aside>
 
-        document.getElementById('convertButton').addEventListener('click', function () {
+    <footer>Conversion powered by <a href="https://github.com/placemark/togeojson">toGeoJSON</a>.</footer>
+  </main>
 
-            const fileInput = document.getElementById('fileInput');
+  <noscript>This converter requires JavaScript to read and transform a local KML file.</noscript>
 
-            if (fileInput.files.length === 0) {
+  <script type="module">
+    import {kml as convertKml} from "https://unpkg.com/@tmcw/togeojson@7.1.2?module";
 
-                alert('Please select a KML file first.');
+    // Keep the on-page preview responsive even when the converted file is large.
+    // Copy and download actions always use the complete, untruncated GeoJSON.
+    const PREVIEW_CHARACTER_LIMIT = 60000;
 
-                return;
+    // Cache interface references once so the conversion functions stay data-focused.
+    const form = document.querySelector("#converter-form");
+    const fileInput = document.querySelector("#file-input");
+    const dropZone = document.querySelector("#drop-zone");
+    const fileName = document.querySelector("#file-name");
+    const fileMeta = document.querySelector("#file-meta");
+    const resetButton = document.querySelector("#reset-button");
+    const convertButton = document.querySelector("#convert-button");
+    const status = document.querySelector("#status");
+    const result = document.querySelector("#result");
+    const outputName = document.querySelector("#output-name");
+    const featureCount = document.querySelector("#feature-count");
+    const geometryTypes = document.querySelector("#geometry-types");
+    const attributeCount = document.querySelector("#attribute-count");
+    const previewDetails = document.querySelector("#preview-details");
+    const preview = document.querySelector("#preview");
+    const previewNote = document.querySelector("#preview-note");
+    const copyButton = document.querySelector("#copy-button");
+    const download = document.querySelector("#download");
 
-            }
+    // These values represent the current in-memory source and result.
+    let selectedFile = null;
+    let completeGeojson = "";
+    let downloadUrl = null;
 
- 
+    /** Update the persistent status row for sighted users and screen readers. */
+    function setStatus(state, message) {
+      status.dataset.state = state;
+      status.textContent = message;
+    }
 
-            const file = fileInput.files[0];
+    /** Format bytes into a compact, human-readable file size. */
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+    }
 
-            const reader = new FileReader();
+    /** Return a safe .geojson filename based on the selected KML filename. */
+    function makeOutputFilename(sourceName) {
+      const baseName = sourceName
+        .replace(/\.kml$/i, "")
+        .replace(/[^a-z0-9._-]+/gi, "-")
+        .replace(/^-+|-+$/g, "") || "converted";
 
-            reader.onload = function (e) {
+      return `${baseName}.geojson`;
+    }
 
-                const kmlText = e.target.result;
+    /** Release and clear the previous conversion before a new source is chosen. */
+    function clearResult() {
+      result.hidden = true;
+      completeGeojson = "";
+      preview.textContent = "";
 
-                const parser = new DOMParser();
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+        downloadUrl = null;
+      }
+    }
 
-                const kml = parser.parseFromString(kmlText, 'text/xml');
+    /** Validate and register a file selected through the picker or drag-and-drop. */
+    function selectFile(file) {
+      clearResult();
 
-                const converted = toGeoJSON.kml(kml);
+      if (!file || !file.name.toLowerCase().endsWith(".kml")) {
+        selectedFile = null;
+        fileInput.value = "";
+        dropZone.dataset.ready = "false";
+        fileName.textContent = "Choose a KML file";
+        fileMeta.textContent = "or drag and drop it here";
+        resetButton.hidden = true;
+        convertButton.disabled = true;
+        setStatus("error", "That file is not a KML document. Choose a file ending in .kml.");
+        return;
+      }
 
-                const geojsonStr = JSON.stringify(converted, null, 2);
+      selectedFile = file;
+      dropZone.dataset.ready = "true";
+      fileName.textContent = file.name;
+      fileMeta.textContent = `${formatBytes(file.size)} · ready to convert`;
+      resetButton.hidden = false;
+      convertButton.disabled = false;
+      setStatus("idle", `Ready to convert ${file.name}.`);
+    }
 
-                document.getElementById('result').textContent = geojsonStr;
+    /** Restore the source control and output area to their initial state. */
+    function resetApp() {
+      selectedFile = null;
+      fileInput.value = "";
+      dropZone.dataset.ready = "false";
+      dropZone.dataset.dragging = "false";
+      fileName.textContent = "Choose a KML file";
+      fileMeta.textContent = "or drag and drop it here";
+      resetButton.hidden = true;
+      convertButton.disabled = true;
+      clearResult();
+      setStatus("idle", "Select a KML file to begin.");
+    }
 
- 
+    /** Parse KML text and reject malformed XML or a non-KML root document. */
+    function parseKml(kmlText) {
+      const xml = new DOMParser().parseFromString(kmlText, "application/xml");
 
-                const downloadButton = document.getElementById('downloadButton');
+      if (xml.querySelector("parsererror")) {
+        throw new Error("The selected file is not valid XML.");
+      }
 
-                downloadButton.style.display = 'inline';
+      if (xml.documentElement?.localName.toLowerCase() !== "kml") {
+        throw new Error("The selected XML document does not have a KML root element.");
+      }
 
-                downloadButton.onclick = function () {
+      return xml;
+    }
 
-                    const blob = new Blob([geojsonStr], {type: 'application/json'});
+    /** Count feature geometry types and unique property names for the summary. */
+    function summarize(geojson) {
+      const features = Array.isArray(geojson.features) ? geojson.features : [];
+      const geometryCounts = new Map();
+      const attributes = new Set();
 
-                    const url = URL.createObjectURL(blob);
+      for (const feature of features) {
+        const geometryType = feature.geometry?.type || "No geometry";
+        geometryCounts.set(geometryType, (geometryCounts.get(geometryType) || 0) + 1);
 
-                    const a = document.createElement('a');
+        for (const propertyName of Object.keys(feature.properties || {})) {
+          attributes.add(propertyName);
+        }
+      }
 
-                    a.setAttribute('href', url);
+      return {
+        features: features.length,
+        attributes: attributes.size,
+        geometries: Array.from(geometryCounts, ([type, count]) => `${type} (${count})`).join(", ") || "None"
+      };
+    }
 
-                    a.setAttribute('download', 'converted.geojson');
+    /** Render a bounded preview while retaining the complete conversion for actions. */
+    function renderResult(geojson, sourceFile) {
+      const summary = summarize(geojson);
+      const filename = makeOutputFilename(sourceFile.name);
+      completeGeojson = JSON.stringify(geojson, null, 2);
+      const isTruncated = completeGeojson.length > PREVIEW_CHARACTER_LIMIT;
 
-                    a.click();
+      outputName.textContent = filename;
+      featureCount.textContent = summary.features.toLocaleString();
+      geometryTypes.textContent = summary.geometries;
+      attributeCount.textContent = summary.attributes.toLocaleString();
+      preview.textContent = isTruncated
+        ? `${completeGeojson.slice(0, PREVIEW_CHARACTER_LIMIT)}\n\n… preview truncated …`
+        : completeGeojson;
+      previewNote.textContent = isTruncated
+        ? `Previewing the first ${PREVIEW_CHARACTER_LIMIT.toLocaleString()} characters. Copy and download use the complete output.`
+        : `Previewing all ${completeGeojson.length.toLocaleString()} characters.`;
 
-                    URL.revokeObjectURL(url); // Clean up the URL object
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+      downloadUrl = URL.createObjectURL(new Blob([completeGeojson], {type: "application/geo+json"}));
+      download.href = downloadUrl;
+      download.download = filename;
+      previewDetails.open = true;
+      result.hidden = false;
 
-                };
+      return summary;
+    }
 
-            };
+    /** Read and convert the selected file without sending its contents anywhere. */
+    async function convertSelectedFile() {
+      if (!selectedFile) return;
 
-            reader.readAsText(file);
+      const fileAtStart = selectedFile;
+      convertButton.disabled = true;
+      convertButton.textContent = "Converting…";
+      clearResult();
+      setStatus("loading", `Reading ${fileAtStart.name} in this browser…`);
 
-        });
+      try {
+        const kmlText = await fileAtStart.text();
+        const kmlDocument = parseKml(kmlText);
+        setStatus("loading", "KML parsed. Creating a GeoJSON FeatureCollection…");
 
-    </script>
+        const geojson = convertKml(kmlDocument);
+        if (geojson?.type !== "FeatureCollection" || !Array.isArray(geojson.features)) {
+          throw new Error("The converter did not return a GeoJSON FeatureCollection.");
+        }
 
- 
+        const summary = renderResult(geojson, fileAtStart);
+        setStatus("success", `Converted ${summary.features.toLocaleString()} features. The GeoJSON is ready to copy or download.`);
+      } catch (error) {
+        console.error("KML conversion failed:", error);
+        setStatus("error", error.message);
+      } finally {
+        convertButton.disabled = selectedFile === null;
+        convertButton.textContent = "Convert to GeoJSON";
+      }
+    }
 
+    /** Copy the complete conversion, with a fallback for local-file browser contexts. */
+    async function copyCompleteGeojson() {
+      if (!completeGeojson) return;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(completeGeojson);
+        } else {
+          const temporary = document.createElement("textarea");
+          temporary.value = completeGeojson;
+          temporary.style.position = "fixed";
+          temporary.style.opacity = "0";
+          document.body.append(temporary);
+          temporary.select();
+          document.execCommand("copy");
+          temporary.remove();
+        }
+
+        copyButton.textContent = "Copied";
+        setTimeout(() => {
+          copyButton.textContent = "Copy JSON";
+        }, 1400);
+      } catch (error) {
+        console.error("Copy failed:", error);
+        setStatus("error", "The browser could not copy the JSON. The download is still available.");
+      }
+    }
+
+    fileInput.addEventListener("change", () => selectFile(fileInput.files[0]));
+    resetButton.addEventListener("click", resetApp);
+    copyButton.addEventListener("click", copyCompleteGeojson);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      convertSelectedFile();
+    });
+
+    // Make the labeled file control respond clearly to drag-and-drop interactions.
+    for (const eventName of ["dragenter", "dragover"]) {
+      dropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.dataset.dragging = "true";
+      });
+    }
+
+    for (const eventName of ["dragleave", "drop"]) {
+      dropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.dataset.dragging = "false";
+      });
+    }
+
+    dropZone.addEventListener("drop", (event) => {
+      selectFile(event.dataTransfer.files[0]);
+    });
+
+    // Release the generated download when the page closes.
+    window.addEventListener("pagehide", () => {
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    });
+  </script>
 </body>
-
 </html>
