@@ -1,88 +1,756 @@
 <!doctype html>
-<html class="no-js" lang="">
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KML/KMZ Viewer</title>
+  <meta name="description" content="A responsive, token-free MapLibre template that converts KML to GeoJSON in the browser.">
+  <title>Render KML with MapLibre</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@tmcw/togeojson@7.1.2/dist/togeojson.umd.js"></script>
 
   <style>
+    :root {
+      color-scheme: light;
+      --page-color: #edf3f0;
+      --panel-color: #ffffff;
+      --text-color: #173230;
+      --muted-text: #607370;
+      --guide-color: #153e3b;
+      --boundary-color: #11766f;
+      --boundary-outline: #0c5754;
+      --highlight-color: #e9993e;
+      --guide-accent: #b9ddd2;
+      --divider-color: #d8e3df;
+      --panel-shadow: 0 18px 44px rgb(20 55 51 / 10%);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--page-color); }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text-color);
+      background: var(--page-color);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-underline-offset: 0.18em;
+    }
+
+    /* The desktop demo occupies exactly one viewport. */
+    .kml-demo {
+      width: 100%;
+      height: 100svh;
+      padding: 16px;
+    }
+
+    .demo-layout {
+      display: grid;
+      grid-template-columns: minmax(270px, 310px) minmax(0, 1fr);
+      gap: 20px;
+      width: min(1500px, 100%);
+      height: 100%;
+      margin-inline: auto;
+    }
+
+    /* Explanatory content stays outside the map canvas. */
+    .guide-panel {
+      display: flex;
+      min-height: 0;
+      padding: clamp(22px, 2.4vw, 28px);
+      overflow: auto;
+      color: #f7fbf9;
+      background: var(--guide-color);
+      border-radius: 20px;
+      box-shadow: var(--panel-shadow);
+      flex-direction: column;
+      scrollbar-width: thin;
+    }
+
+    .section-label {
+      margin: 0 0 10px;
+      color: var(--guide-accent);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .guide-title {
+      max-width: none;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.15rem, 2.8vw, 2.65rem);
+      font-weight: 500;
+      letter-spacing: -0.045em;
+      line-height: 1.02;
+    }
+
+    .guide-summary {
+      margin: 20px 0 0;
+      color: #d6e6e1;
+      font-size: 0.92rem;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .feature-list li {
+      padding: 5px 9px;
+      color: #eaf4f0;
+      background: rgb(255 255 255 / 8%);
+      border: 1px solid rgb(255 255 255 / 14%);
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .workflow {
+      margin-top: 26px;
+      padding-top: 20px;
+      border-top: 1px solid rgb(255 255 255 / 15%);
+    }
+
+    .workflow h2 {
+      margin: 0 0 10px;
+      color: var(--guide-accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .workflow ol {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding-left: 1.15rem;
+      color: #d6e6e1;
+      font-size: 0.8rem;
+    }
+
+    .workflow li { padding-left: 3px; }
+    .workflow li::marker { color: var(--guide-accent); font-weight: 800; }
+
+    .reuse-note {
+      margin: auto 0 0;
+      padding-top: 24px;
+      color: #bcd1cb;
+      font-size: 0.74rem;
+    }
+
+    .reuse-note code {
+      padding: 2px 4px;
+      color: #ffffff;
+      background: rgb(0 0 0 / 18%);
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+    }
+
+    /* The map uses the remaining viewport height instead of a fixed pixel height. */
+    .map-panel {
+      display: grid;
+      min-width: 0;
+      min-height: 0;
+      padding: 10px;
+      overflow: hidden;
+      background: var(--panel-color);
+      border-radius: 20px;
+      box-shadow: var(--panel-shadow);
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .map-header {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 66px;
+      padding: 10px 14px 14px;
+    }
+
+    .map-header .section-label {
+      margin-bottom: 4px;
+      color: var(--boundary-color);
+    }
+
+    .map-title {
+      margin: 0;
+      font-size: clamp(1rem, 1.7vw, 1.2rem);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+
+    .interaction-hint {
+      flex: 0 0 auto;
+      margin: 0;
+      color: var(--muted-text);
+      font-size: 0.74rem;
+      white-space: nowrap;
+    }
+
+    .interaction-hint::before {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 7px;
+      background: var(--highlight-color);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .map-viewport {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background: #e9efed;
+      border-radius: 13px;
+      isolation: isolate;
+    }
+
     #map-container {
       width: 100%;
-      height: 600px; /* Adjust the height as needed */
+      height: 100%;
+    }
+
+    /* Status and legend are lightweight HTML overlays. */
+    .load-status,
+    .map-legend {
+      position: absolute;
+      z-index: 2;
+      left: 12px;
+      color: var(--text-color);
+      background: rgb(255 255 255 / 92%);
+      border: 1px solid rgb(23 50 48 / 10%);
+      border-radius: 9px;
+      box-shadow: 0 5px 18px rgb(22 51 48 / 12%);
+      backdrop-filter: blur(8px);
+    }
+
+    .load-status {
+      top: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      max-width: calc(100% - 78px);
+      padding: 8px 11px;
+      font-size: 0.72rem;
+      font-weight: 750;
+    }
+
+    .load-status-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      background: var(--highlight-color);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgb(233 153 62 / 17%);
+    }
+
+    .load-status[data-state="ready"] .load-status-dot {
+      background: var(--boundary-color);
+      box-shadow: 0 0 0 4px rgb(17 118 111 / 14%);
+    }
+
+    .load-status[data-state="error"] .load-status-dot {
+      background: #b8473d;
+      box-shadow: 0 0 0 4px rgb(184 71 61 / 14%);
+    }
+
+    .map-legend {
+      bottom: 24px;
+      display: flex;
+      gap: 13px;
+      align-items: center;
+      padding: 7px 10px;
+      color: var(--muted-text);
+      font-size: 0.68rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .legend-swatch {
+      width: 13px;
+      height: 13px;
+      background: rgb(17 118 111 / 34%);
+      border: 1.5px solid var(--boundary-outline);
+      border-radius: 3px;
+    }
+
+    .legend-swatch--highlight {
+      background: rgb(233 153 62 / 58%);
+      border-color: #9b5c16;
+    }
+
+    .maplibregl-ctrl-group {
+      overflow: hidden;
+      border-radius: 9px;
+      box-shadow: 0 5px 18px rgb(22 51 48 / 12%);
+    }
+
+    /* Popup content is created with DOM nodes, not an HTML string. */
+    .maplibregl-popup-content {
+      width: min(300px, calc(100vw - 44px));
+      max-height: min(330px, 58vh);
+      padding: 0;
+      overflow: auto;
+      color: var(--text-color);
+      border-radius: 11px;
+      box-shadow: 0 13px 34px rgb(20 55 51 / 24%);
+    }
+
+    .maplibregl-popup-close-button {
+      top: 6px;
+      right: 6px;
+      width: 27px;
+      height: 27px;
+      color: var(--muted-text);
+      border-radius: 50%;
+      font-size: 1.2rem;
+    }
+
+    .feature-popup { padding: 17px; }
+
+    .feature-popup h3 {
+      margin: 0 30px 10px 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.12rem;
+      line-height: 1.2;
+    }
+
+    .feature-popup dl {
+      display: grid;
+      grid-template-columns: minmax(70px, auto) minmax(0, 1fr);
+      gap: 5px 11px;
+      margin: 0;
+      padding-top: 10px;
+      border-top: 1px solid var(--divider-color);
+      font-size: 0.73rem;
+    }
+
+    .feature-popup dt { color: var(--muted-text); font-weight: 700; }
+    .feature-popup dd { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+    .feature-popup-empty { margin: 0; color: var(--muted-text); font-size: 0.76rem; }
+
+    /* Below desktop width, the guide and map become normal document sections. */
+    @media (max-width: 960px) {
+      .kml-demo {
+        height: auto;
+        padding: 12px;
+      }
+
+      .demo-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .guide-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+        gap: 22px 34px;
+        overflow: visible;
+      }
+
+      .workflow {
+        margin-top: 0;
+        padding: 0 0 0 24px;
+        border-top: 0;
+        border-left: 1px solid rgb(255 255 255 / 15%);
+      }
+
+      .reuse-note {
+        grid-column: 1 / -1;
+        margin: 0;
+        padding-top: 0;
+      }
+
+      .map-viewport { height: clamp(28rem, 68svh, 42rem); }
+    }
+
+    @media (max-width: 640px) {
+      .guide-panel {
+        display: flex;
+        padding: 26px 22px;
+      }
+
+      .guide-title {
+        max-width: 12ch;
+        font-size: clamp(2.15rem, 10vw, 2.65rem);
+      }
+
+      .workflow { display: none; }
+      .reuse-note { margin-top: 24px; }
+
+      .map-header {
+        display: block;
+        padding-inline: 10px;
+      }
+
+      .interaction-hint {
+        margin-top: 7px;
+        white-space: normal;
+      }
+
+      .map-viewport { height: clamp(26rem, 68svh, 36rem); }
     }
   </style>
-
-  <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@2.0.0/dist/maplibre-gl.css' />
-  <script src='https://unpkg.com/maplibre-gl@2.0.0/dist/maplibre-gl.js'></script>
-  <script src="https://unpkg.com/@tmcw/togeojson"></script>
 </head>
 
 <body>
+  <main class="kml-demo">
+    <div class="demo-layout">
+      <aside class="guide-panel" aria-labelledby="page-title">
+        <div class="guide-introduction">
+          <p class="section-label">Standalone MapLibre template</p>
+          <h1 class="guide-title" id="page-title">Render KML with MapLibre.</h1>
+          <p class="guide-summary">
+            Fetch a KML file, convert it to GeoJSON, and draw it on a token-free map. Hover to compare regions;
+            select one to inspect its attributes.
+          </p>
+          <ul class="feature-list" aria-label="Template features">
+            <li>No access token</li>
+            <li>KML → GeoJSON</li>
+            <li>Responsive extent</li>
+          </ul>
+        </div>
 
-  <div id="map-container"></div>
+        <section class="workflow" aria-labelledby="workflow-title">
+          <h2 id="workflow-title">Three steps</h2>
+          <ol>
+            <li>Fetch the KML as text.</li>
+            <li>Convert it with toGeoJSON.</li>
+            <li>Add layers and fit to the data.</li>
+          </ol>
+        </section>
+
+        <p class="reuse-note">
+          Reuse it by changing <code>KML_SOURCE_URL</code> and <code>MAP_COLORS</code>.
+          <a href="https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.kml">View the source KML</a>.
+        </p>
+      </aside>
+
+      <section class="map-panel" aria-labelledby="map-title">
+        <header class="map-header">
+          <div>
+            <p class="section-label">Live example</p>
+            <h2 class="map-title" id="map-title">Massachusetts regional transit boundaries</h2>
+          </div>
+          <p class="interaction-hint">Hover to highlight · select for details</p>
+        </header>
+
+        <div class="map-viewport">
+          <div id="map-container" role="region" aria-label="Interactive map of Massachusetts regional transit boundaries"></div>
+
+          <div class="load-status" id="load-status" data-state="loading" role="status" aria-live="polite">
+            <span class="load-status-dot" aria-hidden="true"></span>
+            <span id="load-status-text">Loading KML data…</span>
+          </div>
+
+          <div class="map-legend" aria-label="Map legend">
+            <span class="legend-item"><span class="legend-swatch" aria-hidden="true"></span>Service area</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--highlight" aria-hidden="true"></span>Hovered</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
 
   <script>
-    var map = new maplibregl.Map({
-      container: 'map-container',
-      center: [-71.698, 42.041],
-      zoom: 7.5,
-      style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-      maplibreLogo: true,
+    // -------------------------------------------------------------------------
+    // Template settings: these are the first values to change in a reuse.
+    // -------------------------------------------------------------------------
+    const KML_SOURCE_URL = "https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.kml";
+    const MAP_STYLE_URL = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+    const MAP_COLORS = {
+      boundary: "#11766f",
+      boundaryOutline: "#0c5754",
+      highlight: "#e9993e",
+      highlightOutline: "#9b5c16"
+    };
+
+    const SOURCE_ID = "transit-boundaries";
+    const FILL_LAYER_ID = "transit-boundaries-fill";
+    const OUTLINE_LAYER_ID = "transit-boundaries-outline";
+
+    const mapContainer = document.querySelector("#map-container");
+    const loadStatus = document.querySelector("#load-status");
+    const loadStatusText = document.querySelector("#load-status-text");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const map = new maplibregl.Map({
+      container: mapContainer,
+      center: [-71.8, 42.1], // Fallback view while the KML is loading.
+      zoom: 7,
+      style: MAP_STYLE_URL,
       attributionControl: true
     });
 
-    var popup = new maplibregl.Popup();
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    map.addControl(new maplibregl.FullscreenControl(), "top-right");
 
-    map.on('load', function () {
-      fetch('https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.kml')
-        .then(response => response.text())
-        .then(kml => {
-          var geojson = toGeoJSON.kml(new DOMParser().parseFromString(kml, 'text/xml'));
-          console.log("JSON data attribute name:", geojson.name); // Log the JSON data attribute name
-          console.log("Feature Collection data:", geojson); // Log the Feature Collection data
-          map.addSource('kml-source', {
-            type: 'geojson',
-            data: geojson,
-            generateId: true
-          });
-
-          map.addLayer({
-            id: 'kml-layer',
-            type: 'fill',
-            source: 'kml-source',
-            paint: {
-              'fill-color': 'red',
-              'fill-opacity': 0.8
-            }
-          });
-
-          map.on('mouseenter', 'kml-layer', function (e) {
-            var properties = e.features[0].properties;
-            var popupContent = "<div>";
-            for (var prop in properties) {
-              popupContent += "<p><strong>" + prop + ":</strong> " + properties[prop] + "</p>";
-            }
-            popupContent += "</div>";
-            popup.setLngLat(e.lngLat)
-              .setHTML(popupContent)
-              .addTo(map);
-          });
-
-          map.on('mousemove', 'kml-layer', function (e) {
-            var featureId = e.features[0].id;
-            map.setPaintProperty('kml-layer', 'fill-color', ['match', ['id'], featureId, 'blue', 'red']);
-          });
-
-          map.on('mouseleave', 'kml-layer', function () {
-            map.setPaintProperty('kml-layer', 'fill-color', 'red');
-            popup.remove();
-          });
-
-        });
+    const featurePopup = new maplibregl.Popup({
+      closeButton: true,
+      closeOnClick: true,
+      maxWidth: "310px",
+      offset: 12
     });
-  </script>
 
+    let hoveredFeatureId = null;
+    let kmlBounds = null;
+    let resizeDebounce = null;
+
+    function updateLoadStatus(message, state) {
+      loadStatusText.textContent = message;
+      loadStatus.dataset.state = state;
+    }
+
+    // GeoJSON coordinates can be nested to different depths. Recursion handles
+    // points, lines, polygons, and multi-geometries with the same small helper.
+    function extendBoundsWithCoordinates(bounds, coordinates) {
+      if (!Array.isArray(coordinates)) return;
+
+      if (typeof coordinates[0] === "number" && typeof coordinates[1] === "number") {
+        bounds.extend([coordinates[0], coordinates[1]]);
+        return;
+      }
+
+      coordinates.forEach((coordinate) => extendBoundsWithCoordinates(bounds, coordinate));
+    }
+
+    function getFeatureCollectionBounds(featureCollection) {
+      const bounds = new maplibregl.LngLatBounds();
+      featureCollection.features.forEach((feature) => {
+        extendBoundsWithCoordinates(bounds, feature.geometry?.coordinates);
+      });
+      return bounds;
+    }
+
+    // Calculate a centered camera from the complete dataset, then pull back a
+    // little farther. The extra zoom-out keeps the state clear of every edge.
+    function fitMapToKml(duration = 0) {
+      if (!kmlBounds || kmlBounds.isEmpty()) return;
+
+      const padding = Math.max(44, Math.min(82, mapContainer.clientWidth * 0.08));
+      const fittedCamera = map.cameraForBounds(kmlBounds, {
+        padding,
+        maxZoom: 9
+      });
+      if (!fittedCamera) return;
+
+      map.easeTo({
+        center: fittedCamera.center,
+        zoom: fittedCamera.zoom - 0.35,
+        bearing: 0,
+        pitch: 0,
+        duration: prefersReducedMotion ? 0 : duration
+      });
+    }
+
+    function formatPropertyLabel(propertyName) {
+      return propertyName
+        .replace(/[_-]+/g, " ")
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/^./, (character) => character.toUpperCase());
+    }
+
+    function formatPropertyValue(value) {
+      if (typeof value === "string") {
+        // Some KML descriptions contain markup. Read only their text content.
+        const parsedHtml = new DOMParser().parseFromString(value, "text/html");
+        return parsedHtml.body.textContent.trim();
+      }
+      if (value && typeof value === "object") return JSON.stringify(value);
+      return String(value);
+    }
+
+    // Build popup nodes with textContent so values from the KML are not treated
+    // as executable HTML.
+    function createFeaturePopup(feature) {
+      const properties = feature.properties ?? {};
+      const possibleTitleKeys = ["name", "Name", "NAME", "title", "Title"];
+      const titleKey = possibleTitleKeys.find((key) => properties[key]);
+      const hiddenProperties = new Set([
+        titleKey,
+        "styleUrl",
+        "styleHash",
+        "styleMapHash",
+        "stroke",
+        "stroke-opacity",
+        "stroke-width",
+        "fill",
+        "fill-opacity",
+        "visibility"
+      ]);
+
+      const popupContent = document.createElement("article");
+      popupContent.className = "feature-popup";
+
+      const popupTitle = document.createElement("h3");
+      popupTitle.textContent = titleKey ? formatPropertyValue(properties[titleKey]) : "Boundary details";
+      popupContent.append(popupTitle);
+
+      const visibleProperties = Object.entries(properties)
+        .filter(([key, value]) => !hiddenProperties.has(key) && value !== null && value !== "")
+        .slice(0, 10);
+
+      if (!visibleProperties.length) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "feature-popup-empty";
+        emptyMessage.textContent = "This feature has no additional attributes.";
+        popupContent.append(emptyMessage);
+        return popupContent;
+      }
+
+      const propertyList = document.createElement("dl");
+      visibleProperties.forEach(([key, value]) => {
+        const propertyLabel = document.createElement("dt");
+        const propertyValue = document.createElement("dd");
+        propertyLabel.textContent = formatPropertyLabel(key);
+        propertyValue.textContent = formatPropertyValue(value);
+        propertyList.append(propertyLabel, propertyValue);
+      });
+      popupContent.append(propertyList);
+      return popupContent;
+    }
+
+    function highlightFeature(featureId) {
+      if (hoveredFeatureId === featureId) return;
+
+      if (hoveredFeatureId !== null) {
+        map.setFeatureState({ source: SOURCE_ID, id: hoveredFeatureId }, { hover: false });
+      }
+
+      hoveredFeatureId = featureId;
+      if (hoveredFeatureId !== null) {
+        map.setFeatureState({ source: SOURCE_ID, id: hoveredFeatureId }, { hover: true });
+      }
+    }
+
+    function addBoundaryLayers(geojson) {
+      map.addSource(SOURCE_ID, {
+        type: "geojson",
+        data: geojson,
+        generateId: true
+      });
+
+      map.addLayer({
+        id: FILL_LAYER_ID,
+        type: "fill",
+        source: SOURCE_ID,
+        paint: {
+          "fill-color": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            MAP_COLORS.highlight,
+            MAP_COLORS.boundary
+          ],
+          "fill-opacity": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            0.58,
+            0.32
+          ]
+        }
+      });
+
+      map.addLayer({
+        id: OUTLINE_LAYER_ID,
+        type: "line",
+        source: SOURCE_ID,
+        paint: {
+          "line-color": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            MAP_COLORS.highlightOutline,
+            MAP_COLORS.boundaryOutline
+          ],
+          "line-opacity": 0.88,
+          "line-width": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            2.4,
+            1.1
+          ]
+        }
+      });
+    }
+
+    function addBoundaryInteractions() {
+      map.on("mousemove", FILL_LAYER_ID, (event) => {
+        map.getCanvas().style.cursor = "pointer";
+        highlightFeature(event.features?.[0]?.id ?? null);
+      });
+
+      map.on("mouseleave", FILL_LAYER_ID, () => {
+        map.getCanvas().style.cursor = "";
+        highlightFeature(null);
+      });
+
+      map.on("click", FILL_LAYER_ID, (event) => {
+        const selectedFeature = event.features?.[0];
+        if (!selectedFeature) return;
+
+        featurePopup
+          .setLngLat(event.lngLat)
+          .setDOMContent(createFeaturePopup(selectedFeature))
+          .addTo(map);
+      });
+    }
+
+    async function loadKmlDataset() {
+      try {
+        const response = await fetch(KML_SOURCE_URL);
+        if (!response.ok) throw new Error(`KML request failed with ${response.status}`);
+
+        const kmlText = await response.text();
+        const kmlDocument = new DOMParser().parseFromString(kmlText, "text/xml");
+        if (kmlDocument.querySelector("parsererror")) throw new Error("The KML response is not valid XML");
+
+        const geojson = toGeoJSON.kml(kmlDocument);
+        if (!geojson.features.length) throw new Error("The KML contains no supported features");
+
+        addBoundaryLayers(geojson);
+        addBoundaryInteractions();
+        kmlBounds = getFeatureCollectionBounds(geojson);
+        fitMapToKml(700);
+        updateLoadStatus(`${geojson.features.length} boundaries loaded`, "ready");
+      } catch (error) {
+        console.error(error);
+        updateLoadStatus("Unable to load the KML source", "error");
+      }
+    }
+
+    map.on("load", loadKmlDataset);
+
+    // MapLibre responds to window resizes; ResizeObserver also covers layout
+    // changes caused by the guide panel or responsive breakpoint.
+    new ResizeObserver(() => {
+      map.resize();
+      window.clearTimeout(resizeDebounce);
+      resizeDebounce = window.setTimeout(() => fitMapToKml(), 120);
+    }).observe(mapContainer);
+  </script>
 </body>
 
 </html>

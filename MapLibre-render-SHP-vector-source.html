@@ -1,186 +1,843 @@
 <!doctype html>
-<html class="no-js" lang="">
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MapLibre render of SHP source data</title>
-  <!--<link rel="stylesheet" href="css/style.css">-->
-  <meta name="description" content="MapLibre render of SHP source data">
+  <meta name="description" content="A responsive, token-free MapLibre template that renders zipped shapefiles in the browser.">
+  <title>Render zipped shapefiles with MapLibre</title>
 
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
-  <meta property="og:image:alt" content="">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 
-<!--  <link rel="icon" href="/favicon.ico" sizes="any"> -->
-<!--  <link rel="icon" href="/icon.svg" type="image/svg+xml"> -->
-<!--  <link rel="apple-touch-icon" href="icon.png"> -->
-
-<!--  <  <link rel="manifest" href="site.webmanifest"> -->
-<!--  <  <meta name="theme-color" content="#fafafa"> -->
-
-  <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.0.2/dist/maplibre-gl.css' />
-  <script src='https://unpkg.com/maplibre-gl@4.0.2/dist/maplibre-gl.js'></script>
   <style>
-      body { margin: 0; padding: 0; }
-      html, body, #map-container { height: 80%; }
+    :root {
+      color-scheme: light;
+      --page: #edf2f4;
+      --panel: #ffffff;
+      --ink: #183441;
+      --muted: #607680;
+      --navy: #17384d;
+      --blue: #347d94;
+      --blue-dark: #24596b;
+      --blue-light: #bcdbe4;
+      --trail: #d86d4d;
+      --selected: #e8ad44;
+      --line: #d9e3e6;
+      --shadow: 0 20px 50px rgb(24 52 65 / 10%);
+      --radius-large: 24px;
+      --radius-medium: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--page);
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0 0, rgb(255 255 255 / 78%), transparent 34rem),
+        var(--page);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    a {
+      color: inherit;
+      text-underline-offset: 0.18em;
+    }
+
+    .page-shell {
+      width: min(1480px, calc(100% - clamp(24px, 5vw, 72px)));
+      margin-inline: auto;
+      padding-block: clamp(20px, 4vw, 52px);
+    }
+
+    .page-layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
+      gap: clamp(18px, 2.5vw, 34px);
+      align-items: stretch;
+    }
+
+    .intro {
+      display: flex;
+      flex-direction: column;
+      padding: clamp(26px, 3.5vw, 44px);
+      overflow: hidden;
+      color: #f7fbfc;
+      background: var(--navy);
+      border-radius: var(--radius-large);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow,
+    .map-kicker {
+      margin: 0 0 12px;
+      color: var(--blue-light);
+      font-size: 0.72rem;
+      font-weight: 750;
+      letter-spacing: 0.14em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 11ch;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.35rem, 4.5vw, 4.2rem);
+      font-weight: 500;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+    }
+
+    .lede {
+      margin: 24px 0 0;
+      color: #d6e5ea;
+      font-size: 1rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .tags li {
+      padding: 6px 10px;
+      color: #eef7f9;
+      background: rgb(255 255 255 / 8%);
+      border: 1px solid rgb(255 255 255 / 14%);
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 650;
+      line-height: 1;
+    }
+
+    .how-it-works {
+      margin-top: clamp(30px, 5vh, 52px);
+      padding-top: 24px;
+      border-top: 1px solid rgb(255 255 255 / 15%);
+    }
+
+    .how-it-works h2 {
+      margin: 0 0 13px;
+      color: var(--blue-light);
+      font-size: 0.77rem;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .how-it-works ol {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding-left: 1.25rem;
+      color: #d6e5ea;
+      font-size: 0.88rem;
+    }
+
+    .how-it-works li {
+      padding-left: 5px;
+    }
+
+    .how-it-works li::marker {
+      color: var(--blue-light);
+      font-weight: 800;
+    }
+
+    .template-note {
+      margin: auto 0 0;
+      padding-top: 32px;
+      color: #bed1d8;
+      font-size: 0.78rem;
+    }
+
+    .template-note code {
+      padding: 2px 5px;
+      color: #ffffff;
+      background: rgb(0 0 0 / 18%);
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+    }
+
+    .source-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      margin-top: 8px;
+    }
+
+    .map-card {
+      min-width: 0;
+      padding: 10px;
+      background: var(--panel);
+      border: 1px solid rgb(255 255 255 / 85%);
+      border-radius: var(--radius-large);
+      box-shadow: var(--shadow);
+    }
+
+    .map-toolbar {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+      padding: 12px 14px 16px;
+    }
+
+    .map-kicker {
+      margin-bottom: 5px;
+      color: var(--blue);
+    }
+
+    .map-toolbar h2 {
+      margin: 0;
+      font-size: clamp(1rem, 1.7vw, 1.28rem);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+
+    .interaction-hint {
+      flex: 0 0 auto;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .interaction-hint::before {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 7px;
+      background: var(--trail);
+      border-radius: 50%;
+      content: "";
+      vertical-align: 0.05em;
+    }
+
+    .map-frame {
+      position: relative;
+      height: clamp(28rem, calc(100svh - 9.5rem), 46rem);
+      min-height: 0;
+      overflow: hidden;
+      background: #e8eef0;
+      border-radius: var(--radius-medium);
+      isolation: isolate;
+    }
+
+    #map-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-status,
+    .map-legend {
+      position: absolute;
+      z-index: 2;
+      left: 14px;
+      max-width: calc(100% - 84px);
+      color: var(--ink);
+      background: rgb(255 255 255 / 92%);
+      border: 1px solid rgb(24 52 65 / 10%);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgb(24 52 65 / 12%);
+      backdrop-filter: blur(8px);
+    }
+
+    .map-status {
+      top: 14px;
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      padding: 9px 12px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      background: var(--selected);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgb(232 173 68 / 17%);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .map-status[data-state="ready"] .status-dot {
+      background: var(--blue);
+      box-shadow: 0 0 0 4px rgb(52 125 148 / 14%);
+      animation: none;
+    }
+
+    .map-status[data-state="error"] .status-dot {
+      background: #b8473d;
+      box-shadow: 0 0 0 4px rgb(184 71 61 / 14%);
+      animation: none;
+    }
+
+    .map-legend {
+      bottom: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px 14px;
+      align-items: center;
+      padding: 8px 11px;
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 13px;
+      height: 13px;
+      background: rgb(52 125 148 / 24%);
+      border: 1.5px solid var(--blue-dark);
+      border-radius: 3px;
+    }
+
+    .swatch--trail {
+      width: 16px;
+      height: 3px;
+      background: var(--trail);
+      border: 0;
+      border-radius: 999px;
+    }
+
+    .swatch--selected {
+      background: rgb(232 173 68 / 58%);
+      border-color: #966a18;
+    }
+
+    .maplibregl-ctrl-group {
+      overflow: hidden;
+      border: 1px solid rgb(24 52 65 / 10%);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgb(24 52 65 / 12%);
+    }
+
+    .maplibregl-popup {
+      z-index: 4;
+    }
+
+    .maplibregl-popup-content {
+      width: min(310px, calc(100vw - 48px));
+      max-height: min(350px, 58vh);
+      padding: 0;
+      overflow: auto;
+      color: var(--ink);
+      border-radius: 12px;
+      box-shadow: 0 14px 36px rgb(24 52 65 / 24%);
+    }
+
+    .maplibregl-popup-close-button {
+      top: 7px;
+      right: 7px;
+      width: 28px;
+      height: 28px;
+      color: var(--muted);
+      border-radius: 50%;
+      font-size: 1.25rem;
+    }
+
+    .popup-card {
+      padding: 18px;
+    }
+
+    .popup-card h3 {
+      margin: 0 32px 12px 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.18rem;
+      line-height: 1.2;
+    }
+
+    .popup-card dl {
+      display: grid;
+      grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
+      gap: 6px 12px;
+      margin: 0;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      font-size: 0.75rem;
+    }
+
+    .popup-card dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .popup-card dd {
+      min-width: 0;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .popup-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    @keyframes pulse {
+      50% { opacity: 0.45; }
+    }
+
+    @media (max-width: 960px) {
+      .page-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(230px, 0.7fr);
+        gap: 24px 38px;
+      }
+
+      h1 {
+        max-width: 12ch;
+        font-size: clamp(2.6rem, 8vw, 4.6rem);
+      }
+
+      .how-it-works {
+        margin-top: 0;
+        padding: 0 0 0 28px;
+        border-top: 0;
+        border-left: 1px solid rgb(255 255 255 / 15%);
+      }
+
+      .template-note {
+        grid-column: 1 / -1;
+        margin: 0;
+        padding-top: 0;
+      }
+
+      .map-frame {
+        height: clamp(28rem, 68svh, 42rem);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-shell {
+        width: min(100% - 20px, 1480px);
+        padding-block: 10px;
+      }
+
+      .intro {
+        display: flex;
+        padding: 28px 24px;
+        border-radius: 18px;
+      }
+
+      .how-it-works {
+        display: none;
+      }
+
+      .template-note {
+        margin-top: 28px;
+      }
+
+      .map-card {
+        border-radius: 18px;
+      }
+
+      .map-toolbar {
+        display: block;
+        padding-inline: 10px;
+      }
+
+      .interaction-hint {
+        margin-top: 8px;
+        white-space: normal;
+      }
+
+      .map-frame {
+        height: clamp(26rem, 68svh, 36rem);
+        border-radius: 12px;
+      }
+
+      .map-legend {
+        right: 14px;
+        bottom: 34px;
+        max-width: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <!-- Add site or application content here -->
-  <p></p>
+  <main class="page-shell">
+    <div class="page-layout">
+      <aside class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow">Standalone MapLibre template</p>
+          <h1 id="page-title">Open zipped shapefiles.</h1>
+          <p class="lede">
+            This single HTML file downloads two SHP archives, converts them to GeoJSON, and layers county polygons
+            with DCR trail lines—without a GIS server or access token.
+          </p>
+          <ul class="tags" aria-label="Template features">
+            <li>ZIP → GeoJSON</li>
+            <li>Multiple layers</li>
+            <li>No access token</li>
+          </ul>
+        </div>
 
-  <div id="map-container"></div>
+        <section class="how-it-works" aria-labelledby="how-title">
+          <h2 id="how-title">How it works</h2>
+          <ol>
+            <li>Fetch each zipped shapefile as an ArrayBuffer.</li>
+            <li>Parse and reproject the archives with shpjs.</li>
+            <li>Style polygon and line collections as separate MapLibre layers.</li>
+          </ol>
+        </section>
 
-  <script>
-      var map = new maplibregl.Map({
-          container: 'map-container',
-          center: [-71.698, 42.041],
-          zoom: 7.5,
-          style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-          maplibreLogo: true,
-          attributionControl: true
-      });
-  </script>
+        <div class="template-note">
+          To reuse the template, edit <code>DATASETS</code> and the preferred layer names near the top of the script.
+          A typical ZIP includes matching <code>.shp</code>, <code>.dbf</code>, and <code>.prj</code> files.
+          <div class="source-links">
+            <a href="https://s3.amazonaws.com/geospatial.data/usa/ma/counties.zip">County ZIP</a>
+            <a href="https://s3.amazonaws.com/geospatial.data/usa/ma/dcrtrails.zip">DCR trails ZIP</a>
+          </div>
+        </div>
+      </aside>
 
-  <script src='https://unpkg.com/shpjs@latest/dist/shp.js' type="module"></script>
+      <section class="map-card" aria-labelledby="map-title">
+        <header class="map-toolbar">
+          <div>
+            <p class="map-kicker">Live example</p>
+            <h2 id="map-title">Massachusetts counties + DCR trails</h2>
+          </div>
+          <p class="interaction-hint">Hover to highlight · select for details</p>
+        </header>
+
+        <div class="map-frame">
+          <div id="map-container" role="region" aria-label="Interactive map of Massachusetts counties and DCR trails"></div>
+
+          <div class="map-status" id="map-status" data-state="loading" role="status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="status-label">Loading two shapefile archives…</span>
+          </div>
+
+          <div class="map-legend" aria-label="Map legend">
+            <span class="legend-item"><span class="swatch" aria-hidden="true"></span>Counties</span>
+            <span class="legend-item"><span class="swatch swatch--trail" aria-hidden="true"></span>DCR trails</span>
+            <span class="legend-item"><span class="swatch swatch--selected" aria-hidden="true"></span>Hovered</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
 
   <script type="module">
-      // We can now use the shp object/methods here
-      console.log(shp);
-      window.shp = shp; // Add shp to global scope
-  
-      // Call loadData() after shp is defined
-      async function loadData() {
-          try {
-              // Load all files simultaneously
-              const promises = [
-                  //fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/RTA_Boundaries.zip").then(r => r.arrayBuffer()),
-                  //fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/BioMap3.zip").then(r => r.arrayBuffer()),
-                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/dcrtrails.zip").then(r => r.arrayBuffer()),
-                  fetch("https://s3.amazonaws.com/geospatial.data/usa/ma/counties.zip").then(r => r.arrayBuffer()),
-                  // Add more file URLs here if needed
-              ];
+    import shp from "https://unpkg.com/shpjs@6.2.0/dist/shp.esm.js";
 
-              // Wait for all promises to resolve
-              const results = await Promise.all(promises);
+    const DATASETS = {
+      counties: "https://s3.amazonaws.com/geospatial.data/usa/ma/counties.zip",
+      trails: "https://s3.amazonaws.com/geospatial.data/usa/ma/dcrtrails.zip"
+    };
+    const PREFERRED_LAYERS = {
+      counties: "COUNTIESSURVEY_POLYM_GENCOAST",
+      trails: "DCR_ROADS_TRAILS_ARC"
+    };
+    const IDS = {
+      countySource: "counties",
+      countyFill: "counties-fill",
+      countyOutline: "counties-outline",
+      trailSource: "dcr-trails",
+      trails: "dcr-trails-line"
+    };
 
-              // Parse each result
-              ///const rta_boundaries_interp = await shp.parseZip(results[0]);
-              //console.log('RTA Boundaries loaded successfully:', rta_boundaries_interp);
+    const mapElement = document.querySelector("#map-container");
+    const mapStatus = document.querySelector("#map-status");
+    const statusLabel = document.querySelector("#status-label");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-              //const BioMap3_interp = await shp.parseZip(results[1]);
-              //console.log('BioMap3 loaded successfully:', BioMap3_interp);
+    const map = new maplibregl.Map({
+      container: mapElement,
+      center: [-71.8, 42.1],
+      zoom: 7,
+      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+      attributionControl: true
+    });
 
-              const dcr_trails_interp = await shp.parseZip(results[0]);
-              console.log('DCR Trails loaded successfully:', dcr_trails_interp);
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    map.addControl(new maplibregl.FullscreenControl(), "top-right");
 
-              const counties_interp = await shp.parseZip(results[1]);
-              console.log('Counties loaded successfully:', counties_interp);
+    const popup = new maplibregl.Popup({
+      closeButton: true,
+      closeOnClick: true,
+      maxWidth: "320px",
+      offset: 12
+    });
 
-              // Add more data objects as needed
+    let hoveredFeature = null;
+    let dataBounds = null;
+    let resizeTimer = null;
 
-              // Print success message after all data objects are loaded
-              console.log('All data objects loaded successfully');
+    function setStatus(message, state) {
+      statusLabel.textContent = message;
+      mapStatus.dataset.state = state;
+    }
 
-              // Now that data is loaded, update the map
-              //updateMapLayers(rta_boundaries_interp);
-              updateMapLayers(counties_interp);
-              updateMapLayersDCRTrails(dcr_trails_interp);
-          } catch (error) {
-              // Print failure message if any data object failed to load
-              console.error('Failed to load data:', error);
-          }
+    async function loadArchive(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Shapefile request failed with ${response.status}`);
+      return shp(await response.arrayBuffer());
+    }
+
+    function getCollections(parsedArchive) {
+      return (Array.isArray(parsedArchive) ? parsedArchive : [parsedArchive])
+        .filter((collection) => collection?.type === "FeatureCollection");
+    }
+
+    function chooseCollection(parsedArchive, preferredName, geometryTypes) {
+      const collections = getCollections(parsedArchive);
+      const preferred = collections.find((collection) => collection.fileName === preferredName);
+      if (preferred) return preferred;
+
+      return collections.find((collection) =>
+        collection.features.some((feature) => geometryTypes.has(feature.geometry?.type))
+      );
+    }
+
+    function cleanCollection(collection, geometryTypes) {
+      return {
+        type: "FeatureCollection",
+        features: collection.features.filter((feature) => geometryTypes.has(feature.geometry?.type))
       };
+    }
 
-      // Call the loadData function
-      loadData();
+    function extendBounds(bounds, coordinates) {
+      if (!Array.isArray(coordinates)) return;
+      if (typeof coordinates[0] === "number" && typeof coordinates[1] === "number") {
+        bounds.extend([coordinates[0], coordinates[1]]);
+        return;
+      }
+      coordinates.forEach((coordinate) => extendBounds(bounds, coordinate));
+    }
 
-      //function updateMapLayers(rta_boundaries_interp) {
-         // // Add a new layer to visualize the polygon.
-         // map.addLayer({
-            //  'id': 'rta_boundaries_interp_fill',
-            //  'type': 'fill',
-            //  'source': {
-            //      'type': 'geojson',
-            //      'data': rta_boundaries_interp
-            //  },
-            //  'layout': {},
-            //  'paint': {
-            //      'fill-color': '#0080ff', // blue color fill
-             //     'fill-opacity': 0.5
-            //  }
-        //  });
-        //  // Add a black outline around the polygon.
-        //  map.addLayer({
-        //      'id': 'rta_boundaries_interp_outline',
-         //     'type': 'line',
-         //     'source': {
-         //         'type': 'geojson',
-         //         'data': rta_boundaries_interp
-         //     },
-         //     'layout': {},
-          //    'paint': {
-          //        'line-color': '#000',
-          //        'line-width': 3
-         //     }
-       //   });
-    //  }
+    function getBounds(featureCollection) {
+      const bounds = new maplibregl.LngLatBounds();
+      featureCollection.features.forEach((feature) => extendBounds(bounds, feature.geometry?.coordinates));
+      return bounds;
+    }
 
-    function updateMapLayers(counties_interp) {
-          // Add a new layer to visualize the polygon.
-          map.addLayer({
-              'id': 'counties_interp_fill',
-              'type': 'fill',
-              'source': {
-                  'type': 'geojson',
-                  'data': counties_interp[3]
-              },
-              'layout': {},
-              'paint': {
-                  'fill-color': '#0080ff', // blue color fill
-                  'fill-opacity': 0.2
-              }
-          });
-          // Add a black outline around the polygon.
-          map.addLayer({
-              'id': 'counties_interp_outline',
-              'type': 'line',
-              'source': {
-                  'type': 'geojson',
-                  'data': counties_interp[3]
-              },
-              'layout': {},
-              'paint': {
-                  'line-color': '#000',
-                  'line-width': 1
-              }
-          });
+    function fitMapToData(duration = 0) {
+      if (!dataBounds || dataBounds.isEmpty()) return;
+      const padding = Math.max(36, Math.min(82, mapElement.clientWidth * 0.08));
+      map.fitBounds(dataBounds, {
+        padding,
+        duration: prefersReducedMotion ? 0 : duration,
+        maxZoom: 10
+      });
+    }
+
+    function waitForSources(sourceIds) {
+      return new Promise((resolve) => {
+        function checkSources() {
+          if (!sourceIds.every((sourceId) => map.isSourceLoaded(sourceId))) return;
+          map.off("sourcedata", checkSources);
+          resolve();
+        }
+
+        map.on("sourcedata", checkSources);
+        checkSources();
+      });
+    }
+
+    function formatLabel(key) {
+      return key
+        .replace(/[_-]+/g, " ")
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/^./, (character) => character.toUpperCase());
+    }
+
+    function formatValue(value) {
+      if (typeof value === "number") return Number.isInteger(value) ? String(value) : value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      if (value && typeof value === "object") return JSON.stringify(value);
+      return String(value);
+    }
+
+    function buildPopup(feature, fallbackTitle) {
+      const properties = feature.properties ?? {};
+      const titleKeys = ["COUNTY", "NAME", "TRAIL_NAME", "name", "Name", "title"];
+      const titleKey = titleKeys.find((key) => properties[key]);
+      const ignoredKeys = new Set([titleKey, "OBJECTID", "SHAPE_AREA", "SHAPE_LEN"]);
+      const entries = Object.entries(properties)
+        .filter(([key, value]) => !ignoredKeys.has(key) && value !== null && value !== "")
+        .slice(0, 9);
+
+      const card = document.createElement("article");
+      card.className = "popup-card";
+
+      const heading = document.createElement("h3");
+      heading.textContent = titleKey ? formatValue(properties[titleKey]) : fallbackTitle;
+      card.append(heading);
+
+      if (!entries.length) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "popup-empty";
+        emptyMessage.textContent = "This feature has no additional attributes.";
+        card.append(emptyMessage);
+        return card;
       }
 
-      function updateMapLayersDCRTrails(dcrtrails_interp) {
-    // Now that dcrtrails_interp is an array of GeoJSON objects
-    dcrtrails_interp.forEach((geojson, index) => {
-        map.addLayer({
-            'id': `dcrtrails_outline_${index}`,
-            'type': 'line',
-            'source': {
-                'type': 'geojson',
-                'data': geojson
-            },
-            'layout': {},
-            'paint': {
-                'line-color': '#FF0000', // red color
-                'line-width': 3
-            }
-        });
-    });
-}
-  </script>
+      const details = document.createElement("dl");
+      entries.forEach(([key, value]) => {
+        const term = document.createElement("dt");
+        const description = document.createElement("dd");
+        term.textContent = formatLabel(key);
+        description.textContent = formatValue(value);
+        details.append(term, description);
+      });
+      card.append(details);
+      return card;
+    }
 
+    function setHoveredFeature(source, id) {
+      if (hoveredFeature?.source === source && hoveredFeature?.id === id) return;
+
+      if (hoveredFeature) {
+        map.setFeatureState(hoveredFeature, { hover: false });
+      }
+
+      hoveredFeature = source && id !== undefined && id !== null ? { source, id } : null;
+      if (hoveredFeature) {
+        map.setFeatureState(hoveredFeature, { hover: true });
+      }
+    }
+
+    function addHoverInteraction(layerId, sourceId) {
+      map.on("mousemove", layerId, (event) => {
+        map.getCanvas().style.cursor = "pointer";
+        setHoveredFeature(sourceId, event.features?.[0]?.id);
+      });
+
+      map.on("mouseleave", layerId, () => {
+        map.getCanvas().style.cursor = "";
+        setHoveredFeature(null, null);
+      });
+    }
+
+    function addMapLayers(counties, trails) {
+      map.addSource(IDS.countySource, { type: "geojson", data: counties, generateId: true });
+      map.addSource(IDS.trailSource, { type: "geojson", data: trails, generateId: true });
+
+      map.addLayer({
+        id: IDS.countyFill,
+        type: "fill",
+        source: IDS.countySource,
+        paint: {
+          "fill-color": ["case", ["boolean", ["feature-state", "hover"], false], "#e8ad44", "#347d94"],
+          "fill-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.48, 0.2]
+        }
+      });
+
+      map.addLayer({
+        id: IDS.countyOutline,
+        type: "line",
+        source: IDS.countySource,
+        paint: {
+          "line-color": ["case", ["boolean", ["feature-state", "hover"], false], "#966a18", "#24596b"],
+          "line-opacity": 0.9,
+          "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 2.3, 1.15]
+        }
+      });
+
+      map.addLayer({
+        id: IDS.trails,
+        type: "line",
+        source: IDS.trailSource,
+        paint: {
+          "line-color": ["case", ["boolean", ["feature-state", "hover"], false], "#e8ad44", "#d86d4d"],
+          "line-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.78],
+          "line-width": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            3.4,
+            ["interpolate", ["linear"], ["zoom"], 6, 0.65, 10, 1.25, 14, 2.5]
+          ]
+        }
+      });
+
+      addHoverInteraction(IDS.countyFill, IDS.countySource);
+      addHoverInteraction(IDS.trails, IDS.trailSource);
+
+      map.on("click", (event) => {
+        const feature = map.queryRenderedFeatures(event.point, {
+          layers: [IDS.trails, IDS.countyFill]
+        })[0];
+        if (!feature) return;
+
+        const fallbackTitle = feature.layer.id === IDS.trails ? "Trail details" : "County details";
+        popup.setLngLat(event.lngLat).setDOMContent(buildPopup(feature, fallbackTitle)).addTo(map);
+      });
+    }
+
+    async function loadData() {
+      try {
+        const [countyArchive, trailArchive] = await Promise.all([
+          loadArchive(DATASETS.counties),
+          loadArchive(DATASETS.trails)
+        ]);
+
+        const countyLayer = chooseCollection(countyArchive, PREFERRED_LAYERS.counties, new Set(["Polygon", "MultiPolygon"]));
+        const trailLayer = chooseCollection(trailArchive, PREFERRED_LAYERS.trails, new Set(["LineString", "MultiLineString"]));
+        if (!countyLayer || !trailLayer) throw new Error("A required geometry layer was not found in the archives");
+
+        const counties = cleanCollection(countyLayer, new Set(["Polygon", "MultiPolygon"]));
+        const trails = cleanCollection(trailLayer, new Set(["LineString", "MultiLineString"]));
+        if (!counties.features.length || !trails.features.length) throw new Error("A selected shapefile layer contains no supported features");
+
+        addMapLayers(counties, trails);
+        dataBounds = getBounds(counties);
+        fitMapToData(800);
+        await waitForSources([IDS.countySource, IDS.trailSource]);
+        setStatus(`${counties.features.length} counties · ${trails.features.length.toLocaleString()} trail segments`, "ready");
+      } catch (error) {
+        console.error(error);
+        setStatus("Unable to load the shapefile archives", "error");
+      }
+    }
+
+    map.on("load", loadData);
+
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => fitMapToData(), 120);
+    });
+    resizeObserver.observe(mapElement);
+  </script>
 </body>
 
 </html>
