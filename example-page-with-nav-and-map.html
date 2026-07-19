@@ -1,459 +1,840 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><a href="https://www.mass.gov/info-details/massgis-data-mhc-historic-inventory">MHC Historic Inventory</a></title>
-    <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet">
-    <style>
-        *,
-        *::after,
-        *::before {
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A single-file example combining responsive CSS Grid navigation, editorial content, and an interactive MapLibre map of Berkshire County ACECs.">
+  <title>Berkshire ACECs — a gridded map layout</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <style>
+    :root {
+      --ink: #17231f;
+      --muted: #61706a;
+      --paper: #f7f8f5;
+      --surface: #ffffff;
+      --line: #dce3de;
+      --green: #176b52;
+      --green-dark: #0f4e3d;
+      --green-soft: #e7f1ec;
+      --orange: #c65f35;
+      --shadow: 0 16px 38px rgb(23 35 31 / 9%);
+      --radius: 1rem;
+      --shell: min(1180px, calc(100% - 2rem));
+    }
 
-        :root {
-            --bar-width: 40px;
-            --bar-height: 6px;
-            --hamburger-gap: 4px;
-            --foreground: #333;
-            --background: white;
-            --hamburger-margin: 20px;
-            --animation-timing: 200ms ease-in-out;
-            --hamburger-height: calc(var(--bar-height) * 3 + var(--hamburger-gap) * 2);
-        }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
-        .header {
-            h1 {
-                color: lightgrey;
-                font-size: 2em;
-                font-weight: 400;
-                margin-top: 10px; /* Reset any potential inherited margins */
-                margin-bottom: 10px; /* Reset any potential inherited margins */
-            }
-            background-color: rgb(64, 64, 74);
-            padding: 0px 20px;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            display: flex;
-            justify-content: left;
-            align-items: center;
-            z-index: 800; /* Ensure the header stays on top of other content */
-        }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 400 1rem/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-        .hamburger-menu {
-            --x-width: calc(var(--hamburger-height) * 1.41421356237);
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: var(--green-dark); text-underline-offset: .18em; }
+    a:hover { text-decoration-thickness: 2px; }
 
-            display: flex;
-            flex-direction: column;
-            gap: var(--hamburger-gap);
-            width: max-content;
-            position: absolute;
-            right: var(--hamburger-margin);
-            z-index: 2;
-            cursor: pointer;
-            --foreground: lightgrey;
-            --background: #333;
-        }
+    :focus-visible {
+      outline: 3px solid rgb(198 95 53 / 45%);
+      outline-offset: 3px;
+    }
 
-        .hamburger-menu:has(input:checked) {
-            --foreground: lightgrey;
-            --background: #333;
-        }
+    /* The sticky header demonstrates navigation that remains independent of the map. */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgb(220 227 222 / 90%);
+      background: rgb(247 248 245 / 92%);
+      backdrop-filter: blur(14px);
+    }
 
-        .hamburger-menu:has(input:focus-visible)::before,
-        .hamburger-menu:has(input:focus-visible)::after,
-        .hamburger-menu input:focus-visible {
-            border: 1px solid var(--background);
-            box-shadow: 0 0 0 1px var(--foreground);
-        }
+    .header-inner {
+      width: var(--shell);
+      min-height: 4.25rem;
+      margin-inline: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
 
-        .hamburger-menu::before,
-        .hamburger-menu::after,
-        .hamburger-menu input {
-            content: "";
-            width: var(--bar-width);
-            height: var(--bar-height);
-            background-color: var(--foreground);
-            border-radius: 9999px;
-            transform-origin: left center;
-            transition: opacity var(--animation-timing), width var(--animation-timing),
-            rotate var(--animation-timing), translate var(--animation-timing),
-            background-color var(--animation-timing);
-        }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      color: var(--ink);
+      font-weight: 750;
+      text-decoration: none;
+      letter-spacing: -.02em;
+    }
 
-        .hamburger-menu input {
-            appearance: none;
-            padding: 0;
-            margin: 0;
-            outline: none;
-            pointer-events: none;
-        }
+    .brand-mark {
+      width: 1.8rem;
+      aspect-ratio: 1;
+      border-radius: 45% 55% 58% 42%;
+      background: var(--green);
+      box-shadow: inset -.35rem -.3rem 0 rgb(255 255 255 / 16%);
+      transform: rotate(-12deg);
+    }
 
-        .hamburger-menu:has(input:checked)::before {
-            rotate: 45deg;
-            width: var(--x-width);
-            translate: 0 calc(var(--bar-height) / -2);
-        }
+    .desktop-nav { display: flex; gap: 1.4rem; }
+    .desktop-nav a, .mobile-nav a {
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    .desktop-nav a:hover, .mobile-nav a:hover { color: var(--green-dark); }
 
-        .hamburger-menu:has(input:checked)::after {
-            rotate: -45deg;
-            width: var(--x-width);
-            translate: 0 calc(var(--bar-height) / 2);
-        }
+    .menu-button {
+      display: none;
+      align-items: center;
+      gap: .5rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .5rem .75rem;
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+    }
 
-        .hamburger-menu input:checked {
-            opacity: 0;
-            width: 0;
-        }
+    .menu-icon, .menu-icon::before, .menu-icon::after {
+      width: 1rem;
+      height: 1.5px;
+      display: block;
+      background: currentColor;
+      content: "";
+    }
+    .menu-icon { position: relative; }
+    .menu-icon::before { position: absolute; top: -.3rem; }
+    .menu-icon::after { position: absolute; top: .3rem; }
 
-        .sidebar {
-            transition: transform var(--animation-timing);
-            transform: translateX(100%);
-            padding: 0.5rem 1rem;
-            padding-top: calc(var(--hamburger-height) + var(--hamburger-margin) + 1rem);
-            /*background-color: var(--foreground);*/
-            /*color: var(--background);*/
-            color: lightgrey;
-            background-color: rgb(64, 64, 74);
-            max-width: 20rem;
-            min-height: 100vh;
-            position: fixed;
-            top: 0;
-            right: 0;
-            z-index: 1; /* Ensure sidebar is behind the hamburger menu */
-        }
+    .mobile-nav {
+      width: var(--shell);
+      margin-inline: auto;
+      padding: 0 0 1rem;
+    }
+    .mobile-nav[hidden] { display: none; }
+    .mobile-nav a { display: block; padding: .55rem 0; }
 
-        .hamburger-menu input:checked ~ .sidebar {
-            transform: translateX(0);
-        }
+    main { overflow: hidden; }
+    section { scroll-margin-top: 5rem; }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow-x: hidden;
-        }
+    /* A reusable 12-column grid controls the larger editorial composition. */
+    .layout-grid {
+      width: var(--shell);
+      margin-inline: auto;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
 
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            /*height: 100vh;*/
-            margin-top: 65px; /* Allow nav to account for sticky header */
-        }
+    .hero { padding-block: clamp(4rem, 9vw, 7.5rem) clamp(3.25rem, 7vw, 5.5rem); }
+    .hero-copy { grid-column: 1 / span 7; align-self: center; }
 
-        .page {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-wrap: wrap;
-        }
+    .eyebrow {
+      margin: 0 0 .8rem;
+      color: var(--green);
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
 
-        .column {
-            flex: 1;
-            min-width: 0; /* Allow content to overflow */
-        }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 12ch;
+      margin-bottom: 1.25rem;
+      font-size: clamp(2.8rem, 7vw, 5.7rem);
+      line-height: .98;
+      letter-spacing: -.065em;
+    }
+    h2 {
+      margin-bottom: .75rem;
+      font-size: clamp(1.75rem, 3.5vw, 2.7rem);
+      line-height: 1.08;
+      letter-spacing: -.04em;
+    }
+    h3 { margin-bottom: .35rem; font-size: 1.03rem; line-height: 1.25; }
 
-        .cell {
-            background-color: lightblue;
-            padding: 10px;
-            margin: 2px;
-            text-align: left;
-            flex-grow: 1; /* Ensure equal height for cells within a row */
-            border: 3px solid #2e86bb;
-            color: white;
-            font-size: 14px;
-            /*position: relative;*/
-            /*overflow: hidden;*/ /* Prevent map from overflowing its container */
-        }
+    .lede {
+      max-width: 62ch;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+    }
 
-        .col-30 {
-            flex-basis: 30%;
-        }
+    .context-card {
+      grid-column: 9 / -1;
+      align-self: end;
+      border-top: 3px solid var(--green);
+      padding: 1.4rem;
+      border-radius: 0 0 var(--radius) var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .context-card p { color: var(--muted); font-size: .94rem; }
+    .context-card p:last-child { margin-bottom: 0; }
 
-        .col-70 {
-            flex-basis: 70%;
-        }
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .75rem;
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .stat strong { display: block; font-size: 1.6rem; line-height: 1; }
+    .stat span { color: var(--muted); font-size: .7rem; line-height: 1.2; }
 
-        .col-50 {
-            flex-basis: 50%;
-        }
+    .section-heading { grid-column: 1 / span 8; margin-bottom: .75rem; }
+    .section-heading p { max-width: 64ch; margin-bottom: 0; color: var(--muted); }
 
-        .col-80 {
-            flex-basis: 80%;
-        }
+    .map-section { padding-block: 1rem 5.5rem; }
 
-        .col-20 {
-            flex-basis: 20%;
-        }
+    /* The map itself sits in a nested grid: controls at left, visualization at right. */
+    .map-layout {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(15rem, 3fr) minmax(0, 9fr);
+      min-height: 640px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + .25rem);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
 
-        /* Adjust margin for sectionFive when scrolling */
-        #sectionFive {
-            scroll-margin-top: 65px; /* Add margin when scrolling to this section */
-        }
+    .map-panel {
+      padding: 1.4rem;
+      border-right: 1px solid var(--line);
+      background: #fbfcfa;
+    }
+    .map-panel > p { margin-bottom: 1.2rem; color: var(--muted); font-size: .87rem; }
 
+    fieldset { margin: 0 0 1.25rem; padding: 0; border: 0; }
+    legend {
+      width: 100%;
+      margin-bottom: .55rem;
+      color: var(--ink);
+      font-size: .73rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
 
-        #map {
-            /*width: 100%;*/ /* Set map width to 100% of its container */
-            height: 99%; /* Set map height to 100% of its container */
-            z-index: 0; /* Ensure sidebar is behind the hamburger menu */
-        }
-    </style>
+    .choice-list { display: grid; gap: .2rem; }
+    .choice {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      min-height: 2rem;
+      color: var(--muted);
+      font-size: .88rem;
+      cursor: pointer;
+    }
+    .choice input { accent-color: var(--green); }
+
+    .shortcut-list { display: grid; gap: .45rem; }
+    .shortcut {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: .65rem;
+      padding: .55rem .65rem;
+      color: var(--ink);
+      background: var(--surface);
+      text-align: left;
+      line-height: 1.25;
+      cursor: pointer;
+    }
+    .shortcut:hover, .shortcut.is-active { border-color: var(--green); color: var(--green-dark); background: var(--green-soft); }
+    .loading-copy { color: var(--muted); font-size: .82rem; }
+
+    .map-frame { position: relative; min-width: 0; min-height: 640px; }
+    #map { position: absolute; inset: 0; }
+
+    .map-caption {
+      position: absolute;
+      z-index: 2;
+      top: 1rem;
+      left: 1rem;
+      max-width: calc(100% - 5.5rem);
+      padding: .65rem .8rem;
+      border: 1px solid rgb(220 227 222 / 90%);
+      border-radius: .75rem;
+      background: rgb(255 255 255 / 92%);
+      box-shadow: 0 7px 20px rgb(23 35 31 / 12%);
+      pointer-events: none;
+    }
+    .map-caption strong { display: block; font-size: .85rem; }
+    .map-status { display: block; color: var(--muted); font-size: .72rem; }
+
+    .legend {
+      position: absolute;
+      z-index: 2;
+      left: 1rem;
+      bottom: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      padding: .55rem .7rem;
+      border-radius: .65rem;
+      background: rgb(255 255 255 / 92%);
+      color: var(--muted);
+      font-size: .72rem;
+      box-shadow: 0 7px 20px rgb(23 35 31 / 12%);
+      pointer-events: none;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: .35rem; }
+    .swatch { width: 1rem; height: .65rem; border-radius: .15rem; background: rgb(23 107 82 / 38%); border: 1.5px solid var(--green); }
+    .swatch.town { height: 0; border: 0; border-top: 2px dashed var(--orange); border-radius: 0; background: none; }
+
+    .places-section { padding-block: 1rem 5.5rem; }
+    .places-intro { grid-column: 1 / span 4; }
+    .places-intro p { color: var(--muted); }
+    .places-intro .small { font-size: .82rem; }
+
+    /* This second nested grid demonstrates repeating content without flattening the page. */
+    .place-grid {
+      grid-column: 6 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .8rem;
+    }
+
+    .place-card {
+      min-height: 10.5rem;
+      display: flex;
+      flex-direction: column;
+      padding: 1.05rem;
+      border: 1px solid var(--line);
+      border-radius: .85rem;
+      background: var(--surface);
+    }
+    .place-card p { margin-bottom: .8rem; color: var(--muted); font-size: .83rem; }
+    .place-card button {
+      align-self: flex-start;
+      margin-top: auto;
+      border: 0;
+      padding: 0;
+      color: var(--green-dark);
+      background: transparent;
+      font-size: .82rem;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .place-card button:hover { text-decoration: underline; text-underline-offset: .2em; }
+
+    .notes-section { padding-block: 1rem 5.5rem; }
+    .note-primary, .note-source { padding-top: 1.3rem; border-top: 1px solid var(--line); }
+    .note-primary { grid-column: 1 / span 7; }
+    .note-source { grid-column: 9 / -1; }
+    .note-primary p, .note-source p { margin-bottom: .7rem; color: var(--muted); font-size: .91rem; }
+    .note-source ul { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: .85rem; }
+
+    footer {
+      width: var(--shell);
+      margin-inline: auto;
+      padding-block: 1.5rem 2.5rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    /* Popup content is styled here; its text is assembled safely with DOM methods in JS. */
+    .maplibregl-popup-content { min-width: 220px; padding: 1rem; border-radius: .75rem; box-shadow: var(--shadow); }
+    .popup-kicker { margin: 0 0 .25rem; color: var(--green); font-size: .67rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .popup-title { margin: 0 0 .45rem; font-size: 1rem; }
+    .popup-copy { margin: .2rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.4; }
+    .maplibregl-ctrl-attrib { font-size: 10px; }
+
+    @media (max-width: 900px) {
+      .desktop-nav { display: none; }
+      .menu-button { display: inline-flex; }
+      .hero-copy, .context-card, .section-heading, .places-intro, .place-grid, .note-primary, .note-source { grid-column: 1 / -1; }
+      .hero-copy { grid-column-end: span 9; }
+      .context-card { margin-top: 1.5rem; }
+      .map-layout { grid-template-columns: 1fr; }
+      .map-panel { border-right: 0; border-bottom: 1px solid var(--line); }
+      .map-panel .control-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+      .map-frame { min-height: min(68svh, 620px); }
+      .place-grid { margin-top: .75rem; }
+    }
+
+    @media (max-width: 620px) {
+      :root { --shell: min(100% - 1.25rem, 1180px); }
+      .layout-grid { gap: 1rem; }
+      .hero { padding-top: 3.5rem; }
+      .hero-copy { grid-column: 1 / -1; }
+      h1 { font-size: clamp(2.65rem, 14vw, 4.4rem); }
+      .map-layout { min-height: 0; border-radius: var(--radius); }
+      .map-panel .control-columns { grid-template-columns: 1fr 1fr; }
+      .shortcut-fieldset { grid-column: 1 / -1; }
+      .shortcut-list { grid-template-columns: 1fr 1fr; }
+      .map-frame { min-height: 72svh; }
+      .place-grid { grid-template-columns: 1fr; }
+      .map-caption { top: .65rem; left: .65rem; }
+      .legend { left: .65rem; bottom: .65rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>MHC Historic Inventory</h1>
-        <label class="hamburger-menu">
-            <input type="checkbox" id="toggle-sidebar" />
-        </label>
+  <!-- Everything specific to this demo lives in this file; only map libraries, tiles, and data are fetched. -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#overview" aria-label="Berkshire ACECs home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Berkshire ACECs</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="#overview">Overview</a>
+        <a href="#explore">Map</a>
+        <a href="#places">Places</a>
+        <a href="#notes">Data notes</a>
+      </nav>
+      <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="mobile-nav">
+        <span class="menu-icon" aria-hidden="true"></span>
+        Menu
+      </button>
     </div>
-    
-    <aside class="sidebar">
-        <nav>
-            <div>This</div>
-            <div><a href="#sectionFive">Go to Section Five</a></div>
-            <div>The</div>
-            <div>Sidebar</div>
-        </nav>
-    </aside>
-    
-    <div class="container">
-        <div class="page">
-            <div class="column col-30">
-                <div class="cell" data-label="One">
+    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+      <a href="#overview">Overview</a>
+      <a href="#explore">Map</a>
+      <a href="#places">Places</a>
+      <a href="#notes">Data notes</a>
+    </nav>
+  </header>
 
-             <div id="image-input-container">
-                    <label for="imageSelection"><strong>Select Image:</strong></label><br/>
-                    <input type="radio" id="clear" name="imageSelection" value="clear" checked>
-                    <label for="clear">Clear</label>
-                    <input type="radio" id="2019" name="imageSelection" value="2019">
-                    <label for="2019">2019</label>
-                    <input type="radio" id="2021" name="imageSelection" value="2021">
-                    <label for="2021">2021</label>
-                    <input type="radio" id="elevation" name="imageSelection" value="elevation">
-                    <label for="elevation">Elevation</label>
-              </div>
-              <p></p>
-              <div id="layer-input-container">
-                <label for="layerSelection"><strong>Select Layer:</strong></label><br/>
-                <label for="berkshire_towns">Towns</label>
-                <input type="checkbox" id="berkshire_towns" name="layerSelection" value="berkshire_towns" checked>
-                
-                <label for="berkshires_acecs_poly">ACECS</label>
-                <input type="checkbox" id="berkshires_acecs_poly" name="layerSelection" value="berkshires_acecs_poly" checked>
-              </div>
-
-
-                </div>
-            </div>
-            <div class="column col-70">
-                <div id="map" class="cell" data-label="Two"></div>
-            </div>
-            <div class="column col-50">
-                <div class="cell" data-label="Three">Three</div>
-            </div>
-            <div class="column col-50">
-                <div class="cell" data-label="Four">Four</div>
-            </div>
+  <main>
+    <section class="hero layout-grid" id="overview" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow">A single-file layout study</p>
+        <h1 id="page-title">Critical landscapes in the Berkshires.</h1>
+        <p class="lede">A responsive editorial grid, conventional page navigation, and an interactive map work together without turning the map into the entire interface.</p>
+      </div>
+      <aside class="context-card" aria-label="About Areas of Critical Environmental Concern">
+        <p class="eyebrow">Why these areas matter</p>
+        <p>Massachusetts designates Areas of Critical Environmental Concern for the quality, uniqueness, and significance of their natural and cultural resources. Designation supports stewardship and stricter review of some projects under state jurisdiction.</p>
+        <p><a href="https://www.mass.gov/info-details/massgis-data-areas-of-critical-environmental-concern" target="_blank" rel="noreferrer">Read the official MassGIS description <span aria-hidden="true">↗</span></a></p>
+        <div class="stat-row" aria-label="Map data summary">
+          <div class="stat"><strong id="acec-count">—</strong><span>named ACECs</span></div>
+          <div class="stat"><strong id="segment-count">—</strong><span>town segments</span></div>
+          <div class="stat"><strong id="town-count">—</strong><span>town boundaries</span></div>
         </div>
-        <div class="page" id="sectionFive">
-            <div class="column col-80">
-                <div class="cell" data-label="Five">Five</div>
-            </div>
-            <div class="column col-20">
-                <div class="cell" data-label="Six">Six</div>
-            </div>
+      </aside>
+    </section>
+
+    <section class="map-section layout-grid" id="explore" aria-labelledby="map-title">
+      <header class="section-heading">
+        <p class="eyebrow">Explore the extract</p>
+        <h2 id="map-title">Map and controls, composed as content</h2>
+        <p>The control rail, map, legend, and status occupy distinct grid regions. Change the context layer, select an ACEC, or click a polygon for details from the displayed GeoJSON.</p>
+      </header>
+
+      <div class="map-layout">
+        <aside class="map-panel" aria-label="Map controls">
+          <h3>Map controls</h3>
+          <p>Reference layers add geographic context; they do not change the ACEC boundaries.</p>
+          <div class="control-columns">
+            <fieldset>
+              <legend>Background</legend>
+              <div class="choice-list">
+                <label class="choice"><input type="radio" name="imagery" value="none" checked> Street map</label>
+                <label class="choice"><input type="radio" name="imagery" value="massgis-2019"> 2019 imagery</label>
+                <label class="choice"><input type="radio" name="imagery" value="massgis-2021"> 2021 imagery</label>
+                <label class="choice"><input type="radio" name="imagery" value="massgis-elevation"> Elevation</label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Boundaries</legend>
+              <div class="choice-list">
+                <label class="choice"><input type="checkbox" id="toggle-acecs" checked> ACECs</label>
+                <label class="choice"><input type="checkbox" id="toggle-towns" checked> Towns</label>
+              </div>
+            </fieldset>
+
+            <fieldset class="shortcut-fieldset">
+              <legend>Go to an ACEC</legend>
+              <div class="shortcut-list" id="acec-shortcuts">
+                <span class="loading-copy">Loading places…</span>
+              </div>
+            </fieldset>
+          </div>
+        </aside>
+
+        <div class="map-frame">
+          <div class="map-caption">
+            <strong>Berkshire County ACEC extract</strong>
+            <span class="map-status" id="map-status" role="status" aria-live="polite">Loading map and data…</span>
+          </div>
+          <div id="map" aria-label="Interactive map of Berkshire County Areas of Critical Environmental Concern"></div>
+          <div class="legend" aria-label="Map legend">
+            <span><i class="swatch" aria-hidden="true"></i> ACEC</span>
+            <span><i class="swatch town" aria-hidden="true"></i> Town boundary</span>
+          </div>
         </div>
-    </div>
-    
-    
-    <script>
-        document.getElementById('toggle-sidebar').addEventListener('change', function() {
-            if (this.checked) {
-                document.querySelector('.sidebar').style.transform = 'translateX(0)';
-            } else {
-                document.querySelector('.sidebar').style.transform = 'translateX(100%)';
-            }
-        });
-    </script>
-    
+      </div>
+    </section>
 
-    
-    <script src="https://unpkg.com/maplibre-gl"></script>
+    <section class="places-section layout-grid" id="places" aria-labelledby="places-title">
+      <div class="places-intro">
+        <p class="eyebrow">Places in this map</p>
+        <h2 id="places-title">Five designations, many town segments</h2>
+        <p>The source extract stores an ACEC as one feature for each town it intersects. This list groups those pieces back into named places.</p>
+        <p class="small">Dates, mapped acreage, and intersected towns are read directly from the GeoJSON at runtime. Select a card to return to the map.</p>
+      </div>
+      <div class="place-grid" id="place-grid" aria-live="polite">
+        <p class="loading-copy">Loading ACEC details…</p>
+      </div>
+    </section>
 
+    <section class="notes-section layout-grid" id="notes" aria-labelledby="notes-title">
+      <div class="note-primary">
+        <p class="eyebrow">Read before using</p>
+        <h2 id="notes-title">A demonstration, not a regulatory map</h2>
+        <p>MassGIS states that these mapped boundaries are for planning purposes. Written designation documents—not this display—provide the definitive boundary description, and field review or ACEC program assistance may be needed.</p>
+      </div>
+      <aside class="note-source" aria-label="Sources and implementation notes">
+        <p><strong>Sources</strong></p>
+        <ul>
+          <li><a href="https://www.mass.gov/info-details/massgis-data-areas-of-critical-environmental-concern" target="_blank" rel="noreferrer">MassGIS ACEC data documentation</a></li>
+          <li><a href="https://www.mass.gov/info-details/ecology-and-the-acec-program" target="_blank" rel="noreferrer">Massachusetts ACEC Program</a></li>
+          <li>Berkshire town and ACEC GeoJSON extracts loaded from Berkshire Guide</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
 
+  <footer>
+    Single-file HTML example · CSS Grid + accessible navigation + MapLibre GL JS
+  </footer>
 
-    <script>
-        var map = new maplibregl.Map({
-            container: 'map',
-            center: [-71.698, 42.041],
-            zoom: 7.5,
-            style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-            maplibreLogo: true,
-            attributionControl: true
-        });
-      
-        var massgis_2021_wmts_view = (mapRef) => {
-      mapRef.addSource("massgis-2021-wmts", {
-        type: "raster",
-        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis-2021-wmts",
-        type: "raster",
-        source: "massgis-2021-wmts",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <script>
+    (() => {
+      "use strict";
 
-    var massgis_2019_wmts_view = (mapRef) => {
-      mapRef.addSource("massgis-2019-wmts", {
-        type: "raster",
-        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/USGS_Orthos_2019/MapServer/WMTS/tile/1.0.0/USGS_Orthos_2019/default/default028mm/{z}/{y}/{x}.jpg"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis-2019-wmts",
-        type: "raster",
-        source: "massgis-2019-wmts",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
+      const DATA_URLS = {
+        towns: "https://s3.amazonaws.com/berkshire.guide/maps/berkshire_towns.geojson",
+        acecs: "https://s3.amazonaws.com/berkshire.guide/maps/berkshires_acecs_poly.geojson"
+      };
 
-    var massgis_elevation_hillshade = (mapRef) => {
-      mapRef.addSource("massgis_elevation_hillshade", {
-        type: "raster",
-        tiles: ["https://tiles1.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/LiDAR_Elevation_Hillshade/MapServer/tile/{z}/{y}/{x}"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis_elevation_hillshade",
-        type: "raster",
-        source: "massgis_elevation_hillshade",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
-
-
-  var berkshire_towns_data, berkshires_acecs_poly_data;
-
-  // Define functions for adding and updating layers
-  var addOrUpdateLayer = (mapRef, layerId, sourceId, type, paint) => {
-    // Check if the source already exists
-    if (!mapRef.getSource(sourceId)) {
-      mapRef.addSource(sourceId, {
-        type: 'geojson',
-        data: sourceId === 'berkshire_towns' ? berkshire_towns_data : berkshires_acecs_poly_data
-      });
-    }
-
-    // Check if the layer already exists
-    if (!mapRef.getLayer(layerId)) {
-      mapRef.addLayer({
-        id: layerId,
-        type: type,
-        source: sourceId,
-        layout: {
-          visibility: 'visible'
+      const RASTER_LAYERS = [
+        {
+          id: "massgis-2019",
+          tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/USGS_Orthos_2019/MapServer/WMTS/tile/1.0.0/USGS_Orthos_2019/default/default028mm/{z}/{y}/{x}.jpg"]
         },
-        paint: paint
-      });
-    }
-  };
-
-  // Load data and initialize layers
-  var loadDataInitLayers = async () => {
-    berkshire_towns_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshire_towns.geojson').then(res => res.json());
-    berkshires_acecs_poly_data = await fetch('https://s3.amazonaws.com/berkshire.guide/maps/berkshires_acecs_poly.geojson').then(res => res.json());
-
-    addOrUpdateLayer(map, 'berkshire_towns', 'berkshire_towns', 'line', {
-      'line-color': 'orange',
-      'line-width': 1.5,
-      'line-opacity': 0.4
-    });
-
-    addOrUpdateLayer(map, 'berkshires_acecs_poly_fill', 'berkshires_acecs_poly', 'fill', {
-      'fill-color': '#EE4031',
-      'fill-opacity': 0.3
-    });
-
-    addOrUpdateLayer(map, 'berkshires_acecs_poly_line', 'berkshires_acecs_poly', 'line', {
-      'line-color': '#EE4031',
-      'line-width': 1.5,
-      'line-opacity': 0.4
-    });
-  }
-
-  // Function to set layer visibility
-   function setLayerVisibility(mapRef, layerId, visibility) {
-    console.log("Setting visibility for layer:", layerId, "to", visibility);
-    if (mapRef.getLayer(layerId)) {
-      mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Event listener for image selection changes
-    document.querySelectorAll('input[name="imageSelection"]').forEach(input => {
-      input.addEventListener('change', () => {
-        var layerSelection = input.value;
-
-        console.log("Selected value:", layerSelection);
-
-        // Set visibility for satellite layers
-        setLayerVisibility(map, "massgis-2021-wmts", layerSelection === "2021");
-        setLayerVisibility(map, "massgis-2019-wmts", layerSelection === "2019");
-        setLayerVisibility(map, "massgis_elevation_hillshade", layerSelection === "elevation");
-      });
-    });
-
-    // Event listener for checkbox changes
-    document.querySelectorAll('input[name="layerSelection"]').forEach(input => {
-      input.addEventListener('change', () => {
-        var isChecked = input.checked;
-        var layerSelection = input.value;
-
-        // Use the setLayerVisibility function for each layer
-        if (layerSelection === 'berkshire_towns') {
-          setLayerVisibility(map, 'berkshire_towns', isChecked);
-        } else if (layerSelection === 'berkshires_acecs_poly') {
-          setLayerVisibility(map, 'berkshires_acecs_poly_fill', isChecked);
-          setLayerVisibility(map, 'berkshires_acecs_poly_line', isChecked);
+        {
+          id: "massgis-2021",
+          tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"]
+        },
+        {
+          id: "massgis-elevation",
+          tiles: ["https://tiles1.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/LiDAR_Elevation_Hillshade/MapServer/tile/{z}/{y}/{x}"]
         }
-        // Add more layers....
+      ];
+
+      const status = document.querySelector("#map-status");
+      let acecFeatures = [];
+
+      /* A real button keeps the responsive navigation keyboard and screen-reader friendly. */
+      const menuButton = document.querySelector("#menu-button");
+      const mobileNav = document.querySelector("#mobile-nav");
+
+      function setMenu(open) {
+        menuButton.setAttribute("aria-expanded", String(open));
+        mobileNav.hidden = !open;
+      }
+
+      menuButton.addEventListener("click", () => setMenu(mobileNav.hidden));
+      mobileNav.addEventListener("click", event => {
+        if (event.target.matches("a")) setMenu(false);
       });
-    });
-  });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") setMenu(false);
+      });
 
-  // Event listener for map load
-  map.on('load', () => {
-    // Initialize layers with default visibility
-    massgis_2019_wmts_view(map);
-    massgis_2021_wmts_view(map);
-    massgis_elevation_hillshade(map);
+      const map = new maplibregl.Map({
+        container: "map",
+        /* An inline style removes one configuration request while raster tiles still provide context. */
+        style: {
+          version: 8,
+          sources: {
+            "carto-light": {
+              type: "raster",
+              tiles: ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"],
+              tileSize: 256,
+              maxzoom: 20,
+              attribution: "© OpenStreetMap contributors, © CARTO"
+            }
+          },
+          layers: [{ id: "carto-light", type: "raster", source: "carto-light" }]
+        },
+        center: [-73.17, 42.35],
+        zoom: 8.3,
+        maxZoom: 18,
+        attributionControl: true
+      });
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
-    // Set default image selection and layer visibility based on initial state
-    var defaultImageSelection = document.querySelector('input[name="imageSelection"]:checked').value;
-    document.querySelector('#' + defaultImageSelection).click(); // Trigger click event to initialize visibility
+      function setLayerVisibility(layerIds, visible) {
+        layerIds.forEach(id => {
+          if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+        });
+      }
 
-    loadDataInitLayers();
-  });
-      </script>
+      document.querySelectorAll('input[name="imagery"]').forEach(input => {
+        input.addEventListener("change", () => {
+          RASTER_LAYERS.forEach(layer => setLayerVisibility([layer.id], input.value === layer.id));
+        });
+      });
 
+      document.querySelector("#toggle-towns").addEventListener("change", event => {
+        setLayerVisibility(["town-boundaries"], event.target.checked);
+      });
+      document.querySelector("#toggle-acecs").addEventListener("change", event => {
+        setLayerVisibility(["acec-fill", "acec-outline", "acec-selection"], event.target.checked);
+      });
 
-    </body>
-    </html>
+      function addRasterLayers() {
+        RASTER_LAYERS.forEach(layer => {
+          map.addSource(layer.id, {
+            type: "raster",
+            tiles: layer.tiles,
+            tileSize: 256,
+            maxzoom: 20
+          });
+          map.addLayer({
+            id: layer.id,
+            type: "raster",
+            source: layer.id,
+            layout: { visibility: "none" },
+            paint: { "raster-opacity": 0.92 }
+          });
+        });
+      }
+
+      async function fetchJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Request failed (${response.status})`);
+        return response.json();
+      }
+
+      /* Geometry is nested differently for polygons and multipolygons, so recurse to every coordinate pair. */
+      function extendBounds(bounds, coordinates) {
+        if (typeof coordinates[0] === "number") {
+          bounds.extend(coordinates);
+          return;
+        }
+        coordinates.forEach(part => extendBounds(bounds, part));
+      }
+
+      function boundsFor(features) {
+        const bounds = new maplibregl.LngLatBounds();
+        features.forEach(feature => extendBounds(bounds, feature.geometry.coordinates));
+        return bounds;
+      }
+
+      function formatDate(value) {
+        if (!value) return "Date not listed";
+        const parts = String(value).split("/").map(Number);
+        if (parts.length === 3 && parts.every(Number.isFinite)) {
+          const year = parts[2] < 50 ? 2000 + parts[2] : (parts[2] < 100 ? 1900 + parts[2] : parts[2]);
+          return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" })
+            .format(new Date(year, parts[0] - 1, parts[1]));
+        }
+        return String(value);
+      }
+
+      function formatNumber(value) {
+        const number = Number(value);
+        return Number.isFinite(number) ? new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(number) : "Not listed";
+      }
+
+      function titleCase(value) {
+        return String(value || "").toLocaleLowerCase().replace(/\b\p{L}/gu, letter => letter.toLocaleUpperCase());
+      }
+
+      /* The extract contains town-clipped pieces. Grouping by NAME reconstructs one record per ACEC for the UI. */
+      function groupAcecs(features) {
+        const groups = new Map();
+        features.forEach(feature => {
+          const properties = feature.properties || {};
+          const name = properties.NAME || "Unnamed ACEC";
+          if (!groups.has(name)) {
+            groups.set(name, {
+              name,
+              date: properties.DES_DATE,
+              acres: properties.ACEC_ACRES,
+              region: properties.REGION,
+              towns: new Set()
+            });
+          }
+          if (properties.TOWN) groups.get(name).towns.add(titleCase(properties.TOWN));
+        });
+        return [...groups.values()]
+          .map(group => ({ ...group, towns: [...group.towns].sort() }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      function makeElement(tag, className, text) {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
+      }
+
+      function renderPlaces(groups, townCount, segmentCount) {
+        document.querySelector("#acec-count").textContent = groups.length;
+        document.querySelector("#segment-count").textContent = segmentCount;
+        document.querySelector("#town-count").textContent = townCount;
+
+        const shortcuts = document.querySelector("#acec-shortcuts");
+        const cards = document.querySelector("#place-grid");
+        shortcuts.replaceChildren();
+        cards.replaceChildren();
+
+        groups.forEach(group => {
+          const shortcut = makeElement("button", "shortcut", group.name);
+          shortcut.type = "button";
+          shortcut.dataset.acecName = group.name;
+          shortcuts.append(shortcut);
+
+          const card = makeElement("article", "place-card");
+          card.append(makeElement("h3", "", group.name));
+          card.append(makeElement("p", "", `${formatDate(group.date)} · ${formatNumber(group.acres)} mapped acres`));
+          card.append(makeElement("p", "", `Town segments: ${group.towns.join(", ")}.`));
+          const button = makeElement("button", "", "Locate on map →");
+          button.type = "button";
+          button.dataset.acecName = group.name;
+          card.append(button);
+          cards.append(card);
+        });
+      }
+
+      function selectAcec(name, moveMap = true) {
+        if (map.getLayer("acec-selection")) {
+          map.setFilter("acec-selection", ["==", ["get", "NAME"], name]);
+        }
+        document.querySelectorAll("[data-acec-name]").forEach(button => {
+          button.classList.toggle("is-active", button.dataset.acecName === name);
+        });
+        if (moveMap) {
+          const features = acecFeatures.filter(feature => feature.properties?.NAME === name);
+          if (features.length) map.fitBounds(boundsFor(features), { padding: 70, maxZoom: 12, duration: 900 });
+          document.querySelector("#explore").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      document.addEventListener("click", event => {
+        const button = event.target.closest("[data-acec-name]");
+        if (button) selectAcec(button.dataset.acecName);
+      });
+
+      /* Popup nodes use textContent rather than interpolated HTML so source attributes cannot inject markup. */
+      function popupFor(feature, type) {
+        const properties = feature.properties || {};
+        const article = makeElement("article", "popup");
+
+        if (type === "acec") {
+          article.append(makeElement("p", "popup-kicker", properties.REGION ? `${titleCase(properties.REGION)} ACEC` : "ACEC"));
+          article.append(makeElement("h3", "popup-title", properties.NAME || "Area of Critical Environmental Concern"));
+          article.append(makeElement("p", "popup-copy", `Designated ${formatDate(properties.DES_DATE)} · ${formatNumber(properties.ACEC_ACRES)} mapped acres`));
+          article.append(makeElement("p", "popup-copy", properties.TOWN ? `Displayed town segment: ${titleCase(properties.TOWN)}` : "Town segment not listed"));
+        } else {
+          article.append(makeElement("p", "popup-kicker", "Reference boundary"));
+          article.append(makeElement("h3", "popup-title", properties.TOWN ? titleCase(properties.TOWN) : "Berkshire town"));
+          article.append(makeElement("p", "popup-copy", `2010 population: ${formatNumber(properties.POP2010)}`));
+        }
+        return article;
+      }
+
+      function addInteractiveLayers(towns, acecs) {
+        map.addSource("towns", { type: "geojson", data: towns });
+        map.addSource("acecs", { type: "geojson", data: acecs });
+
+        map.addLayer({
+          id: "town-boundaries",
+          type: "line",
+          source: "towns",
+          paint: { "line-color": "#c65f35", "line-width": 1.2, "line-opacity": 0.62, "line-dasharray": [3, 2] }
+        });
+        map.addLayer({
+          id: "acec-fill",
+          type: "fill",
+          source: "acecs",
+          paint: { "fill-color": "#176b52", "fill-opacity": 0.32 }
+        });
+        map.addLayer({
+          id: "acec-outline",
+          type: "line",
+          source: "acecs",
+          paint: { "line-color": "#0f4e3d", "line-width": 1.7, "line-opacity": 0.9 }
+        });
+        map.addLayer({
+          id: "acec-selection",
+          type: "line",
+          source: "acecs",
+          filter: ["==", ["get", "NAME"], ""],
+          paint: { "line-color": "#ffffff", "line-width": 5, "line-opacity": 1 }
+        });
+
+        ["acec-fill", "town-boundaries"].forEach(layerId => {
+          map.on("mouseenter", layerId, () => { map.getCanvas().style.cursor = "pointer"; });
+          map.on("mouseleave", layerId, () => { map.getCanvas().style.cursor = ""; });
+        });
+
+        map.on("click", event => {
+          const features = map.queryRenderedFeatures(event.point, { layers: ["acec-fill", "town-boundaries"] });
+          const acec = features.find(feature => feature.layer.id === "acec-fill");
+          const town = features.find(feature => feature.layer.id === "town-boundaries");
+          const feature = acec || town;
+          if (!feature) return;
+
+          if (acec && acec.properties?.NAME) selectAcec(acec.properties.NAME, false);
+          new maplibregl.Popup({ offset: 10, maxWidth: "280px" })
+            .setLngLat(event.lngLat)
+            .setDOMContent(popupFor(feature, acec ? "acec" : "town"))
+            .addTo(map);
+        });
+      }
+
+      map.on("load", async () => {
+        try {
+          addRasterLayers();
+          const [towns, acecs] = await Promise.all([
+            fetchJSON(DATA_URLS.towns),
+            fetchJSON(DATA_URLS.acecs)
+          ]);
+          acecFeatures = acecs.features || [];
+          addInteractiveLayers(towns, acecs);
+
+          const groups = groupAcecs(acecFeatures);
+          renderPlaces(groups, towns.features?.length || 0, acecFeatures.length);
+          status.textContent = `${groups.length} ACECs · ${acecFeatures.length} town segments · click a feature`;
+
+          const allFeatures = [...(towns.features || []), ...acecFeatures];
+          if (allFeatures.length) map.fitBounds(boundsFor(allFeatures), { padding: 45, maxZoom: 9, duration: 0 });
+        } catch (error) {
+          console.error(error);
+          status.textContent = "The boundary data could not be loaded.";
+          document.querySelector("#acec-shortcuts").textContent = "Data unavailable";
+          document.querySelector("#place-grid").textContent = "The remote GeoJSON could not be loaded.";
+        }
+      });
+
+      /* Maps measure their container once; ResizeObserver keeps the canvas aligned as grid columns change. */
+      new ResizeObserver(() => map.resize()).observe(document.querySelector(".map-frame"));
+    })();
+  </script>
+</body>
+</html>

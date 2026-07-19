@@ -1,106 +1,344 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Two-Page Flex Grid</title>
-<style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A single-file flexbox experiment that presents one short data briefing across two viewport-like sections.">
+  <title>Multipage Flex — A Two-View Data Briefing</title>
+  <style>
+    :root {
+      --ink: #192327;
+      --muted: #657178;
+      --paper: #f5f7f7;
+      --surface: #ffffff;
+      --line: #dce3e4;
+      --blue: #23677a;
+      --blue-dark: #174958;
+      --blue-soft: #e5eff2;
+      --orange: #e17b50;
+      --yellow: #e6bf61;
+      --radius: 1rem;
+      --shadow: 0 15px 36px rgb(25 35 39 / 8%);
+      --shell: min(1140px, calc(100% - 2rem));
+      --header-height: 4rem;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+
     body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        overflow-x: hidden;
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 400 1rem/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    .container {
-        display: flex;
-        flex-wrap: wrap;
-        height: 100vh;
+    a { color: var(--blue-dark); text-underline-offset: .18em; }
+    :focus-visible { outline: 3px solid rgb(225 123 80 / 42%); outline-offset: 3px; }
+
+    /* A fixed flex header makes both viewport-like sections directly reachable. */
+    .site-header {
+      position: fixed;
+      z-index: 20;
+      inset: 0 0 auto;
+      min-height: var(--header-height);
+      border-bottom: 1px solid rgb(220 227 228 / 88%);
+      background: rgb(245 247 247 / 92%);
+      backdrop-filter: blur(12px);
     }
 
+    .header-inner {
+      width: var(--shell);
+      min-height: var(--header-height);
+      margin-inline: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand { color: var(--ink); font-weight: 780; letter-spacing: -.02em; text-decoration: none; }
+    .view-nav { display: flex; gap: .35rem; }
+    .view-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .42rem .7rem;
+      color: var(--muted);
+      background: var(--surface);
+      font-size: .76rem;
+      text-decoration: none;
+    }
+    .view-nav a:hover { border-color: var(--blue); color: var(--blue-dark); }
+    .view-nav span { color: var(--blue); font-weight: 800; }
+
+    /* Each page is at least one viewport tall and contains nested flex rows. */
     .page {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        flex-wrap: wrap;
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      scroll-snap-align: start;
+      scroll-margin-top: var(--header-height);
     }
 
-    .column {
-        flex: 1;
-        min-width: 0; /* Allow content to overflow */
+    .page:nth-child(even) { background: #edf2f2; }
+
+    .page-inner {
+      width: var(--shell);
+      min-height: 100svh;
+      margin-inline: auto;
+      padding-block: calc(var(--header-height) + 2rem) 2.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
-    .cell {
-        background-color: lightblue;
-        padding: 20px;
-        margin: 10px;
-        text-align: center;
-        flex-grow: 1; /* Ensure equal height for cells within a row */
-        border: 3px solid #2e86bb;
-        color: white;
-        font-size: 14px;
-        position: relative;
+    .page-label {
+      margin: 0 0 .8rem;
+      color: var(--blue);
+      font-size: .7rem;
+      font-weight: 820;
+      letter-spacing: .12em;
+      text-transform: uppercase;
     }
 
-    .cell::after {
-        position: absolute;
-        z-index: 1;
-        left: 0;
-        top: 100%;
-        margin-top: 10px;
-        width: 100%;
-        color: #333;
-        font-size: 12px;
-        content: attr(data-label);
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 10ch;
+      margin-bottom: 1rem;
+      font-size: clamp(2.7rem, 6vw, 5.2rem);
+      line-height: .98;
+      letter-spacing: -.065em;
+    }
+    h2 { margin-bottom: .6rem; font-size: clamp(1.7rem, 3.6vw, 2.8rem); line-height: 1.06; letter-spacing: -.045em; }
+    h3 { margin-bottom: .35rem; font-size: 1.02rem; }
+
+    .hero-row, .support-row, .method-row {
+      display: flex;
+      gap: 1rem;
+      align-items: stretch;
     }
 
-    .col-30 {
-        flex-basis: 30%;
+    .hero-row { min-height: 28rem; }
+    .support-row { margin-top: 1rem; }
+
+    /* These flex bases preserve the original experiment's 30/70 relationship. */
+    .briefing-panel {
+      flex: 3 1 0;
+      padding: clamp(1.4rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius);
+      color: white;
+      background: #193f4a;
+      box-shadow: var(--shadow);
+    }
+    .briefing-panel .page-label { color: #9acbd6; }
+    .briefing-panel > p:not(.page-label) { color: rgb(255 255 255 / 70%); }
+
+    .mini-stats {
+      margin-top: auto;
+      padding-top: 1.1rem;
+      display: flex;
+      gap: .75rem;
+      border-top: 1px solid rgb(255 255 255 / 16%);
+    }
+    .mini-stat { flex: 1 1 0; }
+    .mini-stat strong { display: block; font-size: 1.35rem; line-height: 1; }
+    .mini-stat span { display: block; margin-top: .3rem; color: rgb(255 255 255 / 58%); font-size: .64rem; }
+
+    .visual-panel {
+      flex: 7 1 0;
+      margin: 0;
+      padding: clamp(1.4rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .visual-panel figcaption { color: var(--muted); font-size: .85rem; }
+
+    .bar-chart {
+      flex: 1 1 auto;
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.2rem;
+    }
+    .bar-row { display: flex; align-items: center; gap: .75rem; font-size: .82rem; }
+    .bar-label { flex: 0 0 7rem; color: var(--muted); }
+    .bar-track { flex: 1 1 auto; height: 1rem; overflow: hidden; border-radius: 999px; background: #edf1f1; }
+    .bar { width: var(--value); height: 100%; border-radius: inherit; background: var(--blue); }
+    .bar-row:nth-child(2) .bar { background: var(--orange); }
+    .bar-row:nth-child(3) .bar { background: var(--yellow); }
+    .bar-value { flex: 0 0 2.4rem; font-weight: 760; text-align: right; }
+
+    /* A 50/50 flex row holds the interpretation beneath the main comparison. */
+    .support-card {
+      flex: 1 1 50%;
+      min-height: 9rem;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .support-card p { margin-bottom: 0; color: var(--muted); font-size: .88rem; }
+
+    /* View two uses the experiment's 80/20 relationship. */
+    .method-row { min-height: 34rem; }
+    .method-copy {
+      flex: 8 1 0;
+      padding: clamp(1.5rem, 4vw, 3rem);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .method-copy > p { max-width: 67ch; color: var(--muted); }
+
+    .principles { display: flex; gap: .75rem; margin-top: 2rem; }
+    .principle { flex: 1 1 0; padding-top: 1rem; border-top: 2px solid var(--blue); }
+    .principle span { display: block; margin-bottom: .3rem; color: var(--blue); font-size: .68rem; font-weight: 800; }
+    .principle p { margin: 0; color: var(--muted); font-size: .82rem; }
+
+    pre {
+      margin: 2rem 0 0;
+      overflow-x: auto;
+      border-radius: .75rem;
+      padding: 1rem;
+      color: #dceef2;
+      background: #1b3036;
+      font: .78rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
     }
 
-    .col-70 {
-        flex-basis: 70%;
+    .page-index {
+      flex: 2 1 0;
+      padding: 1.4rem;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius);
+      color: white;
+      background: var(--blue);
+    }
+    .page-index strong { font-size: clamp(3.5rem, 8vw, 6rem); line-height: 1; letter-spacing: -.07em; }
+    .page-index p { color: rgb(255 255 255 / 70%); font-size: .83rem; }
+    .page-index a { margin-top: auto; color: white; font-size: .8rem; font-weight: 750; }
+
+    .page-footer { margin-top: 1rem; color: var(--muted); font-size: .72rem; }
+
+    @media (max-width: 780px) {
+      html { scroll-snap-type: none; }
+      .page, .page-inner { min-height: auto; }
+      .page-inner { padding-block: calc(var(--header-height) + 1.25rem) 3rem; }
+      .hero-row, .support-row, .method-row, .principles { flex-direction: column; }
+      .hero-row, .method-row { min-height: 0; }
+      .briefing-panel, .visual-panel, .support-card, .method-copy, .page-index { flex-basis: auto; }
+      .briefing-panel { min-height: 25rem; }
+      .visual-panel { min-height: 23rem; }
+      .page-index { min-height: 14rem; }
+      .principle { flex-basis: auto; }
     }
 
-    .col-50 {
-        flex-basis: 50%;
+    @media (max-width: 520px) {
+      :root { --shell: min(100% - 1.25rem, 1140px); }
+      .view-nav b { display: none; }
+      .bar-label { flex-basis: 5.7rem; }
+      .mini-stats { gap: .45rem; }
     }
-
-    .col-80 {
-        flex-basis: 80%;
-    }
-
-    .col-20 {
-        flex-basis: 20%;
-    }
-
-</style>
+  </style>
 </head>
 <body>
-<div class="container">
-    <div class="page">
-        <div class="column col-30">
-            <div class="cell" data-label="One">One</div>
-        </div>
-        <div class="column col-70">
-            <div class="cell" data-label="Two">Two</div>
-        </div>
-        <div class="column col-50">
-            <div class="cell" data-label="Three">Three</div>
-        </div>
-        <div class="column col-50">
-            <div class="cell" data-label="Four">Four</div>
-        </div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#view-one">Flex Briefing</a>
+      <nav class="view-nav" aria-label="Briefing views">
+        <a href="#view-one"><span>01</span><b>Finding</b></a>
+        <a href="#view-two"><span>02</span><b>Method</b></a>
+      </nav>
     </div>
-    <div class="page">
-        <div class="column col-80">
-            <div class="cell" data-label="Five">Five</div>
+  </header>
+
+  <main>
+    <!-- View one combines a 30/70 hero row with a 50/50 supporting row. -->
+    <section class="page" id="view-one" aria-labelledby="briefing-title">
+      <div class="page-inner">
+        <div class="hero-row">
+          <article class="briefing-panel">
+            <p class="page-label">View 01 · Finding</p>
+            <h1 id="briefing-title">One subject, two views.</h1>
+            <p>This first viewport introduces an illustrative regional comparison. The second explains how flexbox creates the composition.</p>
+            <div class="mini-stats" aria-label="Illustrative briefing summary">
+              <div class="mini-stat"><strong>03</strong><span>sample zones</span></div>
+              <div class="mini-stat"><strong>24</strong><span>point gap</span></div>
+              <div class="mini-stat"><strong>01</strong><span>comparison</span></div>
+            </div>
+          </article>
+
+          <figure class="visual-panel">
+            <p class="page-label">Illustrative sample content</p>
+            <h2>Households within easy reach of services</h2>
+            <figcaption>Share of households, by sample zone. Values are illustrative rather than observed.</figcaption>
+            <div class="bar-chart" role="img" aria-label="Illustrative easy access: north zone 72 percent, central zone 61 percent, south zone 48 percent">
+              <div class="bar-row"><span class="bar-label">North zone</span><div class="bar-track"><div class="bar" style="--value:72%"></div></div><span class="bar-value">72%</span></div>
+              <div class="bar-row"><span class="bar-label">Central zone</span><div class="bar-track"><div class="bar" style="--value:61%"></div></div><span class="bar-value">61%</span></div>
+              <div class="bar-row"><span class="bar-label">South zone</span><div class="bar-track"><div class="bar" style="--value:48%"></div></div><span class="bar-value">48%</span></div>
+            </div>
+          </figure>
         </div>
-        <div class="column col-20">
-            <div class="cell" data-label="Six">Six</div>
+
+        <div class="support-row">
+          <article class="support-card">
+            <p class="page-label">What to notice</p>
+            <h3>The primary comparison receives the wider region</h3>
+            <p>The 30/70 row gives orientation enough room to work while reserving visual emphasis for the sample chart.</p>
+          </article>
+          <article class="support-card">
+            <p class="page-label">What not to infer</p>
+            <h3>Layout hierarchy is not evidence</h3>
+            <p>Color and placement organize the example; source notes, uncertainty, and definitions would still be required for real data.</p>
+          </article>
         </div>
-    </div>
-</div>
+        <p class="page-footer">Continue to View 02 for the layout method.</p>
+      </div>
+    </section>
+
+    <!-- View two demonstrates the original 80/20 split with documentation and an index rail. -->
+    <section class="page" id="view-two" aria-labelledby="method-title">
+      <div class="page-inner">
+        <div class="method-row">
+          <article class="method-copy">
+            <p class="page-label">View 02 · Method</p>
+            <h2 id="method-title">Viewport sections built with flexbox</h2>
+            <p>Each page is a flex container with a minimum height of one viewport. Nested flex rows then distribute available width between the narrative, visualization, and supporting notes. On smaller screens, those rows change direction and return to normal document flow.</p>
+
+            <div class="principles">
+              <div class="principle"><span>01 · BASIS</span><p>Flex ratios establish relative widths without hard-coded pixels.</p></div>
+              <div class="principle"><span>02 · WRAP</span><p>Related content forms its own row and remains easy to reorder.</p></div>
+              <div class="principle"><span>03 · FLOW</span><p>Mobile rules stack every region in semantic source order.</p></div>
+            </div>
+
+            <pre><code>.page {
+  min-height: 100svh;
+  display: flex;
+}
+
+.briefing-panel { flex: 3 1 0; }
+.visual-panel   { flex: 7 1 0; }</code></pre>
+          </article>
+
+          <aside class="page-index" aria-label="Current view">
+            <p class="page-label">Current view</p>
+            <strong>02</strong>
+            <p>The narrow rail demonstrates the 20% side of the final 80/20 flex relationship.</p>
+            <a href="#view-one">Return to the finding ↑</a>
+          </aside>
+        </div>
+        <p class="page-footer">Single-file multipage flex demonstration · all values are illustrative</p>
+      </div>
+    </section>
+  </main>
 </body>
 </html>

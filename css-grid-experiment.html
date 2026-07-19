@@ -1,67 +1,290 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sticky Header and Footer with Flex Grid</title>
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-  }
-  
-  header {
-    position: sticky;
-    top: 0;
-    background-color: black;
-    color: white;
-    padding: 10px;
-    text-align: center;
-  }
-  
-  main {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    padding: 20px;
-  }
-  
-  .article {
-    flex: 0 0 calc(33.33% - 20px);
-    background-color: #F7CAC9;
-    margin-bottom: 20px;
-    padding: 15px;
-    text-align: center;
-  }
-  
-  footer {
-    position: sticky;
-    bottom: 0;
-    background-color: black;
-    color: white;
-    padding: 10px;
-    text-align: center;
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A single-file CSS Grid experiment showing how editorial and data content can share a responsive twelve-column layout.">
+  <title>CSS Grid Experiment — An Editorial Data Layout</title>
+  <style>
+    :root {
+      --ink: #182320;
+      --muted: #65716d;
+      --paper: #f6f7f4;
+      --surface: #ffffff;
+      --line: #dde3df;
+      --green: #176a52;
+      --green-soft: #e6f0eb;
+      --orange: #d96f43;
+      --yellow: #edc96a;
+      --radius: 1rem;
+      --shadow: 0 15px 36px rgb(24 35 32 / 8%);
+      --shell: min(1120px, calc(100% - 2rem));
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 400 1rem/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a { color: var(--green); text-underline-offset: .18em; }
+    :focus-visible { outline: 3px solid rgb(217 111 67 / 40%); outline-offset: 3px; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgb(221 227 223 / 90%);
+      background: rgb(246 247 244 / 92%);
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      width: var(--shell);
+      min-height: 4rem;
+      margin-inline: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand { color: var(--ink); font-weight: 780; letter-spacing: -.02em; text-decoration: none; }
+    .header-note { color: var(--muted); font-size: .78rem; }
+
+    /* The whole page shares one twelve-column grid and a consistent gutter. */
+    .page-grid {
+      width: var(--shell);
+      margin-inline: auto;
+      padding-block: clamp(2.5rem, 7vw, 5.5rem);
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: clamp(1.25rem, 2.5vw, 1.8rem);
+      background: var(--surface);
+    }
+
+    .eyebrow {
+      margin: 0 0 .75rem;
+      color: var(--green);
+      font-size: .7rem;
+      font-weight: 820;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 11ch;
+      margin-bottom: 1rem;
+      font-size: clamp(2.8rem, 7vw, 5.4rem);
+      line-height: .98;
+      letter-spacing: -.065em;
+    }
+    h2 { margin-bottom: .55rem; font-size: clamp(1.5rem, 3vw, 2.35rem); line-height: 1.08; letter-spacing: -.04em; }
+    h3 { margin-bottom: .35rem; font-size: 1rem; }
+
+    .hero {
+      grid-column: 1 / span 8;
+      min-height: 25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border: 0;
+      color: white;
+      background: #153f36;
+      box-shadow: var(--shadow);
+    }
+    .hero .eyebrow { color: #9bd2c2; }
+    .hero p:last-child { max-width: 56ch; margin-bottom: 0; color: rgb(255 255 255 / 72%); }
+
+    .grid-key {
+      grid-column: 9 / -1;
+      display: flex;
+      flex-direction: column;
+      background: var(--green-soft);
+    }
+    .grid-key p { color: var(--muted); font-size: .9rem; }
+
+    .track-counts {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgb(23 106 82 / 18%);
+    }
+    .track-counts strong { display: block; font-size: 1.45rem; line-height: 1; }
+    .track-counts span { color: var(--muted); font-size: .65rem; }
+
+    .feature {
+      grid-column: 1 / span 7;
+      min-height: 22rem;
+      box-shadow: var(--shadow);
+    }
+    .feature > p { color: var(--muted); }
+
+    .bar-chart { display: grid; gap: .9rem; margin-top: 1.6rem; }
+    .bar-row { display: grid; grid-template-columns: 7rem 1fr 2.5rem; align-items: center; gap: .7rem; font-size: .8rem; }
+    .bar-label { color: var(--muted); }
+    .bar-track { height: .65rem; overflow: hidden; border-radius: 999px; background: #edf0ed; }
+    .bar { width: var(--value); height: 100%; border-radius: inherit; background: var(--green); }
+    .bar-row:nth-child(2) .bar { background: var(--orange); }
+    .bar-row:nth-child(3) .bar { background: var(--yellow); }
+    .bar-value { font-weight: 760; text-align: right; }
+
+    .placement {
+      grid-column: 8 / -1;
+      display: flex;
+      flex-direction: column;
+      background: #202b28;
+      color: white;
+    }
+    .placement .eyebrow { color: #9bd2c2; }
+    .placement p { color: rgb(255 255 255 / 67%); font-size: .9rem; }
+    pre {
+      margin: auto 0 0;
+      overflow-x: auto;
+      border-radius: .7rem;
+      padding: 1rem;
+      color: #d8eee7;
+      background: rgb(0 0 0 / 22%);
+      font: .78rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    /* Equal four-column spans create a row of compact, comparable measures. */
+    .metric { grid-column: span 4; min-height: 10rem; display: flex; flex-direction: column; }
+    .metric strong { margin-top: auto; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1; letter-spacing: -.05em; }
+    .metric small { margin-top: .35rem; color: var(--muted); }
+
+    .reading-note { grid-column: 1 / span 8; }
+    .reading-note p { max-width: 62ch; margin-bottom: 0; color: var(--muted); }
+
+    .order-card { grid-column: 9 / -1; }
+    .order-card ol { margin: .65rem 0 0; padding-left: 1.2rem; color: var(--muted); font-size: .86rem; }
+
+    footer {
+      width: var(--shell);
+      margin-inline: auto;
+      padding-block: 1.4rem 2.5rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    /* Six columns retain asymmetric placement on tablets without squeezing text. */
+    @media (max-width: 820px) {
+      .page-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .hero, .grid-key, .feature, .placement, .reading-note, .order-card { grid-column: 1 / -1; }
+      .hero { min-height: 21rem; }
+      .metric { grid-column: span 2; }
+    }
+
+    /* The one-column mobile flow follows the source order in the HTML. */
+    @media (max-width: 560px) {
+      :root { --shell: min(100% - 1.25rem, 1120px); }
+      .page-grid { grid-template-columns: 1fr; }
+      .hero, .grid-key, .feature, .placement, .metric, .reading-note, .order-card { grid-column: 1; }
+      .bar-row { grid-template-columns: 5.8rem 1fr 2.2rem; gap: .45rem; }
+      .header-note { display: none; }
+    }
+  </style>
 </head>
 <body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#grid">Grid Study</a>
+      <span class="header-note">12 columns · responsive spans · source-order fallback</span>
+    </div>
+  </header>
 
-<header>Site Title</header>
+  <!-- Each direct child demonstrates a deliberate grid-column span. -->
+  <main class="page-grid" id="grid">
+    <article class="card hero">
+      <p class="eyebrow">CSS Grid experiment</p>
+      <h1>One grid, several reading speeds.</h1>
+      <p>This page shows how a shared column system can organize an introduction, a small chart, comparable measures, and explanatory notes without making every block the same size.</p>
+    </article>
 
-<main>
-  <div class="article">1</div>
-  <div class="article">2</div>
-  <div class="article">3</div>
-  <div class="article">4</div>
-  <div class="article">5</div>
-  <div class="article">6</div>
-  <div class="article">7</div>
-  <div class="article">8</div>
-  <div class="article">9</div>
-</main>
+    <aside class="card grid-key" aria-label="Grid configuration">
+      <p class="eyebrow">The layout system</p>
+      <h2>Twelve tracks provide a common rhythm.</h2>
+      <p>Cards span different track counts on wide screens, collapse to six tracks on tablets, and follow a single reading column on small screens.</p>
+      <div class="track-counts">
+        <div><strong>12</strong><span>desktop tracks</span></div>
+        <div><strong>6</strong><span>tablet tracks</span></div>
+        <div><strong>1</strong><span>mobile track</span></div>
+      </div>
+    </aside>
 
-<footer>This is the end.</footer>
+    <section class="card feature" aria-labelledby="sample-title">
+      <p class="eyebrow">Illustrative sample content</p>
+      <h2 id="sample-title">Service access by distance</h2>
+      <p>Sample values demonstrate how a simple comparison can occupy the wider reading region. They are illustrative, not observed data.</p>
+      <div class="bar-chart" role="img" aria-label="Illustrative service access: near transit 78 percent, outer districts 56 percent, remote areas 34 percent">
+        <div class="bar-row"><span class="bar-label">Near transit</span><div class="bar-track"><div class="bar" style="--value:78%"></div></div><span class="bar-value">78%</span></div>
+        <div class="bar-row"><span class="bar-label">Outer districts</span><div class="bar-track"><div class="bar" style="--value:56%"></div></div><span class="bar-value">56%</span></div>
+        <div class="bar-row"><span class="bar-label">Remote areas</span><div class="bar-track"><div class="bar" style="--value:34%"></div></div><span class="bar-value">34%</span></div>
+      </div>
+    </section>
 
+    <aside class="card placement">
+      <p class="eyebrow">Why this works</p>
+      <h2>Placement stays in the stylesheet.</h2>
+      <p>The content remains in a logical document order. CSS changes only how much horizontal emphasis each region receives.</p>
+      <pre><code>.feature {
+  grid-column: 1 / span 7;
+}
+
+.placement {
+  grid-column: 8 / -1;
+}</code></pre>
+    </aside>
+
+    <article class="card metric">
+      <p class="eyebrow">Sample size</p>
+      <strong>1,240</strong>
+      <small>illustrative responses</small>
+    </article>
+    <article class="card metric">
+      <p class="eyebrow">Overall access</p>
+      <strong>68%</strong>
+      <small>illustrative average</small>
+    </article>
+    <article class="card metric">
+      <p class="eyebrow">Largest gap</p>
+      <strong>44</strong>
+      <small>illustrative percentage points</small>
+    </article>
+
+    <article class="card reading-note">
+      <p class="eyebrow">Responsive behavior</p>
+      <h2>The reading order remains predictable</h2>
+      <p>Visual placement never replaces semantic order. If Grid is unsupported, styles fail, or the viewport narrows, the introduction still precedes the example, and the example still precedes its measures and notes.</p>
+    </article>
+
+    <aside class="card order-card">
+      <p class="eyebrow">Suggested sequence</p>
+      <h3>Read the page as:</h3>
+      <ol>
+        <li>Purpose</li>
+        <li>Example</li>
+        <li>Measures</li>
+        <li>Interpretation</li>
+      </ol>
+    </aside>
+  </main>
+
+  <footer>Single-file CSS Grid demonstration · all values are illustrative</footer>
 </body>
 </html>
