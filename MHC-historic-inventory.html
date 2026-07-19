@@ -1,517 +1,526 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHC Historic Inventory</title>
-    <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet">
-    <style>
-        *,
-        *::after,
-        *::before {
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bar-width: 40px;
-            --bar-height: 6px;
-            --hamburger-gap: 4px;
-            --foreground: #333;
-            --background: white;
-            --hamburger-margin: 20px;
-            --animation-timing: 200ms ease-in-out;
-            --hamburger-height: calc(var(--bar-height) * 3 + var(--hamburger-gap) * 2);
-        }
-
-        .header {
-            h1 {
-                color: lightgrey;
-                font-size: 2em;
-                font-weight: 400;
-                margin-top: 10px; /* Reset any potential inherited margins */
-                margin-bottom: 10px; /* Reset any potential inherited margins */
-            }
-            background-color: rgb(64, 64, 74);
-            padding: 0px 20px;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            display: flex;
-            justify-content: left;
-            align-items: center;
-            z-index: 800; /* Ensure the header stays on top of other content */
-        }
-
-        .hamburger-menu {
-            --x-width: calc(var(--hamburger-height) * 1.41421356237);
-
-            display: flex;
-            flex-direction: column;
-            gap: var(--hamburger-gap);
-            width: max-content;
-            position: absolute;
-            right: var(--hamburger-margin);
-            z-index: 2;
-            cursor: pointer;
-            --foreground: lightgrey;
-            --background: #333;
-        }
-
-        .hamburger-menu:has(input:checked) {
-            --foreground: lightgrey;
-            --background: #333;
-        }
-
-        .hamburger-menu:has(input:focus-visible)::before,
-        .hamburger-menu:has(input:focus-visible)::after,
-        .hamburger-menu input:focus-visible {
-            border: 1px solid var(--background);
-            box-shadow: 0 0 0 1px var(--foreground);
-        }
-
-        .hamburger-menu::before,
-        .hamburger-menu::after,
-        .hamburger-menu input {
-            content: "";
-            width: var(--bar-width);
-            height: var(--bar-height);
-            background-color: var(--foreground);
-            border-radius: 9999px;
-            transform-origin: left center;
-            transition: opacity var(--animation-timing), width var(--animation-timing),
-            rotate var(--animation-timing), translate var(--animation-timing),
-            background-color var(--animation-timing);
-        }
-
-        .hamburger-menu input {
-            appearance: none;
-            padding: 0;
-            margin: 0;
-            outline: none;
-            pointer-events: none;
-        }
-
-        .hamburger-menu:has(input:checked)::before {
-            rotate: 45deg;
-            width: var(--x-width);
-            translate: 0 calc(var(--bar-height) / -2);
-        }
-
-        .hamburger-menu:has(input:checked)::after {
-            rotate: -45deg;
-            width: var(--x-width);
-            translate: 0 calc(var(--bar-height) / 2);
-        }
-
-        .hamburger-menu input:checked {
-            opacity: 0;
-            width: 0;
-        }
-
-        .sidebar {
-            transition: transform var(--animation-timing);
-            transform: translateX(100%);
-            padding: 0.5rem 1rem;
-            padding-top: calc(var(--hamburger-height) + var(--hamburger-margin) + 1rem);
-            /*background-color: var(--foreground);*/
-            /*color: var(--background);*/
-            color: lightgrey;
-            background-color: rgb(64, 64, 74);
-            max-width: 20rem;
-            min-height: 100vh;
-            position: fixed;
-            top: 0;
-            right: 0;
-            z-index: 1; /* Ensure sidebar is behind the hamburger menu */
-        }
-
-        .hamburger-menu input:checked ~ .sidebar {
-            transform: translateX(0);
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow-x: hidden;
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            /*height: 100vh;*/
-            margin-top: 62px; /* Allow nav to account for sticky header */
-        }
-
-        .page {
-            width: 100vw;
-            height: 101vh;
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .column {
-            flex: 1;
-            min-width: 0; /* Allow content to overflow */
-        }
-
-        .cell {
-            background-color: white;
-            padding: 10px;
-            margin: 2px;
-            text-align: left;
-            flex-grow: 1; /* Ensure equal height for cells within a row */
-           /* border: 3px solid #333; */
-            color: #333;
-            font-size: 14px;
-            height: 50vh;
-            /*position: relative;*/
-            /*overflow: hidden;*/ /* Prevent map from overflowing its container */
-        }
-
-        .col-30 {
-            flex-basis: 30%;
-        }
-
-        .col-70 {
-            flex-basis: 70%;
-        }
-
-        .col-50 {
-            flex-basis: 50%;
-        }
-
-        .col-80 {
-            flex-basis: 80%;
-        }
-
-        .col-20 {
-            flex-basis: 20%;
-        }
-
-        /* adjust width */
-        .input-container {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .input-pair {
-            display: flex;
-            align-items: center;
-            margin-right: 10px; /* Adjust the margin between pairs */
-        }
-
-        .input-pair input[type="radio"] {
-            align-items: center;
-            transform: translateY(-2px); /* Adjust the vertical position */
-            /*line-height: 1.2; *//* Adjust line height to vertically center the text */
-            
-        }
-        
-        .input-pair input[type="checkbox"] {
-            align-items: center;
-            
-        }
-
-        /* Manually adjusting spacing */
-        #image-input-container {
-        margin-top: 2px; /* Adjust the margin underneath the "Select Image" input container */
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A single-file MapLibre view of Massachusetts Historical Commission inventory areas and municipal inventory status.">
+  <title>MHC Historic Inventory — Massachusetts Areas and Districts</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <style>
+    :root {
+      --ink: #211f1d;
+      --muted: #6f6964;
+      --paper: #f7f5f1;
+      --surface: #ffffff;
+      --line: #e2ddd6;
+      --brick: #98513f;
+      --brick-dark: #71392d;
+      --brick-soft: #f1e6e0;
+      --blue: #567381;
+      --shadow: 0 16px 38px rgb(54 42 35 / 9%);
+      --radius: 1rem;
+      --shell: min(1180px, calc(100% - 2rem));
     }
 
-        /* Adjust margin for sectionFive when scrolling */
-        #sectionFive {
-            scroll-margin-top: 60px; /* Add margin when scrolling to this section */
-        }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 400 1rem/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-        #map {
-            /*width: 100%;*/ /* Set map width to 100% of its container */
-            height: 90%; /* Set map height to 100% of its container */
-            z-index: 0; /* Ensure sidebar is behind the hamburger menu */
-        }
+    button, input { font: inherit; }
+    a { color: var(--brick-dark); text-underline-offset: .18em; }
+    a:hover { text-decoration-thickness: 2px; }
+    :focus-visible { outline: 3px solid rgb(152 81 63 / 38%); outline-offset: 3px; }
 
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgb(226 221 214 / 90%);
+      background: rgb(247 245 241 / 92%);
+      backdrop-filter: blur(12px);
+    }
 
-        .maplibregl-popup-content {
-            padding: 5px 10px;
-            /* Add any additional styling here */
-        }
-    </style>
+    .header-inner {
+      width: var(--shell);
+      min-height: 4.25rem;
+      margin-inline: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      color: var(--ink);
+      font-weight: 780;
+      letter-spacing: -.02em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 1.8rem;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      background: var(--brick);
+      font: 800 .65rem/1 system-ui, sans-serif;
+    }
+
+    .source-link { color: var(--muted); font-size: .8rem; font-weight: 650; }
+
+    /* One twelve-column grid is enough for the rail, map, and notes. */
+    .page-grid {
+      width: var(--shell);
+      margin-inline: auto;
+      padding-block: clamp(1.5rem, 4vw, 3.5rem) 4.5rem;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .info-rail {
+      grid-column: 1 / span 4;
+      min-width: 0;
+      padding: clamp(1.35rem, 2.5vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius);
+      color: white;
+      background: #302b28;
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      margin: 0 0 .75rem;
+      color: var(--brick);
+      font-size: .7rem;
+      font-weight: 820;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .info-rail .eyebrow { color: #dba999; }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 10ch;
+      margin-bottom: 1rem;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      line-height: .98;
+      letter-spacing: -.06em;
+    }
+    h2 { margin-bottom: .6rem; font-size: clamp(1.55rem, 3vw, 2.35rem); line-height: 1.08; letter-spacing: -.04em; }
+    h3 { margin-bottom: .35rem; font-size: 1rem; }
+
+    .intro { color: rgb(255 255 255 / 70%); font-size: .92rem; }
+    .intro a { color: white; }
+
+    .stats {
+      margin-block: 1.35rem;
+      padding-block: 1rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+      border-block: 1px solid rgb(255 255 255 / 14%);
+    }
+    .stat strong { display: block; min-height: 1.4rem; font-size: 1.3rem; line-height: 1; }
+    .stat span { display: block; margin-top: .3rem; color: rgb(255 255 255 / 52%); font-size: .62rem; line-height: 1.2; }
+
+    .controls { margin-top: auto; }
+    fieldset { margin: 0 0 1rem; padding: 0; border: 0; }
+    legend {
+      width: 100%;
+      margin-bottom: .45rem;
+      color: rgb(255 255 255 / 78%);
+      font-size: .68rem;
+      font-weight: 820;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .choice-list { display: flex; flex-wrap: wrap; gap: .25rem .85rem; }
+    .choice {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      min-height: 1.8rem;
+      color: rgb(255 255 255 / 68%);
+      font-size: .78rem;
+      cursor: pointer;
+    }
+    .choice input { accent-color: #d99b87; }
+
+    .map-card {
+      grid-column: 5 / -1;
+      min-width: 0;
+      min-height: 680px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ecebe7;
+      box-shadow: var(--shadow);
+    }
+
+    #map { position: absolute; inset: 0; }
+
+    .map-caption, .legend {
+      position: absolute;
+      z-index: 2;
+      left: 1rem;
+      border: 1px solid rgb(226 221 214 / 90%);
+      border-radius: .7rem;
+      background: rgb(255 255 255 / 92%);
+      box-shadow: 0 8px 22px rgb(54 42 35 / 11%);
+      pointer-events: none;
+    }
+    .map-caption { top: 1rem; max-width: calc(100% - 5.5rem); padding: .65rem .8rem; }
+    .map-caption strong { display: block; font-size: .83rem; }
+    .map-status { display: block; color: var(--muted); font-size: .7rem; }
+
+    .legend {
+      bottom: 1rem;
+      padding: .5rem .65rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      color: var(--muted);
+      font-size: .69rem;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: .35rem; }
+    .swatch { width: .9rem; height: .6rem; border: 1.5px solid var(--brick-dark); border-radius: .12rem; background: rgb(152 81 63 / 32%); }
+    .swatch.town { height: 0; border: 0; border-top: 2px dashed var(--blue); border-radius: 0; background: none; }
+
+    .note-primary, .note-secondary { margin-top: 1.25rem; padding-top: 1.3rem; border-top: 1px solid var(--line); }
+    .note-primary { grid-column: 1 / span 7; }
+    .note-secondary { grid-column: 9 / -1; }
+    .note-primary p, .note-secondary p { margin-bottom: .65rem; color: var(--muted); font-size: .88rem; }
+    .note-primary p:last-child, .note-secondary p:last-child { margin-bottom: 0; }
+
+    footer {
+      width: var(--shell);
+      margin-inline: auto;
+      padding-block: 1.4rem 2.5rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .75rem;
+    }
+
+    /* Popup text is assembled with DOM methods in JavaScript, not interpolated HTML. */
+    .maplibregl-popup-content { min-width: 235px; max-width: 290px; padding: 1rem; border-radius: .75rem; box-shadow: var(--shadow); }
+    .popup-kicker { margin: 0 0 .25rem; color: var(--brick); font-size: .65rem; font-weight: 820; letter-spacing: .08em; text-transform: uppercase; }
+    .popup-title { margin: 0 0 .55rem; font-size: 1rem; line-height: 1.25; }
+    .popup-row { margin: .2rem 0 0; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+    .popup-row strong { color: var(--ink); }
+    .maplibregl-ctrl-attrib { font-size: 10px; }
+
+    @media (max-width: 860px) {
+      .info-rail, .map-card, .note-primary, .note-secondary { grid-column: 1 / -1; }
+      .info-rail { min-height: 0; }
+      .map-card { min-height: min(68svh, 620px); }
+      .note-secondary { margin-top: 0; }
+    }
+
+    @media (max-width: 520px) {
+      :root { --shell: min(100% - 1.25rem, 1180px); }
+      .source-link { font-size: 0; }
+      .source-link::after { content: "Source ↗"; font-size: .75rem; }
+      .map-caption { top: .65rem; left: .65rem; }
+      .legend { left: .65rem; bottom: .65rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>MHC Historic Inventory</h1>
-        <label class="hamburger-menu">
-            <input type="checkbox" id="toggle-sidebar" />
-        </label>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#inventory">
+        <span class="brand-mark" aria-hidden="true">MHC</span>
+        <span>Historic Inventory</span>
+      </a>
+      <a class="source-link" href="https://www.mass.gov/info-details/massgis-data-mhc-historic-inventory" target="_blank" rel="noreferrer">Official MassGIS documentation ↗</a>
     </div>
-    
-    <aside class="sidebar">
-        <nav>
-            <div>Sidebar</div>
-        </nav>
+  </header>
+
+  <main class="page-grid" id="inventory">
+    <section class="info-rail" aria-labelledby="page-title">
+      <p class="eyebrow">Massachusetts Cultural Resources</p>
+      <h1 id="page-title">Historic areas, in context.</h1>
+      <p class="intro">The Massachusetts Historical Commission maintains MACRIS, an inventory of historic resources across the Commonwealth. This focused map displays public inventory areas and districts alongside the municipal inventory-status layer.</p>
+      <p class="intro"><a href="https://maps.mhc-macris.net/" target="_blank" rel="noreferrer">Open MACRIS Maps ↗</a></p>
+
+      <div class="stats" aria-label="Displayed data summary">
+        <div class="stat"><strong id="area-count">—</strong><span>areas and districts</span></div>
+        <div class="stat"><strong id="town-count">—</strong><span>municipal records</span></div>
+        <div class="stat"><strong>2</strong><span>layers displayed</span></div>
+      </div>
+
+      <form class="controls" aria-label="Map controls">
+        <fieldset>
+          <legend>Visible layers</legend>
+          <div class="choice-list">
+            <label class="choice"><input type="checkbox" id="toggle-inventory" checked> Inventory areas</label>
+            <label class="choice"><input type="checkbox" id="toggle-towns" checked> Town status</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Background</legend>
+          <div class="choice-list">
+            <label class="choice"><input type="radio" name="background" value="none" checked> Street map</label>
+            <label class="choice"><input type="radio" name="background" value="massgis-2019"> 2019</label>
+            <label class="choice"><input type="radio" name="background" value="massgis-2021"> 2021</label>
+            <label class="choice"><input type="radio" name="background" value="massgis-elevation"> Elevation</label>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <section class="map-card" aria-label="Map panel">
+      <div class="map-caption">
+        <strong>MHC inventory areas and town status</strong>
+        <span class="map-status" id="map-status" role="status" aria-live="polite">Loading statewide GeoJSON…</span>
+      </div>
+      <div id="map" aria-label="Interactive map of Massachusetts Historical Commission inventory areas" aria-busy="true"></div>
+      <div class="legend" aria-label="Map legend">
+        <span><i class="swatch" aria-hidden="true"></i> Inventory area</span>
+        <span><i class="swatch town" aria-hidden="true"></i> Town status</span>
+      </div>
+    </section>
+
+    <article class="note-primary">
+      <p class="eyebrow">What the source contains</p>
+      <h2>Public records, mapped as points and areas</h2>
+      <p>MassGIS publishes point locations for buildings, burial grounds, structures, and objects; polygons for historic areas and districts; and a town layer indicating survey digitization status. This demonstration intentionally displays only the area/district and town layers. Archaeological-resource information is excluded from the public datalayers.</p>
+    </article>
+
+    <aside class="note-secondary" aria-label="Data limitations">
+      <p class="eyebrow">Use with care</p>
+      <h3>Consult the current record</h3>
+      <p>Locations and attributes reflect source records of varying age and accuracy and may not represent present conditions. Checking this map does not replace required MHC or regulatory review.</p>
+      <p>This page loads a separately hosted GeoJSON copy. Consult <a href="https://www.mass.gov/info-details/massgis-data-mhc-historic-inventory" target="_blank" rel="noreferrer">MassGIS</a> or <a href="https://maps.mhc-macris.net/" target="_blank" rel="noreferrer">MACRIS Maps</a> for current official information.</p>
     </aside>
-    
-    <div class="container">
-        <div class="page">
-            <div class="column col-30">
-                <div class="cell" data-label="One">
-                    The <a href="http://mhc-macris.net/">Massachusetts Cultural Resource Information System</a> (MACRIS) shares the Massachusetts Historical Commission database of historic properties and areas in the Commonwealth. This map reproduces two of the MACRIS data layers, namely the 'Inventory Areas' polygon layer as well as the 'Towns' layer.</p>
+  </main>
 
-                    <label for="layerSelection"><strong>Select Layer:</strong></label><br/>
-                    <div id="layer-input-container" class="input-container">
-                        <div class="input-pair">
-                            <input type="checkbox" id="MA_MHC_poly" name="layerSelection" value="MA_MHC_poly" checked>
-                            <label for="MA_MHC_poly">MHC Areas</label>
-                        </div>
-                        <div class="input-pair">
-                            <input type="checkbox" id="MA_towns" name="layerSelection" value="MA_towns" checked>
-                            <label for="MA_towns">Towns</label>
-                        </div>
-                    </div>
-                    
-                    <p>Imagry data are supplied from <a href="https://www.mass.gov/info-details/massgis-data-layers">MassGIS</a>.</p>
+  <footer>Single-file map template · MapLibre GL JS · source context from MassGIS and MHC</footer>
 
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <script>
+    (() => {
+      "use strict";
 
-                    <label for="imageSelection" style="margin-bottom: 20px;"><strong>Select Image:</strong></label><br/>
-                    <div id="image-input-container" class="input-container">
-                        <div class="input-pair">
-                            <input type="radio" id="clear" name="imageSelection" value="clear" checked>
-                            <label for="clear">Clear</label>
-                        </div>
-                        <div class="input-pair">
-                            <input type="radio" id="2019" name="imageSelection" value="2019">
-                            <label for="2019">2019</label>
-                        </div>
-                        <div class="input-pair">
-                            <input type="radio" id="2021" name="imageSelection" value="2021">
-                            <label for="2021">2021</label>
-                        </div>
-                        <div class="input-pair">
-                            <input type="radio" id="elevation" name="imageSelection" value="elevation">
-                            <label for="elevation">Elevation</label>
-                        </div>
-                    </div>
+      const DATA_URLS = {
+        towns: "https://s3.amazonaws.com/geospatial.data/usa/ma/MHCTOWNS_POLY.geojson",
+        inventory: "https://s3.amazonaws.com/geospatial.data/usa/ma/MHCINV_in_areas.geojson"
+      };
 
-
-
-                </div>
-            </div>
-            <div class="column col-70">
-                <div id="map" class="cell" data-label="Two"></div>
-            </div>
-    </div>
-    
-    
-    <script>
-        document.getElementById('toggle-sidebar').addEventListener('change', function() {
-            if (this.checked) {
-                document.querySelector('.sidebar').style.transform = 'translateX(0)';
-            } else {
-                document.querySelector('.sidebar').style.transform = 'translateX(100%)';
-            }
-        });
-    </script>
-    
-
-    
-    <script src="https://unpkg.com/maplibre-gl"></script>
-
-
-
-    <script>
-        var map = new maplibregl.Map({
-            container: 'map',
-            center: [-71.698, 42.241],
-            zoom: 7.5,
-            style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-            maplibreLogo: true,
-            attributionControl: true
-        });
-      
-        var massgis_2021_wmts_view = (mapRef) => {
-      mapRef.addSource("massgis-2021-wmts", {
-        type: "raster",
-        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis-2021-wmts",
-        type: "raster",
-        source: "massgis-2021-wmts",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
-
-    var massgis_2019_wmts_view = (mapRef) => {
-      mapRef.addSource("massgis-2019-wmts", {
-        type: "raster",
-        tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/USGS_Orthos_2019/MapServer/WMTS/tile/1.0.0/USGS_Orthos_2019/default/default028mm/{z}/{y}/{x}.jpg"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis-2019-wmts",
-        type: "raster",
-        source: "massgis-2019-wmts",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
-
-    var massgis_elevation_hillshade = (mapRef) => {
-      mapRef.addSource("massgis_elevation_hillshade", {
-        type: "raster",
-        tiles: ["https://tiles1.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/LiDAR_Elevation_Hillshade/MapServer/tile/{z}/{y}/{x}"],
-        tileSize: 256,
-        minzoom: 0,
-        maxzoom: 20
-      });
-      mapRef.addLayer({
-        id: "massgis_elevation_hillshade",
-        type: "raster",
-        source: "massgis_elevation_hillshade",
-        layout: {
-          visibility: "none"
-        }
-      });
-    };
-
-
-  var MA_towns_data, MA_MHC_poly_data;
-
-  // Define functions for adding and updating layers
-  var addOrUpdateLayer = (mapRef, layerId, sourceId, type, paint) => {
-    // Check if the source already exists
-    if (!mapRef.getSource(sourceId)) {
-      mapRef.addSource(sourceId, {
-        type: 'geojson',
-        data: sourceId === 'MA_towns' ? MA_towns_data : MA_MHC_poly_data
-      });
-    }
-
-    // Check if the layer already exists
-    if (!mapRef.getLayer(layerId)) {
-      mapRef.addLayer({
-        id: layerId,
-        type: type,
-        source: sourceId,
-        layout: {
-          visibility: 'visible'
+      const RASTER_LAYERS = [
+        {
+          id: "massgis-2019",
+          tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/USGS_Orthos_2019/MapServer/WMTS/tile/1.0.0/USGS_Orthos_2019/default/default028mm/{z}/{y}/{x}.jpg"]
         },
-        paint: paint
-      });
-    }
-  };
-
-  // Load data and initialize layers
-  var loadDataInitLayers = async () => {
-    MA_towns_data = await fetch('https://s3.amazonaws.com/geospatial.data/usa/ma/MHCTOWNS_POLY.geojson').then(res => res.json());
-    MA_MHC_poly_data = await fetch('https://s3.amazonaws.com/geospatial.data/usa/ma/MHCINV_in_areas.geojson').then(res => res.json());
-    
-
-    addOrUpdateLayer(map, 'MA_towns', 'MA_towns', 'line', {
-      'line-color': 'orange',
-      'line-width': 1.5,
-      'line-opacity': 0.4
-    });
-
-    addOrUpdateLayer(map, 'MA_MHC_poly_fill', 'MA_MHC_poly', 'fill', {
-      'fill-color': '#EE4031',
-      'fill-opacity': 0.3
-    });
-
-    addOrUpdateLayer(map, 'MA_MHC_poly_line', 'MA_MHC_poly', 'line', {
-      'line-color': '#EE4031',
-      'line-width': 1.5,
-      'line-opacity': 0.4
-    });
-  }
-
-  // Function to set layer visibility
-   function setLayerVisibility(mapRef, layerId, visibility) {
-    console.log("Setting visibility for layer:", layerId, "to", visibility);
-    if (mapRef.getLayer(layerId)) {
-      mapRef.setLayoutProperty(layerId, 'visibility', visibility ? 'visible' : 'none');
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Event listener for image selection changes
-    document.querySelectorAll('input[name="imageSelection"]').forEach(input => {
-      input.addEventListener('change', () => {
-        var layerSelection = input.value;
-
-        console.log("Selected value:", layerSelection);
-
-        // Set visibility for satellite layers
-        setLayerVisibility(map, "massgis-2021-wmts", layerSelection === "2021");
-        setLayerVisibility(map, "massgis-2019-wmts", layerSelection === "2019");
-        setLayerVisibility(map, "massgis_elevation_hillshade", layerSelection === "elevation");
-      });
-    });
-
-    // Event listener for checkbox changes
-    document.querySelectorAll('input[name="layerSelection"]').forEach(input => {
-      input.addEventListener('change', () => {
-        var isChecked = input.checked;
-        var layerSelection = input.value;
-
-        // Use the setLayerVisibility function for each layer
-        if (layerSelection === 'MA_towns') {
-          setLayerVisibility(map, 'MA_towns', isChecked);
-        } else if (layerSelection === 'MA_MHC_poly') {
-          setLayerVisibility(map, 'MA_MHC_poly_fill', isChecked);
-          setLayerVisibility(map, 'MA_MHC_poly_line', isChecked);
+        {
+          id: "massgis-2021",
+          tiles: ["https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/orthos2021/MapServer/WMTS/tile/1.0.0/orthos2021/default/default028mm/{z}/{y}/{x}.jpg"]
+        },
+        {
+          id: "massgis-elevation",
+          tiles: ["https://tiles1.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/LiDAR_Elevation_Hillshade/MapServer/tile/{z}/{y}/{x}"]
         }
-        // Add more layers....
+      ];
+
+      const status = document.querySelector("#map-status");
+      const mapElement = document.querySelector("#map");
+
+      const map = new maplibregl.Map({
+        container: "map",
+        /* The inline style keeps the application configuration in this one HTML file. */
+        style: {
+          version: 8,
+          sources: {
+            "carto-light": {
+              type: "raster",
+              tiles: ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"],
+              tileSize: 256,
+              maxzoom: 20,
+              attribution: "© OpenStreetMap contributors, © CARTO"
+            }
+          },
+          layers: [{ id: "carto-light", type: "raster", source: "carto-light" }]
+        },
+        center: [-71.48, 42.25],
+        zoom: 8.45,
+        maxZoom: 18,
+        attributionControl: true
       });
-    });
-    
-  });
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
-  // Event listener for map load
-  map.on('load', () => {
-    // Initialize layers with default visibility
-    massgis_2019_wmts_view(map);
-    massgis_2021_wmts_view(map);
-    massgis_elevation_hillshade(map);
+      function setLayerVisibility(layerIds, visible) {
+        layerIds.forEach(id => {
+          if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+        });
+      }
 
-    // Set default image selection and layer visibility based on initial state
-    var defaultImageSelection = document.querySelector('input[name="imageSelection"]:checked').value;
-    document.querySelector('#' + defaultImageSelection).click(); // Trigger click event to initialize visibility
+      document.querySelector("#toggle-inventory").addEventListener("change", event => {
+        setLayerVisibility(["inventory-fill", "inventory-outline"], event.target.checked);
+      });
+      document.querySelector("#toggle-towns").addEventListener("change", event => {
+        setLayerVisibility(["town-status"], event.target.checked);
+      });
+      document.querySelectorAll('input[name="background"]').forEach(input => {
+        input.addEventListener("change", () => {
+          RASTER_LAYERS.forEach(layer => setLayerVisibility([layer.id], input.value === layer.id));
+        });
+      });
 
-    loadDataInitLayers();
-  });
+      function addRasterLayers() {
+        RASTER_LAYERS.forEach(layer => {
+          map.addSource(layer.id, {
+            type: "raster",
+            tiles: layer.tiles,
+            tileSize: 256,
+            maxzoom: 20
+          });
+          map.addLayer({
+            id: layer.id,
+            type: "raster",
+            source: layer.id,
+            layout: { visibility: "none" },
+            paint: { "raster-opacity": .92 }
+          });
+        });
+      }
 
+      async function fetchJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Request failed (${response.status})`);
+        return response.json();
+      }
 
-      </script>
+      function makeElement(tag, className, text) {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
+      }
 
-<script>
-  // Function to handle click events on MHC polygon layer
-  function handleMHCClick(event) {
-    const features = map.queryRenderedFeatures(event.point, { layers: ['MA_MHC_poly_fill'] });
+      function firstValue(properties, keys, fallback = "Not listed") {
+        for (const key of keys) {
+          const value = properties[key];
+          if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+        }
+        return fallback;
+      }
 
-    if (features.length > 0) {
-      const feature = features[0];
-      const town = feature.properties["TOWN_NAME"];
-      const description = feature.properties["HISTORIC_N"];
-      const coordinates = event.lngLat;
+      /* Popup values use textContent so attributes from the dataset cannot inject markup. */
+      function popupContent(feature, type) {
+        const properties = feature.properties || {};
+        const article = makeElement("article", "popup");
 
-      new maplibregl.Popup()
-        .setLngLat(coordinates)
-        .setHTML(`<p><strong>Town:</strong> ${town}</br><strong>Description:</strong> ${description}</p>`)
-        .addTo(map);
-    }
-  }
+        if (type === "inventory") {
+          const title = firstValue(properties, ["HISTORIC_N", "COMMON_NAM"], "Historic inventory area");
+          article.append(makeElement("p", "popup-kicker", firstValue(properties, ["TYPE"], "Inventory area")));
+          article.append(makeElement("h3", "popup-title", title));
+          addPopupRow(article, "Town", firstValue(properties, ["TOWN_NAME", "TOWN"]));
+          addPopupRow(article, "MACRIS ID", firstValue(properties, ["MHCN"]));
+          addPopupRow(article, "Designation", firstValue(properties, ["DESIGNATIO"]));
+          addPopupRow(article, "Date", firstValue(properties, ["D_DATE"]));
+          addPopupRow(article, "Construction", firstValue(properties, ["CONSTRUCTI"]));
+          addPopupRow(article, "Address", firstValue(properties, ["ADDRESS"]));
+          addPopupRow(article, "Recorded use", firstValue(properties, ["USE_TYPE"]));
+          addPopupRow(article, "Significance", firstValue(properties, ["SIGNIFICAN"]));
+        } else {
+          article.append(makeElement("p", "popup-kicker", "Municipal reference"));
+          article.append(makeElement("h3", "popup-title", firstValue(properties, ["TOWN_NAME", "TOWN", "NAME"], "Massachusetts municipality")));
+          article.append(makeElement("p", "popup-row", "This boundary belongs to the MHC town inventory-status layer."));
+        }
+        return article;
+      }
 
-  // Event listener for map click
-  map.on('click', 'MA_MHC_poly_fill', handleMHCClick);
-</script>
-    </body>
-    </html>
+      function addPopupRow(container, label, value) {
+        if (value === "Not listed") return;
+        const row = makeElement("p", "popup-row");
+        row.append(makeElement("strong", "", `${label}: `));
+        row.append(document.createTextNode(value));
+        container.append(row);
+      }
+
+      function addDataLayers(towns, inventory) {
+        map.addSource("towns", { type: "geojson", data: towns });
+        map.addSource("inventory", { type: "geojson", data: inventory });
+
+        map.addLayer({
+          id: "town-status",
+          type: "line",
+          source: "towns",
+          paint: { "line-color": "#567381", "line-width": 1.15, "line-opacity": .72, "line-dasharray": [3, 2] }
+        });
+        map.addLayer({
+          id: "inventory-fill",
+          type: "fill",
+          source: "inventory",
+          paint: { "fill-color": "#98513f", "fill-opacity": .38 }
+        });
+        map.addLayer({
+          id: "inventory-outline",
+          type: "line",
+          source: "inventory",
+          paint: { "line-color": "#71392d", "line-width": 1.5, "line-opacity": .92 }
+        });
+
+        ["inventory-fill", "town-status"].forEach(layerId => {
+          map.on("mouseenter", layerId, () => { map.getCanvas().style.cursor = "pointer"; });
+          map.on("mouseleave", layerId, () => { map.getCanvas().style.cursor = ""; });
+        });
+
+        map.on("click", event => {
+          const features = map.queryRenderedFeatures(event.point, { layers: ["inventory-fill", "town-status"] });
+          const inventoryFeature = features.find(feature => feature.layer.id === "inventory-fill");
+          const townFeature = features.find(feature => feature.layer.id === "town-status");
+          const feature = inventoryFeature || townFeature;
+          if (!feature) return;
+
+          new maplibregl.Popup({ offset: 10, maxWidth: "300px" })
+            .setLngLat(event.lngLat)
+            .setDOMContent(popupContent(feature, inventoryFeature ? "inventory" : "town"))
+            .addTo(map);
+        });
+      }
+
+      map.on("load", async () => {
+        try {
+          addRasterLayers();
+          const [towns, inventory] = await Promise.all([
+            fetchJSON(DATA_URLS.towns),
+            fetchJSON(DATA_URLS.inventory)
+          ]);
+
+          addDataLayers(towns, inventory);
+          const townCount = towns.features?.length || 0;
+          const areaCount = inventory.features?.length || 0;
+          document.querySelector("#town-count").textContent = townCount.toLocaleString();
+          document.querySelector("#area-count").textContent = areaCount.toLocaleString();
+          status.textContent = `${areaCount.toLocaleString()} areas · ${townCount.toLocaleString()} town records · click a feature`;
+          mapElement.setAttribute("aria-busy", "false");
+        } catch (error) {
+          console.error(error);
+          status.textContent = "The remote GeoJSON could not be loaded.";
+          mapElement.setAttribute("aria-busy", "false");
+        }
+      });
+
+      /* ResizeObserver keeps the WebGL canvas aligned when the grid stacks on small screens. */
+      new ResizeObserver(() => map.resize()).observe(document.querySelector(".map-card"));
+    })();
+  </script>
+</body>
+</html>
